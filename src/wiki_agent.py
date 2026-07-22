@@ -693,6 +693,37 @@ def normalize_new_page_target(target: Path) -> Path:
     return target.with_suffix(".md") if target.suffix else Path(f"{target}.md")
 
 
+DEFAULT_KNOWLEDGE_DIR = "10_Knowledge"
+_ILLEGAL_PATH_CHARS = re.compile(r'[<>:"|?*\x00-\x1f]')
+
+
+def safe_new_page_target(target: Path) -> Path:
+    """Turn an LLM-proposed new-page name into a safe, vault-relative Markdown path.
+
+    The model may return an absolute path, a drive letter, `..` traversal, or a
+    bare title with no directory. Left unchecked such a target makes
+    ``Vault.safe`` raise and crashes the whole run. This strips anything that
+    would escape the vault, files a directory-less title under the default
+    knowledge folder, and guarantees a ``.md`` suffix. Existing pages are never
+    passed through here.
+    """
+    if target.anchor:
+        target = target.relative_to(target.anchor)
+    parts: list[str] = []
+    for part in target.parts:
+        if part in ("..", "."):
+            continue
+        cleaned = _ILLEGAL_PATH_CHARS.sub("", part).strip(" .")
+        if cleaned:
+            parts.append(cleaned)
+    if not parts:
+        parts = ["untitled"]
+    relative = Path(*parts)
+    if len(relative.parts) == 1:
+        relative = Path(DEFAULT_KNOWLEDGE_DIR) / relative
+    return normalize_new_page_target(relative)
+
+
 def resolve_target_for_duplicates(vault: Vault, target: Path) -> Path:
     """Redirect a proposed new-page target to an existing (near-)duplicate page, if any.
 
@@ -815,9 +846,14 @@ def run_once(config: Config) -> dict[str, Any]:
     )
     pending_task = db.next_pending_task()
     if pending_task is not None:
+        queued_target = pending_task["target_page"]
+        if pending_task["task_type"] == "create_page":
+            # Older queue rows may hold a raw LLM target that escapes the vault
+            # (e.g. "/Knowledge/..."); salvage it instead of failing every run.
+            queued_target = str(safe_new_page_target(Path(queued_target)))
         action: dict[str, Any] = {
             "action": pending_task["task_type"],
-            "target": pending_task["target_page"],
+            "target": queued_target,
             "reason": "Queued from a previous run's deferred proposal.",
             "search_queries": [],
             "task_id": pending_task["task_id"],
@@ -883,12 +919,28 @@ def run_once(config: Config) -> dict[str, Any]:
             raise ValueError("structure planner returned no pages")
         for deferred in proposals[config.max_new_pages :]:
             if isinstance(deferred, dict) and deferred.get("target"):
-                db.enqueue_task("create_page", str(deferred["target"]))
+                # Normalize before queuing so a raw, vault-escaping target can never
+                # poison the queue and stall every future run.
+                db.enqueue_task(
+                    "create_page", str(safe_new_page_target(Path(str(deferred["target"]))))
+                )
         for proposal in proposals[: config.max_new_pages]:
             if not isinstance(proposal, dict) or not proposal.get("target"):
                 continue
-            target = normalize_new_page_target(Path(str(proposal["target"])))
-            validate_action({"action": "create_page", "target": str(target)}, config)
+            try:
+                target = safe_new_page_target(Path(str(proposal["target"])))
+                validate_action({"action": "create_page", "target": str(target)}, config)
+            except ValueError as invalid_target:
+                # An unusable page name must never crash the whole run: skip this
+                # proposal, record why, and let the remaining proposals proceed.
+                db.record_reflection(
+                    now(),
+                    json.dumps(
+                        {"proposal": proposal, "error": str(invalid_target)}, ensure_ascii=False
+                    ),
+                    f"{action['action']}が提案したページ名が無効だったためスキップした。",
+                )
+                continue
             target = resolve_target_for_duplicates(vault, target)
             if any(staged_target == target for staged_target, _ in staged):
                 # Another proposal in this run already redirected to the same existing page.
@@ -961,7 +1013,7 @@ def run_once(config: Config) -> dict[str, Any]:
         }
     target = Path(action["target"])
     if action["action"] == "create_page" and not vault.safe(target).exists():
-        target = normalize_new_page_target(target)
+        target = safe_new_page_target(target)
         action = {**action, "target": str(target)}
     researcher = Researcher(config.max_searches)
     sources: list[SearchResult] = []

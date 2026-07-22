@@ -19,6 +19,7 @@ from src.wiki_agent import (
     resolve_target_for_duplicates,
     review_is_blocking,
     run_once,
+    safe_new_page_target,
     strip_markdown_fence,
     unescape_literal_newlines,
     validate_action,
@@ -158,6 +159,128 @@ def test_normalize_new_page_target_adds_or_repairs_markdown_suffix() -> None:
     assert normalize_new_page_target(Path("note")) == Path("note.md")
     assert normalize_new_page_target(Path("note.txt")) == Path("note.md")
     assert normalize_new_page_target(Path("note.md")) == Path("note.md")
+
+
+@pytest.mark.parametrize(
+    "proposed",
+    [
+        "../../etc/passwd",
+        "../secret",
+        "C:/Windows/System32/evil",
+        "/etc/hosts",
+        "..",
+        "破滅的忘却",
+    ],
+)
+def test_safe_new_page_target_never_escapes_the_vault(tmp_path: Path, proposed: str) -> None:
+    vault = Vault(tmp_path / "vault")
+    safe = safe_new_page_target(Path(proposed))
+    # The sanitized target must be a Markdown path the vault accepts without raising.
+    assert safe.suffix == ".md"
+    resolved = vault.safe(safe)
+    assert vault.root in resolved.parents
+
+
+def test_safe_new_page_target_files_bare_title_under_knowledge_dir() -> None:
+    assert safe_new_page_target(Path("破滅的忘却")) == Path("10_Knowledge/破滅的忘却.md")
+    # A title that already carries a directory keeps it.
+    assert safe_new_page_target(Path("20_Concepts/RAG")) == Path("20_Concepts/RAG.md")
+
+
+class _FakeClient:
+    """Minimal stand-in for Ollama/LMStudio used to drive run_once offline."""
+
+    def __init__(self, pages: list[dict[str, object]]) -> None:
+        self._pages = pages
+
+    def plan(self, snapshot: object, stale: object = None) -> dict[str, object]:
+        return {"action": "expand_knowledge", "reason": "add missing knowledge"}
+
+    def expand(self, snapshot: object, max_new_pages: int) -> dict[str, object]:
+        return {"pages": self._pages}
+
+    def write(
+        self, title: str, reason: str, sources: object, existing: str = "", feedback: str = ""
+    ) -> str:
+        return f"---\ntype: knowledge\nstatus: draft\n---\n\n# {title}\n\n## 概要\n\n{reason}\n"
+
+    def review(self, content: str) -> dict[str, object]:
+        return {"approved": True, "issues": []}
+
+
+def test_run_once_does_not_crash_on_vault_escaping_llm_target(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import src.wiki_agent as wiki_agent
+
+    vault = Vault(tmp_path / "vault")
+    vault.write("10_Knowledge/seed.md", "# seed")
+    config = Config(tmp_path / "vault", mode="autonomous_safe")
+
+    fake = _FakeClient([{"target": "../../etc/passwd", "reason": "r", "search_queries": []}])
+    monkeypatch.setattr(wiki_agent, "create_client", lambda _config: fake)
+    monkeypatch.setattr(Researcher, "search", lambda self, query, count=3: [])
+
+    result = run_once(config)
+
+    # Previously this raised ValueError("path escapes vault") and killed the run.
+    assert result["result"] == "expanded"
+    new_pages = [Vault(config.vault_path).safe(p) for p in result["new_pages"]]
+    assert all(page.exists() for page in new_pages)
+    assert all(Vault(config.vault_path).root in page.parents for page in new_pages)
+
+
+def test_run_once_salvages_poisoned_queue_target(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import src.wiki_agent as wiki_agent
+
+    vault = Vault(tmp_path / "vault")
+    vault.write("10_Knowledge/seed.md", "# seed")
+    config = Config(tmp_path / "vault", mode="autonomous_safe")
+    db = StateDB(vault.root / ".agent-state.sqlite3")
+    # A raw, vault-escaping target left in the queue by an older run.
+    db.enqueue_task("create_page", "/Knowledge/Retrieval_Experiments.md")
+
+    fake = _FakeClient([])
+    monkeypatch.setattr(wiki_agent, "create_client", lambda _config: fake)
+    monkeypatch.setattr(Researcher, "search", lambda self, query, count=3: [])
+
+    result = run_once(config)
+
+    # Previously this looped forever on plan_rejected and stalled the scheduler.
+    assert result["result"] == "success"
+    assert db.next_pending_task() is None
+    created = Vault(config.vault_path).safe(result["action"]["target"])
+    assert created.exists()
+    assert Vault(config.vault_path).root in created.parents
+
+
+def test_run_once_normalizes_deferred_queue_targets(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import src.wiki_agent as wiki_agent
+
+    vault = Vault(tmp_path / "vault")
+    vault.write("10_Knowledge/seed.md", "# seed")
+    config = Config(tmp_path / "vault", mode="autonomous_safe", max_new_pages=1)
+    # The second proposal is deferred (over max_new_pages) and carries a bad target.
+    fake = _FakeClient(
+        [
+            {"target": "10_Knowledge/first.md", "reason": "r", "search_queries": []},
+            {"target": "/Knowledge/second.md", "reason": "r", "search_queries": []},
+        ]
+    )
+    monkeypatch.setattr(wiki_agent, "create_client", lambda _config: fake)
+    monkeypatch.setattr(Researcher, "search", lambda self, query, count=3: [])
+
+    run_once(config)
+
+    task = StateDB(vault.root / ".agent-state.sqlite3").next_pending_task()
+    assert task is not None
+    assert not task["target_page"].startswith("/")
+    # The queued target must be one the vault accepts without raising.
+    Vault(config.vault_path).safe(task["target_page"])
 
 
 def test_config_rejects_empty_model(tmp_path: Path) -> None:
