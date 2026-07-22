@@ -19,4 +19,12 @@ uv run python run_agent.py --config config.json --once
 uv run python run_agent.py --config config.json --interval-hours 24
 ```
 
+現在のVaultを使って検索方式を自動評価し、AI自身に次のWiki改善を提案させるには次を実行します。
+
+```powershell
+uv run python -m experiments.run_benchmark --vault live-vault --model qwen3:8b
+```
+
+この処理は固定Corpusを使わず、現在のMarkdown・内部リンク・実Ollamaから評価質問と次の改善案を生成し、結果を`90_System/Experiments/Latest Retrieval Experiment.md`へ保存します。
+
 Windows Task SchedulerやWSLのsystemd timerから`--once`を定期起動する方法も推奨します。
