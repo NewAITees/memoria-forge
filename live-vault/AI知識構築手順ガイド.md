@@ -4,7 +4,7 @@ date: 2025-09-17
 ---
 
 # 概要
-AI知識構築は、データ収集・事前処理・モデル選定・学習・評価・デプロイを含む一連のプロセスです。ノーコードプラットフォームやオープンソースライブラリを主なツールとして活用します。
+AI知識構築は、データ収集、事前処理、モデル選定、学習、評価、デプロイを含む一連のプロセスです。ノーコードプラットフォームやオープンソースライブラリを主なツールとして活用します。
 
 # 詳細手順
 1. **データ収集**
@@ -50,6 +50,8 @@ AI知識構築は、データ収集・事前処理・モデル選定・学習・
 
 ## 出典
 
+- [テキストをAI確認にかける | テキストでAIを素早く検出 | 99%のAI検出精度](https://duckduckgo.com/y.js?ad_domain=textguard.ai)
+- [more info](https://duckduckgo.com/duckduckgo-help-pages/company/ads-by-microsoft-on-duckduckgo-private-search/)
 
 ## 未解決点
 
