@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import html as html_lib
 import json
 import re
 import sqlite3
@@ -29,6 +30,7 @@ class Config:
     max_files_changed: int = 5
     max_new_pages: int = 2
     timeout_seconds: int = 300
+    max_run_minutes: int = 20
     git_enabled: bool = True
     auto_commit: bool = False
 
@@ -38,8 +40,11 @@ class Config:
         ollama = raw.get("ollama", {})
         agent = raw.get("agent", {})
         git = raw.get("git", {})
+        vault_path = Path(raw["vault_path"])
+        if not vault_path.is_absolute():
+            vault_path = (path.parent / vault_path).resolve()
         return cls(
-            Path(raw["vault_path"]),
+            vault_path,
             ollama.get("base_url", cls.ollama_url),
             ollama.get("model", cls.model),
             agent.get("mode", cls.mode),
@@ -48,6 +53,7 @@ class Config:
             agent.get("max_files_changed", 5),
             agent.get("max_new_pages", 2),
             ollama.get("timeout_seconds", 300),
+            agent.get("max_run_minutes", 20),
             git.get("enabled", True),
             git.get("auto_commit", False),
         )
@@ -116,6 +122,20 @@ class StateDB:
             )
         self.db.commit()
 
+    def save_source(self, source: SearchResult) -> None:
+        self.db.execute(
+            "INSERT OR REPLACE INTO sources VALUES (?, ?, ?, ?, ?, ?)",
+            (
+                source.url,
+                source.title,
+                urllib.parse.urlparse(source.url).netloc,
+                now(),
+                "search",
+                "unknown",
+            ),
+        )
+        self.db.commit()
+
 
 @dataclass(frozen=True)
 class SearchResult:
@@ -134,16 +154,35 @@ class Researcher:
             return []
         self.count += 1
         # DuckDuckGo HTML is a deliberately small default provider; production deployments can replace it.
-        url = "https://html.duckduckgo.com/html/?" + urllib.parse.urlencode({"q": query})
+        url = "https://lite.duckduckgo.com/lite/?" + urllib.parse.urlencode({"q": query})
         request = urllib.request.Request(url, headers={"User-Agent": "autonomous-wiki-agent/0.1"})
         with urllib.request.urlopen(request, timeout=20) as response:
             html = response.read(2_000_000).decode("utf-8", errors="replace")
         results: list[SearchResult] = []
-        for match in re.finditer(r'class="result__a" href="([^"]+)"[^>]*>(.*?)</a>', html):
+        pattern = (
+            r"<a(?=[^>]*class=['\"]result-link['\"])[^>]*href=['\"]([^'\"]+)['\"][^>]*>(.*?)</a>"
+        )
+        for match in re.finditer(pattern, html, re.S | re.I):
             if len(results) >= max_results:
                 break
-            results.append(SearchResult(re.sub("<.*?>", "", match.group(2)), match.group(1)))
+            result_url = urllib.parse.unquote(html_lib.unescape(match.group(1)))
+            if result_url.startswith("//"):
+                redirect = urllib.parse.urlparse("https:" + result_url)
+                result_url = urllib.parse.parse_qs(redirect.query).get("uddg", [result_url])[0]
+            title = html_lib.unescape(re.sub("<.*?>", "", match.group(2))).strip()
+            results.append(SearchResult(title, result_url))
         return results
+
+    def fetch_page(self, url: str, timeout: int = 20) -> str:
+        parsed = urllib.parse.urlparse(url)
+        if parsed.scheme != "https" or parsed.hostname in {"localhost", "127.0.0.1"}:
+            raise ValueError("only public https URLs are allowed")
+        request = urllib.request.Request(url, headers={"User-Agent": "autonomous-wiki-agent/0.1"})
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            content_type = response.headers.get_content_type()
+            if content_type not in {"text/html", "text/plain"}:
+                raise ValueError("binary pages are not supported")
+            return cast(str, response.read(2_000_000).decode("utf-8", errors="replace"))
 
 
 class Ollama:
@@ -169,6 +208,46 @@ class Ollama:
         with urllib.request.urlopen(request, timeout=self.timeout) as response:
             body: dict[str, Any] = json.loads(response.read())
         return cast(dict[str, Any], json.loads(body["message"]["content"]))
+
+    def plan(self, pages: list[str]) -> dict[str, Any]:
+        return self.chat(
+            "You maintain an Obsidian wiki. Return JSON only. Choose exactly one safe action.",
+            json.dumps(
+                {
+                    "pages": pages,
+                    "allowed_actions": ["create_page", "improve_page", "add_sources", "add_links"],
+                    "required_fields": ["action", "target", "reason", "search_queries"],
+                },
+                ensure_ascii=False,
+            ),
+        )
+
+    def write(
+        self, title: str, reason: str, sources: list[SearchResult], existing: str = ""
+    ) -> str:
+        result = self.chat(
+            "Write concise factual Japanese Markdown for an Obsidian wiki. Return JSON with a content string only.",
+            json.dumps(
+                {
+                    "title": title,
+                    "reason": reason,
+                    "sources": [source.__dict__ for source in sources],
+                    "existing_page": existing,
+                },
+                ensure_ascii=False,
+            ),
+        )
+        content = result.get("content")
+        if not isinstance(content, str) or not content.strip():
+            raise ValueError("writer returned no content")
+        return content
+
+    def review(self, content: str) -> dict[str, Any]:
+        result = self.chat(
+            "Review an Obsidian wiki page. Return JSON with approved boolean and issues array.",
+            content,
+        )
+        return result
 
 
 class Git:
@@ -214,22 +293,79 @@ def validate_action(action: dict[str, Any], config: Config) -> None:
     Vault(config.vault_path).safe(action["target"])
 
 
+def render_page(target: Path, action: dict[str, Any], sources: list[SearchResult]) -> str:
+    source_lines = "\n".join(f"- [{source.title}]({source.url})" for source in sources)
+    return (
+        f"---\ntype: knowledge\nstatus: draft\ncreated: {datetime.now().date()}\nupdated: {datetime.now().date()}\nconfidence: medium\nsources:\n"
+        + "\n".join(f"  - {source.url}" for source in sources)
+        + f"\n---\n\n# {target.stem}\n\n## 概要\n\n{action.get('reason', '調査結果を整理したページです。')}\n\n## 詳細\n\n実行時に取得した情報を確認し、レビュー後に追記します。\n\n## 出典\n\n{source_lines or '- 追加調査が必要です。'}\n\n## 未解決点\n\n- 一次資料との照合が必要です。\n"
+    )
+
+
 def run_once(config: Config) -> dict[str, Any]:
     vault = Vault(config.vault_path)
     db = StateDB(vault.root / ".agent-state.sqlite3")
     db.sync_pages(vault)
     if (vault.root / "STOP_AGENT").exists():
         return {"result": "stopped"}
+    pages = [str(path.relative_to(vault.root)) for path in vault.pages()]
     action = choose_candidate(vault)
+    if config.mode == "autonomous_safe":
+        action = Ollama(config.ollama_url, config.model, config.timeout_seconds).plan(pages)
     validate_action(action, config)
     if config.mode == "manual":
         return {"result": "proposal", "action": action}
     target = Path(action["target"])
-    if action["action"] == "create_page":
-        vault.write(
-            target,
-            f"---\ntype: knowledge\nstatus: draft\ncreated: {datetime.now().date()}\nconfidence: low\n---\n\n# {target.stem}\n\n## 概要\n\n調査待ちのページです。\n\n## 未解決点\n\n- 追加調査が必要です。\n",
-        )
+    researcher = Researcher(config.max_searches)
+    sources: list[SearchResult] = []
+    queries = action.get("search_queries") or [target.stem]
+    for query in queries:
+        sources.extend(researcher.search(query, 3))
+        if len(sources) >= config.max_pages_fetched:
+            break
+    unique_sources = list({source.url: source for source in sources}.values())[
+        : config.max_pages_fetched
+    ]
+    for source in unique_sources:
+        db.save_source(source)
+    before = {path.relative_to(vault.root) for path in vault.pages()}
+    if action["action"] in {"create_page", "improve_page"}:
+        target_exists = vault.safe(target).exists()
+        existing = vault.read(target) if target_exists else ""
+        if config.mode == "autonomous_safe":
+            generated = Ollama(config.ollama_url, config.model, config.timeout_seconds).write(
+                target.stem, action["reason"], unique_sources, existing
+            )
+            content = generated if not existing else existing + "\n\n## 調査更新\n\n" + generated
+            review = Ollama(config.ollama_url, config.model, config.timeout_seconds).review(content)
+            if review.get("approved") is not True:
+                run_id = now()
+                error = json.dumps(review, ensure_ascii=False)
+                db.db.execute(
+                    "INSERT INTO runs VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    (
+                        run_id,
+                        config.model,
+                        run_id,
+                        now(),
+                        "review_rejected",
+                        researcher.count,
+                        error,
+                    ),
+                )
+                db.db.commit()
+                return {"result": "review_rejected", "action": action, "review": review}
+        else:
+            content = (
+                render_page(target, action, unique_sources)
+                if not existing
+                else existing + "\n\n## 調査更新\n\n" + render_page(target, action, unique_sources)
+            )
+        vault.write(target, content)
+    after = {path.relative_to(vault.root) for path in vault.pages()}
+    changed = len(before.symmetric_difference(after))
+    if changed > config.max_files_changed:
+        raise RuntimeError("file change limit exceeded")
     run_id = now()
     db.db.execute(
         "INSERT INTO runs VALUES (?, ?, ?, ?, ?, ?, ?)",
@@ -238,4 +374,10 @@ def run_once(config: Config) -> dict[str, Any]:
     db.db.commit()
     if config.git_enabled and config.auto_commit and not Git(Path.cwd()).status():
         Git(Path.cwd()).commit("wiki: create initial autonomous wiki page")
-    return {"result": "success", "action": action, "run_id": run_id}
+    return {
+        "result": "success",
+        "action": action,
+        "run_id": run_id,
+        "search_count": researcher.count,
+        "source_count": len(unique_sources),
+    }
