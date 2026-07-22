@@ -184,6 +184,15 @@ class StateDB:
             )
         self.db.commit()
 
+    def record_reflection(
+        self, run_id: str, problem: str, lesson: str, proposed_rule: str | None = None
+    ) -> None:
+        self.db.execute(
+            "INSERT INTO reflections VALUES (?, ?, ?, ?)",
+            (run_id, problem, lesson, proposed_rule),
+        )
+        self.db.commit()
+
     def save_source(self, source: SearchResult) -> None:
         self.db.execute(
             "INSERT OR REPLACE INTO sources VALUES (?, ?, ?, ?, ?, ?)",
@@ -685,6 +694,9 @@ def run_once(config: Config) -> dict[str, Any]:
                 (run_id, config.model, run_id, now(), "plan_rejected", 0, error),
             )
             db.db.commit()
+            db.record_reflection(
+                run_id, error, "計画の検証に失敗し、repair_planによる修復も検証を通過しなかった。"
+            )
             return {"result": "plan_rejected", "action": action, "repaired": repaired}
         action = repaired
     if config.mode == "manual":
@@ -738,6 +750,16 @@ def run_once(config: Config) -> dict[str, Any]:
                 )
             structure_review = client.review(content)
             if review_is_blocking(structure_review):
+                run_id = now()
+                error = json.dumps(structure_review, ensure_ascii=False)
+                db.db.execute(
+                    "INSERT INTO runs VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    (run_id, config.model, run_id, now(), "review_rejected", researcher.count, error),
+                )
+                db.db.commit()
+                db.record_reflection(
+                    run_id, error, f"{action['action']}で生成したページがReviewerに拒否された。"
+                )
                 return {"result": "review_rejected", "action": action, "review": structure_review}
             staged.append((target, content))
         if not staged:
@@ -754,6 +776,10 @@ def run_once(config: Config) -> dict[str, Any]:
             (run_id, config.model, run_id, now(), result_name, researcher.count, None),
         )
         db.db.commit()
+        if git_status == "push_failed":
+            db.record_reflection(
+                run_id, git_status, "コミットは成功したが、pushが競合等により失敗した。"
+            )
         return {
             "result": "expanded" if action["action"] == "expand_knowledge" else "success",
             "action": action,
@@ -814,6 +840,9 @@ def run_once(config: Config) -> dict[str, Any]:
                     ),
                 )
                 db.db.commit()
+                db.record_reflection(
+                    run_id, error, f"{action['action']}で生成したページがReviewerに拒否された。"
+                )
                 return {"result": "review_rejected", "action": action, "review": review}
         else:
             content = (
@@ -833,6 +862,10 @@ def run_once(config: Config) -> dict[str, Any]:
     )
     db.db.commit()
     git_status = commit_and_push(vault, config, f"wiki: {action['action']} {target}")
+    if git_status == "push_failed":
+        db.record_reflection(
+            run_id, git_status, "コミットは成功したが、pushが競合等により失敗した。"
+        )
     return {
         "result": "success",
         "action": action,

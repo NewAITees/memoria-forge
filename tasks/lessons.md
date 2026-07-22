@@ -5,7 +5,7 @@
 |--------------|-------------------------------|--------|------|
 | meta         | AIとの協働ルール              | -      | 0    |
 | boundary     | データ型・変換・境界契約      | -      | 0    |
-| architecture | 設計・責務・config            | -      | 1    |
+| architecture | 設計・責務・config            | -      | 2    |
 | quality      | テスト・CI/CD・品質保証       | -      | 9    |
 | ui           | フロントエンド・デザイン・VRM | -      | 0    |
 
@@ -27,6 +27,11 @@
 - **症状**: 検索構造の改善に変化がないと、Wiki全体の成長も停止していた。
 - **原因**: 既存ページ改善を優先し、新しい関連知識を追加するタスクが不足していた。
 - **対策**: `expand_knowledge`を独立した主要タスクとして扱い、構造改善の結果に関係なく、未調査の関連情報を新規ページとして蓄積する。
+
+### [`reflections`テーブルが存在するのに一度も書き込まれていなかった]
+- **症状**: SQLiteスキーマに`reflections`テーブル（`run_id, problem, lesson, proposed_rule`）が定義されていたが、`run_once()`内のどの失敗パスからも`INSERT`されておらず、実行するほど失敗の経験が蓄積されるはずの仕組みが機能していなかった。加えて調査の過程で、`create_structure`/`expand_knowledge`のReviewer拒否パスは`runs`テーブルへの記録自体も欠落していたことが判明した（`create_page`/`improve_page`側には存在した）。
+- **原因**: 機能追加のたびに個別の失敗ハンドリングを書き足しており、失敗イベントを横断的に記録する仕組みが整備されないまま進んでいた。
+- **対策**: `StateDB.record_reflection()`を追加し、`plan_rejected`・両経路のReviewer拒否・`push_failed`の各失敗イベントで呼び出すようにした。`proposed_rule`はLLMによる追加合成を伴うため今回は`None`のまま保存し、範囲を「既存の失敗情報を記録する」ことに限定した。合わせて`create_structure`/`expand_knowledge`のReviewer拒否パスに欠けていた`runs`INSERTも追加した。
 
 ## quality — テスト・CI/CD・品質保証
 ### [サブカテゴリ: タイトル]

@@ -41,6 +41,14 @@
 - [x] `run_once()`の結果に`git_status`（`skipped`/`committed`/`pushed`/`push_failed`）を含める
 - [x] push競合・rebase失敗の回帰テストを追加する（2つのクローンから同じbareリモートへ競合push/非競合pushの両方を再現）
 
+## 反省・失敗の自動記録
+- [x] `StateDB.record_reflection()`を追加し、`reflections`テーブルへ書き込めるようにする
+- [x] `plan_rejected`（repair_plan失敗時）で反省を記録する
+- [x] `create_structure`/`expand_knowledge`のReviewer拒否で`runs`記録の欠落を修正し、反省も記録する
+- [x] `create_page`/`improve_page`のReviewer拒否で反省を記録する
+- [x] `push_failed`時に反省を記録する
+- [x] 回帰テストを追加する
+
 ## 知識拡張方針
 - [x] `expand_knowledge`を主要タスクとして実装する
 - [ ] 改善結果が変わらない場合でも新規知識を追加できるようにする

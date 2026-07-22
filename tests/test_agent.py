@@ -7,6 +7,7 @@ from src.wiki_agent import (
     Config,
     Git,
     Researcher,
+    StateDB,
     Vault,
     choose_candidate,
     commit_and_push,
@@ -319,3 +320,11 @@ def test_commit_and_push_returns_push_failed_on_unresolvable_conflict(tmp_path: 
         ["git", "-C", str(repo_dir), "log", "--oneline"], capture_output=True, text=True, check=True
     ).stdout
     assert "wiki: conflicting change from this process" in log
+
+
+def test_record_reflection_inserts_row(tmp_path: Path) -> None:
+    db = StateDB(tmp_path / "state.sqlite3")
+    db.record_reflection("run-1", "review rejected: missing sources", "出典が不足していた。")
+
+    rows = db.db.execute("SELECT run_id, problem, lesson, proposed_rule FROM reflections").fetchall()
+    assert rows == [("run-1", "review rejected: missing sources", "出典が不足していた。", None)]
