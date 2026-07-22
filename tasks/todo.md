@@ -81,3 +81,11 @@
 - [x] 固定MOC/Index条件を廃止し、Vaultスナップショットに基づくLLM判断へ移行する
 - [x] 欠落したアクション項目を1回だけ再計画する
 - [x] qwen3構造化タスクのthinkingを無効化する
+- [x] LM StudioのJSON Schema出力とNemotron 3 Nano 4Bを実モデルで検証する
+- [x] 新規ページ候補の拡張子を`.md`へ正規化する（既存ページは変更しない）
+- [x] Nemotron 4BとQwen3 8Bを同一資料でPlanner/Writer/Reviewer比較する
+- [x] モデル比較結果を`experiments/model_comparison_report.md`へ保存する
+- [x] Gemma 4 E4Bを同一条件で比較する
+- [x] 現時点の採用モデルをQwen3 8Bへ変更する
+- [x] Qwen3.5 9Bのダウンロード完了後に同一条件で比較する
+- [ ] Qwen3.5 9Bの空応答と長時間生成の原因を別途調査する

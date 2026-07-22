@@ -41,6 +41,7 @@ def process_lock(path: Path) -> Generator[bool, None, None]:
 @dataclass(frozen=True)
 class Config:
     vault_path: Path
+    provider: str = "ollama"
     ollama_url: str = "http://localhost:11434"
     model: str = "qwen3:8b"
     mode: str = "manual"
@@ -56,10 +57,15 @@ class Config:
     stale_days: int = 30
 
     ALLOWED_MODES = ("manual", "autonomous_safe")
+    ALLOWED_PROVIDERS = ("ollama", "lmstudio")
 
     def validate(self) -> None:
         if self.mode not in self.ALLOWED_MODES:
             raise ValueError(f"mode must be one of {self.ALLOWED_MODES}, got {self.mode!r}")
+        if self.provider not in self.ALLOWED_PROVIDERS:
+            raise ValueError(
+                f"provider must be one of {self.ALLOWED_PROVIDERS}, got {self.provider!r}"
+            )
         if not self.ollama_url.startswith(("http://", "https://")):
             raise ValueError(
                 f"ollama_url must start with http:// or https://, got {self.ollama_url!r}"
@@ -89,20 +95,21 @@ class Config:
         if not vault_path.is_absolute():
             vault_path = (path.parent / vault_path).resolve()
         config = cls(
-            vault_path,
-            ollama.get("base_url", cls.ollama_url),
-            ollama.get("model", cls.model),
-            agent.get("mode", cls.mode),
-            agent.get("max_searches", 8),
-            agent.get("max_pages_fetched", 12),
-            agent.get("max_files_changed", 5),
-            agent.get("max_new_pages", 2),
-            ollama.get("timeout_seconds", 300),
-            agent.get("max_run_minutes", 20),
-            git.get("enabled", True),
-            git.get("auto_commit", False),
-            git.get("auto_push", False),
-            agent.get("stale_days", 30),
+            vault_path=vault_path,
+            provider=ollama.get("provider", cls.provider),
+            ollama_url=ollama.get("base_url", cls.ollama_url),
+            model=ollama.get("model", cls.model),
+            mode=agent.get("mode", cls.mode),
+            max_searches=agent.get("max_searches", 8),
+            max_pages_fetched=agent.get("max_pages_fetched", 12),
+            max_files_changed=agent.get("max_files_changed", 5),
+            max_new_pages=agent.get("max_new_pages", 2),
+            timeout_seconds=ollama.get("timeout_seconds", 300),
+            max_run_minutes=agent.get("max_run_minutes", 20),
+            git_enabled=git.get("enabled", True),
+            auto_commit=git.get("auto_commit", False),
+            auto_push=git.get("auto_push", False),
+            stale_days=agent.get("stale_days", 30),
         )
         config.validate()
         return config
@@ -497,6 +504,54 @@ class Ollama:
         return result
 
 
+class LMStudio(Ollama):
+    """LM Studio OpenAI-compatible client with JSON Schema constrained output.
+
+    Design reference: project requirements §14 and §21. Related class: Ollama.
+    The shared Writer/Reviewer/Planner logic stays provider-neutral; only the
+    transport and structured-output contract differ here.
+    """
+
+    def chat(self, system: str, prompt: str) -> dict[str, Any]:
+        payload = {
+            "model": self.model,
+            "stream": False,
+            "temperature": 0,
+            "response_format": {
+                "type": "json_schema",
+                "json_schema": {
+                    "name": "wiki_agent_response",
+                    "strict": False,
+                    "schema": {"type": "object", "additionalProperties": True},
+                },
+            },
+            "messages": [
+                {"role": "system", "content": system},
+                {"role": "user", "content": prompt},
+            ],
+        }
+        request = urllib.request.Request(
+            self.base_url + "/v1/chat/completions",
+            data=json.dumps(payload).encode(),
+            headers={"Content-Type": "application/json"},
+        )
+        with urllib.request.urlopen(request, timeout=self.timeout) as response:
+            body: dict[str, Any] = json.loads(response.read())
+        choices = body.get("choices")
+        if not isinstance(choices, list) or not choices:
+            raise ValueError("LM Studio returned no choices")
+        message = choices[0].get("message")
+        if not isinstance(message, dict) or not isinstance(message.get("content"), str):
+            raise ValueError("LM Studio returned no message content")
+        return cast(dict[str, Any], json.loads(message["content"]))
+
+
+def create_client(config: Config) -> Ollama:
+    if config.provider == "lmstudio":
+        return LMStudio(config.ollama_url, config.model, config.timeout_seconds)
+    return Ollama(config.ollama_url, config.model, config.timeout_seconds)
+
+
 class Git:
     """Git operations scoped to the Wiki vault's own repository (never the agent's source repo)."""
 
@@ -626,6 +681,18 @@ def find_similar_page(vault: Vault, title: str, threshold: float = 0.6) -> Path 
     return best_match if best_score >= threshold else None
 
 
+def normalize_new_page_target(target: Path) -> Path:
+    """Normalize an LLM-proposed new page to a Markdown filename.
+
+    Existing pages are never passed through this helper. A missing extension or
+    an incorrect extension is replaced with `.md`; a correct `.md` suffix is
+    preserved.
+    """
+    if target.suffix.casefold() == ".md":
+        return target
+    return target.with_suffix(".md") if target.suffix else Path(f"{target}.md")
+
+
 def resolve_target_for_duplicates(vault: Vault, target: Path) -> Path:
     """Redirect a proposed new-page target to an existing (near-)duplicate page, if any.
 
@@ -742,7 +809,7 @@ def run_once(config: Config) -> dict[str, Any]:
     wiki_snapshot = vault.snapshot()
     stale = db.stale_pages(config.stale_days)
     client = (
-        Ollama(config.ollama_url, config.model, config.timeout_seconds)
+        create_client(config)
         if config.mode == "autonomous_safe"
         else None
     )
@@ -808,7 +875,7 @@ def run_once(config: Config) -> dict[str, Any]:
         # These are distinct planning intents but use the same guarded Writer path.
         action = {**action, "action": "improve_page"}
     if action["action"] in {"create_structure", "expand_knowledge"}:
-        client = Ollama(config.ollama_url, config.model, config.timeout_seconds)
+        client = create_client(config)
         researcher = Researcher(config.max_searches)
         staged: list[tuple[Path, str]] = []
         proposals = action.get("pages", [])
@@ -820,7 +887,7 @@ def run_once(config: Config) -> dict[str, Any]:
         for proposal in proposals[: config.max_new_pages]:
             if not isinstance(proposal, dict) or not proposal.get("target"):
                 continue
-            target = Path(str(proposal["target"]))
+            target = normalize_new_page_target(Path(str(proposal["target"])))
             validate_action({"action": "create_page", "target": str(target)}, config)
             target = resolve_target_for_duplicates(vault, target)
             if any(staged_target == target for staged_target, _ in staged):
@@ -893,6 +960,9 @@ def run_once(config: Config) -> dict[str, Any]:
             "git_status": git_status,
         }
     target = Path(action["target"])
+    if action["action"] == "create_page" and not vault.safe(target).exists():
+        target = normalize_new_page_target(target)
+        action = {**action, "target": str(target)}
     researcher = Researcher(config.max_searches)
     sources: list[SearchResult] = []
     queries = action.get("search_queries") or [target.stem]
@@ -917,7 +987,7 @@ def run_once(config: Config) -> dict[str, Any]:
         target_exists = vault.safe(target).exists()
         existing = vault.read(target) if target_exists else ""
         if config.mode == "autonomous_safe":
-            client = Ollama(config.ollama_url, config.model, config.timeout_seconds)
+            client = create_client(config)
             feedback = ""
             for _attempt in range(2):
                 generated = client.write(

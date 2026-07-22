@@ -6,12 +6,15 @@ import pytest
 from src.wiki_agent import (
     Config,
     Git,
+    LMStudio,
     Researcher,
     StateDB,
     Vault,
     choose_candidate,
     commit_and_push,
+    create_client,
     find_similar_page,
+    normalize_new_page_target,
     process_lock,
     resolve_target_for_duplicates,
     review_is_blocking,
@@ -136,6 +139,25 @@ def test_config_rejects_unknown_mode(tmp_path: Path) -> None:
 def test_config_rejects_bad_ollama_url(tmp_path: Path) -> None:
     with pytest.raises(ValueError):
         Config(tmp_path / "vault", ollama_url="localhost:11434").validate()
+
+
+def test_lmstudio_provider_uses_lmstudio_client(tmp_path: Path) -> None:
+    config = Config(tmp_path / "vault", provider="lmstudio", ollama_url="http://localhost:1234")
+    config.validate()
+    assert isinstance(create_client(config), LMStudio)
+
+
+def test_config_rejects_unknown_provider(tmp_path: Path) -> None:
+    with pytest.raises(ValueError, match="provider"):
+        Config(tmp_path / "vault", provider="unknown").validate()
+
+
+def test_normalize_new_page_target_adds_or_repairs_markdown_suffix() -> None:
+    from pathlib import Path
+
+    assert normalize_new_page_target(Path("note")) == Path("note.md")
+    assert normalize_new_page_target(Path("note.txt")) == Path("note.md")
+    assert normalize_new_page_target(Path("note.md")) == Path("note.md")
 
 
 def test_config_rejects_empty_model(tmp_path: Path) -> None:
