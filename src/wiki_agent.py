@@ -4,19 +4,38 @@ from __future__ import annotations
 
 import html as html_lib
 import json
+import os
 import re
 import sqlite3
 import subprocess
 import urllib.parse
 import urllib.request
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, cast
+from typing import Any, Generator, cast
 
 
 def now() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+@contextmanager
+def process_lock(path: Path) -> Generator[bool, None, None]:
+    """Acquire an exclusive lock file; yield False when another run owns it."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        descriptor = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+    except FileExistsError:
+        yield False
+        return
+    try:
+        os.write(descriptor, str(os.getpid()).encode())
+        yield True
+    finally:
+        os.close(descriptor)
+        path.unlink(missing_ok=True)
 
 
 @dataclass(frozen=True)

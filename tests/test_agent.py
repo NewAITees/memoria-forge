@@ -7,6 +7,7 @@ from src.wiki_agent import (
     Researcher,
     Vault,
     choose_candidate,
+    process_lock,
     review_is_blocking,
     strip_markdown_fence,
     unescape_literal_newlines,
@@ -41,6 +42,15 @@ def test_review_warnings_are_not_blocking() -> None:
     assert not review_is_blocking({"approved": False, "issues": ["translation consistency"]})
     assert review_is_blocking({"approved": False, "issues": ["missing sources"]})
     assert review_is_blocking({"approved": False, "issues": [{"type": "factual_error"}]})
+
+
+def test_process_lock_prevents_concurrent_runs(tmp_path: Path) -> None:
+    lock_path = tmp_path / ".agent-run.lock"
+    with process_lock(lock_path) as first:
+        assert first
+        with process_lock(lock_path) as second:
+            assert not second
+    assert not lock_path.exists()
 
 
 def test_unescape_literal_newlines_fixes_double_escaped_content() -> None:

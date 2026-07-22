@@ -110,3 +110,17 @@ uv run python -m experiments.run_benchmark --vault live-vault --model qwen3:8b
 この処理は固定Corpusを使わず、現在のMarkdown・内部リンク・実Ollamaから評価質問と次の改善案を生成し、結果を`90_System/Experiments/Latest Retrieval Experiment.md`へ保存します。
 
 Windows Task SchedulerやWSLのsystemd timerから`--once`を定期起動する方法も推奨します。
+
+### Windows Task Schedulerへの登録
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass
+.\scripts\install_scheduler.ps1 -IntervalHours 24 -MaxRunMinutes 20
+.\scripts\status_scheduler.ps1
+```
+
+登録されたタスクは、1回の処理が終了するとプロセスを終了し、次回の時刻に新しいプロセスとして起動します。失敗時は5分間隔で最大3回再起動します。解除は次で行います。
+
+```powershell
+.\scripts\uninstall_scheduler.ps1
+```
