@@ -111,6 +111,20 @@ def test_strip_markdown_fence_leaves_unfenced_content_untouched() -> None:
     assert strip_markdown_fence(plain) == plain
 
 
+def test_strip_markdown_fence_handles_missing_closing_fence() -> None:
+    unterminated = "```markdown\n---\ntitle: Home\n---\n\n# Home\n本文"
+    assert strip_markdown_fence(unterminated) == "---\ntitle: Home\n---\n\n# Home\n本文"
+
+
+def test_strip_markdown_fence_discards_stray_text_after_closing_fence() -> None:
+    trailing_noise = (
+        "```markdown\n---\ntitle: Home\n---\n\n# Home\n本文\n```\n"
+        "- [Unrelated link](https://example.com)\n"
+        "- [Another stray link](https://example.org)"
+    )
+    assert strip_markdown_fence(trailing_noise) == "---\ntitle: Home\n---\n\n# Home\n本文"
+
+
 def test_config_rejects_unknown_mode(tmp_path: Path) -> None:
     with pytest.raises(ValueError):
         Config(tmp_path / "vault", mode="autonomous_full").validate()

@@ -4,15 +4,6 @@ status: draft
 created: 2026-07-22
 updated: 2026-07-22
 confidence: medium
----
-
-```markdown
----
-type: knowledge
-status: draft
-created: 2026-07-22
-updated: 2026-07-22
-confidence: medium
 sources:
 - title: "知識を編む - NISHIO Hirokazu"
   url: https://mem.nhiro.org/知識を編む

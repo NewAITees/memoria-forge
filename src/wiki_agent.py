@@ -248,10 +248,22 @@ class Researcher:
 
 
 def strip_markdown_fence(text: str) -> str:
-    """Unwrap a single outer ```[lang] ... ``` fence some models wrap the whole page in."""
+    """Unwrap a leading ```[lang] fence some models wrap the whole page in.
+
+    Tolerates two patterns observed in practice: a missing closing fence (the
+    model never closes it), and stray text appended after the closing fence
+    (treated as the true end of the page and discarded, since it's leftover
+    noise rather than intended content).
+    """
     stripped = text.strip()
-    match = re.match(r"^```[a-zA-Z]*\r?\n(.*)\r?\n```\s*$", stripped, re.S)
-    return match.group(1) if match else text
+    opening = re.match(r"^```[a-zA-Z]*\r?\n", stripped)
+    if not opening:
+        return text
+    body = stripped[opening.end() :]
+    closings = list(re.finditer(r"^```[ \t]*$", body, re.MULTILINE))
+    if closings:
+        body = body[: closings[-1].start()]
+    return body.strip()
 
 
 def unescape_literal_newlines(text: str) -> str:
