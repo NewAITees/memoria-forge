@@ -3,6 +3,9 @@ name = "autonomous-wiki-agent"
 version = "0.1.0"
 description = "A safe autonomous Obsidian wiki builder backed by Ollama"
 requires-python = ">=3.12"
+dependencies = [
+    "feedparser==6.0.11",
+]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
