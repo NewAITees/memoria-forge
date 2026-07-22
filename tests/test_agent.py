@@ -328,3 +328,39 @@ def test_record_reflection_inserts_row(tmp_path: Path) -> None:
 
     rows = db.db.execute("SELECT run_id, problem, lesson, proposed_rule FROM reflections").fetchall()
     assert rows == [("run-1", "review rejected: missing sources", "出典が不足していた。", None)]
+
+
+def test_stale_pages_returns_pages_older_than_threshold(tmp_path: Path) -> None:
+    import os
+    import time
+
+    vault = Vault(tmp_path / "vault")
+    old_page = vault.write("old.md", "# Old")
+    fresh_page = vault.write("fresh.md", "# Fresh")
+    old_time = time.time() - 40 * 86400
+    os.utime(old_page, (old_time, old_time))
+
+    db = StateDB(tmp_path / "state.sqlite3")
+    db.sync_pages(vault)
+
+    stale = db.stale_pages(days=30)
+    assert stale == ["old.md"]
+    assert str(fresh_page.relative_to(vault.root)) not in stale
+
+
+def test_choose_candidate_prefers_stale_page_when_db_given(tmp_path: Path) -> None:
+    import os
+    import time
+
+    vault = Vault(tmp_path / "vault")
+    vault.write("small.md", "# Small")
+    old_page = vault.write("old.md", "# This one has been sitting untouched for a long time")
+    old_time = time.time() - 40 * 86400
+    os.utime(old_page, (old_time, old_time))
+
+    db = StateDB(tmp_path / "state.sqlite3")
+    db.sync_pages(vault)
+
+    candidate = choose_candidate(vault, db, stale_days=30)
+    assert candidate["action"] == "improve_page"
+    assert candidate["target"] == "old.md"

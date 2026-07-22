@@ -5,7 +5,7 @@
 |--------------|-------------------------------|--------|------|
 | meta         | AIとの協働ルール              | -      | 0    |
 | boundary     | データ型・変換・境界契約      | -      | 0    |
-| architecture | 設計・責務・config            | -      | 2    |
+| architecture | 設計・責務・config            | -      | 3    |
 | quality      | テスト・CI/CD・品質保証       | -      | 9    |
 | ui           | フロントエンド・デザイン・VRM | -      | 0    |
 
@@ -32,6 +32,11 @@
 - **症状**: SQLiteスキーマに`reflections`テーブル（`run_id, problem, lesson, proposed_rule`）が定義されていたが、`run_once()`内のどの失敗パスからも`INSERT`されておらず、実行するほど失敗の経験が蓄積されるはずの仕組みが機能していなかった。加えて調査の過程で、`create_structure`/`expand_knowledge`のReviewer拒否パスは`runs`テーブルへの記録自体も欠落していたことが判明した（`create_page`/`improve_page`側には存在した）。
 - **原因**: 機能追加のたびに個別の失敗ハンドリングを書き足しており、失敗イベントを横断的に記録する仕組みが整備されないまま進んでいた。
 - **対策**: `StateDB.record_reflection()`を追加し、`plan_rejected`・両経路のReviewer拒否・`push_failed`の各失敗イベントで呼び出すようにした。`proposed_rule`はLLMによる追加合成を伴うため今回は`None`のまま保存し、範囲を「既存の失敗情報を記録する」ことに限定した。合わせて`create_structure`/`expand_knowledge`のReviewer拒否パスに欠けていた`runs`INSERTも追加した。
+
+### [`pages.updated_at`が実行のたびに上書きされ鮮度判定が機能していなかった]
+- **症状**: 鮮度管理機能（#7）を実装しようとしたところ、`StateDB.sync_pages()`が`updated_at`を常に`now()`で書き込んでおり、`run_once()`が呼ばれるたび（＝ページ内容が変わっていなくても）に「今更新された」扱いになっていた。このままでは「古いページ」を検出する仕組みが原理的に成立しない。
+- **原因**: `sync_pages()`はVault上のファイルをDBに反映する処理として実装されただけで、「実際にいつ変更されたか」という観点が考慮されていなかった。
+- **対策**: `updated_at`をファイルの実際のmtime（`path.stat().st_mtime`）に基づく値へ変更した。これによりファイルが実際に書き換えられた時だけ`updated_at`が進むようになり、`StateDB.stale_pages(days)`で閾値より古いページを正しく検出できるようになった。
 
 ## quality — テスト・CI/CD・品質保証
 ### [サブカテゴリ: タイトル]

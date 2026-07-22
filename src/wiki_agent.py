@@ -12,7 +12,7 @@ import urllib.parse
 import urllib.request
 from contextlib import contextmanager
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Generator, cast
 
@@ -53,6 +53,7 @@ class Config:
     git_enabled: bool = True
     auto_commit: bool = False
     auto_push: bool = False
+    stale_days: int = 30
 
     ALLOWED_MODES = ("manual", "autonomous_safe")
 
@@ -72,6 +73,7 @@ class Config:
             "max_new_pages": self.max_new_pages,
             "timeout_seconds": self.timeout_seconds,
             "max_run_minutes": self.max_run_minutes,
+            "stale_days": self.stale_days,
         }
         for name, value in positive_fields.items():
             if not isinstance(value, int) or value <= 0:
@@ -100,6 +102,7 @@ class Config:
             git.get("enabled", True),
             git.get("auto_commit", False),
             git.get("auto_push", False),
+            agent.get("stale_days", 30),
         )
         config.validate()
         return config
@@ -170,6 +173,7 @@ class StateDB:
         for path in vault.pages():
             text = path.read_text(encoding="utf-8")
             links = re.findall(r"\[\[([^]|]+)", text)
+            modified_at = datetime.fromtimestamp(path.stat().st_mtime, tz=timezone.utc).isoformat()
             self.db.execute(
                 "INSERT OR REPLACE INTO pages VALUES (?, ?, ?, ?, ?, ?, ?)",
                 (
@@ -177,12 +181,20 @@ class StateDB:
                     path.stem,
                     "knowledge",
                     "active",
-                    now(),
+                    modified_at,
                     len(text.split()),
                     json.dumps(links),
                 ),
             )
         self.db.commit()
+
+    def stale_pages(self, days: int = 30) -> list[str]:
+        """Return page paths whose file has not been modified in `days`, oldest first."""
+        cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+        rows = self.db.execute(
+            "SELECT page_path FROM pages WHERE updated_at < ? ORDER BY updated_at ASC", (cutoff,)
+        ).fetchall()
+        return [row[0] for row in rows]
 
     def record_reflection(
         self, run_id: str, problem: str, lesson: str, proposed_rule: str | None = None
@@ -312,16 +324,21 @@ class Ollama:
             body: dict[str, Any] = json.loads(response.read())
         return cast(dict[str, Any], json.loads(body["message"]["content"]))
 
-    def plan(self, wiki_snapshot: list[dict[str, Any]]) -> dict[str, Any]:
+    def plan(
+        self, wiki_snapshot: list[dict[str, Any]], stale_pages: list[str] | None = None
+    ) -> dict[str, Any]:
         return self.chat(
             "You maintain an Obsidian wiki as long-term external memory. Return JSON only. "
             "Read the current Wiki snapshot before choosing exactly one action. "
             "The Wiki structure is not predetermined: choose whether to add knowledge, "
             "improve a page, add links, add sources, or redesign structure based on evidence. "
-            "Do not assume that an Index, MOC, fixed folder names, or a fixed page template is required.",
+            "Do not assume that an Index, MOC, fixed folder names, or a fixed page template is required. "
+            "stale_pages lists pages that have not been modified in a long time and are good "
+            "improve_page candidates if nothing else stands out.",
             json.dumps(
                 {
                     "wiki_snapshot": wiki_snapshot,
+                    "stale_pages": stale_pages or [],
                     "allowed_actions": [
                         "expand_knowledge",
                         "create_structure",
@@ -494,7 +511,9 @@ class Git:
         return result.returncode == 0
 
 
-def choose_candidate(vault: Vault) -> dict[str, Any]:
+def choose_candidate(
+    vault: Vault, db: StateDB | None = None, stale_days: int = 30
+) -> dict[str, Any]:
     pages = vault.pages()
     if not pages:
         return {
@@ -503,6 +522,15 @@ def choose_candidate(vault: Vault) -> dict[str, Any]:
             "reason": "Vault is empty",
             "search_queries": [],
         }
+    if db is not None:
+        stale = db.stale_pages(stale_days)
+        if stale:
+            return {
+                "action": "improve_page",
+                "target": stale[0],
+                "reason": f"Page has not been updated in over {stale_days} days",
+                "search_queries": [],
+            }
     shallow = min(pages, key=lambda p: p.stat().st_size)
     return {
         "action": "improve_page",
@@ -652,10 +680,11 @@ def run_once(config: Config) -> dict[str, Any]:
     if (vault.root / "STOP_AGENT").exists():
         return {"result": "stopped"}
     wiki_snapshot = vault.snapshot()
-    action = choose_candidate(vault)
+    stale = db.stale_pages(config.stale_days)
+    action = choose_candidate(vault, db, config.stale_days)
     if config.mode == "autonomous_safe":
         client = Ollama(config.ollama_url, config.model, config.timeout_seconds)
-        action = client.plan(wiki_snapshot)
+        action = client.plan(wiki_snapshot, stale)
         if action.get("action") == "expand_knowledge":
             expansion = client.expand(wiki_snapshot, config.max_new_pages)
             action = {

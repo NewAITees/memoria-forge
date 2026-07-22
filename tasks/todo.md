@@ -49,6 +49,14 @@
 - [x] `push_failed`時に反省を記録する
 - [x] 回帰テストを追加する
 
+## 鮮度管理
+- [x] `sync_pages()`の`updated_at`を`now()`からファイルの実mtimeへ修正する（毎回上書きされ鮮度判定が機能しない不具合を修正）
+- [x] `StateDB.stale_pages(days)`を追加し、閾値より古いページを検出する
+- [x] `Config.stale_days`（既定30日）を追加し、`validate()`・`config.example.json`に反映する
+- [x] `choose_candidate()`が`db`を受け取れるようにし、staleなページがあれば優先的に`improve_page`候補にする
+- [x] `Ollama.plan()`のプロンプト/ペイロードに`stale_pages`を追加し、autonomous_safeモードのPlannerも古いページを考慮できるようにする
+- [x] 回帰テストを追加する
+
 ## 知識拡張方針
 - [x] `expand_knowledge`を主要タスクとして実装する
 - [ ] 改善結果が変わらない場合でも新規知識を追加できるようにする
