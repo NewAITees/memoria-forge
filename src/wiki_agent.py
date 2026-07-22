@@ -52,6 +52,7 @@ class Config:
     max_run_minutes: int = 20
     git_enabled: bool = True
     auto_commit: bool = False
+    auto_push: bool = False
 
     ALLOWED_MODES = ("manual", "autonomous_safe")
 
@@ -59,7 +60,9 @@ class Config:
         if self.mode not in self.ALLOWED_MODES:
             raise ValueError(f"mode must be one of {self.ALLOWED_MODES}, got {self.mode!r}")
         if not self.ollama_url.startswith(("http://", "https://")):
-            raise ValueError(f"ollama_url must start with http:// or https://, got {self.ollama_url!r}")
+            raise ValueError(
+                f"ollama_url must start with http:// or https://, got {self.ollama_url!r}"
+            )
         if not self.model.strip():
             raise ValueError("model must not be empty")
         positive_fields = {
@@ -96,6 +99,7 @@ class Config:
             agent.get("max_run_minutes", 20),
             git.get("enabled", True),
             git.get("auto_commit", False),
+            git.get("auto_push", False),
         )
         config.validate()
         return config
@@ -116,6 +120,22 @@ class Vault:
 
     def pages(self) -> list[Path]:
         return [p for p in self.root.rglob("*.md") if not p.is_symlink()]
+
+    def snapshot(self, max_chars_per_page: int = 1800) -> list[dict[str, Any]]:
+        """Return bounded page context so the LLM can decide Wiki structure itself."""
+        snapshot: list[dict[str, Any]] = []
+        for path in sorted(self.pages()):
+            text = path.read_text(encoding="utf-8")
+            links = re.findall(r"\[\[([^]|]+)", text)
+            snapshot.append(
+                {
+                    "path": str(path.relative_to(self.root)),
+                    "title": path.stem,
+                    "links": links[:20],
+                    "excerpt": text[:max_chars_per_page],
+                }
+            )
+        return snapshot
 
     def read(self, relative: str | Path) -> str:
         return self.safe(relative).read_text(encoding="utf-8")
@@ -269,23 +289,86 @@ class Ollama:
             body: dict[str, Any] = json.loads(response.read())
         return cast(dict[str, Any], json.loads(body["message"]["content"]))
 
-    def plan(self, pages: list[str]) -> dict[str, Any]:
+    def plan(self, wiki_snapshot: list[dict[str, Any]]) -> dict[str, Any]:
         return self.chat(
-            "You maintain an Obsidian wiki. Return JSON only. Choose exactly one safe action.",
+            "You maintain an Obsidian wiki as long-term external memory. Return JSON only. "
+            "Read the current Wiki snapshot before choosing exactly one action. "
+            "The Wiki structure is not predetermined: choose whether to add knowledge, "
+            "improve a page, add links, add sources, or redesign structure based on evidence. "
+            "Do not assume that an Index, MOC, fixed folder names, or a fixed page template is required.",
             json.dumps(
                 {
-                    "pages": pages,
-                    "allowed_actions": ["create_page", "improve_page", "add_sources", "add_links"],
-                    "required_fields": ["action", "target", "reason", "search_queries"],
+                    "wiki_snapshot": wiki_snapshot,
+                    "allowed_actions": [
+                        "expand_knowledge",
+                        "create_structure",
+                        "create_page",
+                        "improve_page",
+                        "add_sources",
+                        "add_links",
+                    ],
+                    "required_fields": ["action", "reason"],
                 },
                 ensure_ascii=False,
             ),
         )
 
-    def structure(self, pages: list[str]) -> dict[str, Any]:
+    def expand(self, wiki_snapshot: list[dict[str, Any]], max_new_pages: int) -> dict[str, Any]:
         return self.chat(
-            "Design the next small Wiki structure improvement. Return JSON only with a pages array. Each page needs target, reason, and search_queries. Include an Index or MOC and at most two pages.",
-            json.dumps({"existing_pages": pages, "max_new_pages": 2}, ensure_ascii=False),
+            "Choose genuinely missing, useful knowledge that should be added to this Wiki. "
+            "Return JSON only with a pages array. Each page needs target, reason, "
+            "search_queries, and related_pages. Choose folders and titles yourself from the "
+            "existing structure; do not impose MOC, Index, or fixed folder conventions. "
+            "Do not repeat existing pages. Search queries must be specific to the missing topic, "
+            "prefer primary sources, and must not be generic words such as home or index. "
+            "Return at most the requested number of pages.",
+            json.dumps(
+                {"wiki_snapshot": wiki_snapshot, "max_new_pages": max_new_pages}, ensure_ascii=False
+            ),
+        )
+
+    def structure(self, wiki_snapshot: list[dict[str, Any]]) -> dict[str, Any]:
+        return self.chat(
+            "Design the next small, evidence-based Wiki structure improvement. Return JSON only. "
+            "The LLM must decide whether the improvement is a new navigation page, a useful "
+            "concept page, a link redesign, or another structure change. Do not require an Index, "
+            "MOC, fixed folders, or fixed headings. Return a pages array only when creating or "
+            "updating Markdown pages; each item needs target, reason, search_queries, and "
+            "related_pages. Choose specific research queries for the actual design problem, not "
+            "generic page-name searches. Return at most two page proposals.",
+            json.dumps({"wiki_snapshot": wiki_snapshot, "max_new_pages": 2}, ensure_ascii=False),
+        )
+
+    def repair_plan(
+        self, wiki_snapshot: list[dict[str, Any]], invalid_plan: dict[str, Any]
+    ) -> dict[str, Any]:
+        return self.chat(
+            "Repair the previous Wiki action plan. Return JSON only. For improve_page, "
+            "add_sources, and add_links, target must be an existing path from wiki_snapshot. "
+            "For create_page, target must be a new Markdown path inside the Vault. For "
+            "expand_knowledge and create_structure, return pages with target, reason, "
+            "search_queries, and related_pages. Do not invent existing paths. Choose the "
+            "action from the allowed actions based on the Wiki evidence.",
+            json.dumps(
+                {
+                    "wiki_snapshot": wiki_snapshot,
+                    "allowed_actions": [
+                        "expand_knowledge",
+                        "create_structure",
+                        "create_page",
+                        "improve_page",
+                        "add_sources",
+                        "add_links",
+                    ],
+                    "required_fields": {
+                        "all": ["action", "reason"],
+                        "page_action": ["target", "search_queries"],
+                        "multi_page_action": ["pages"],
+                    },
+                    "previous_plan": invalid_plan,
+                },
+                ensure_ascii=False,
+            ),
         )
 
     def write(
@@ -342,8 +425,9 @@ class Git:
         return result.returncode == 0 and result.stdout.strip() == "true"
 
     def status(self) -> str:
+        """Porcelain status scoped to this root only, even when it's a subdirectory of a larger repo."""
         return subprocess.run(
-            ["git", "status", "--porcelain"],
+            ["git", "status", "--porcelain", "--", str(self.root)],
             cwd=self.root,
             capture_output=True,
             text=True,
@@ -354,6 +438,16 @@ class Git:
         subprocess.run(["git", "add", "--", str(self.root)], cwd=self.root, check=True)
         subprocess.run(["git", "commit", "-m", message], cwd=self.root, check=True)
 
+    def push(self) -> None:
+        branch = subprocess.run(
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+            cwd=self.root,
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.strip()
+        subprocess.run(["git", "push", "origin", branch], cwd=self.root, check=True)
+
 
 def choose_candidate(vault: Vault) -> dict[str, Any]:
     pages = vault.pages()
@@ -363,14 +457,6 @@ def choose_candidate(vault: Vault) -> dict[str, Any]:
             "target": "10_Knowledge/自律Wiki構築AI.md",
             "reason": "Vault is empty",
             "search_queries": [],
-        }
-    titles = {page.stem.casefold() for page in pages}
-    if len(pages) < 4 or not any("moc" in title or "index" in title for title in titles):
-        return {
-            "action": "create_structure",
-            "target": "90_System/Wiki Structure.md",
-            "reason": "The Vault lacks a connected Index/MOC structure.",
-            "search_queries": ["Obsidian MOC knowledge wiki structure"],
         }
     shallow = min(pages, key=lambda p: p.stat().st_size)
     return {
@@ -420,9 +506,21 @@ def find_similar_page(vault: Vault, title: str, threshold: float = 0.6) -> Path 
 
 
 def validate_action(action: dict[str, Any], config: Config) -> None:
-    allowed = {"create_page", "create_structure", "improve_page", "add_links", "add_sources"}
-    if action.get("action") not in allowed or not action.get("target"):
+    allowed = {
+        "expand_knowledge",
+        "create_page",
+        "create_structure",
+        "improve_page",
+        "add_links",
+        "add_sources",
+    }
+    action_name = action.get("action")
+    if action_name not in allowed:
         raise ValueError("invalid action")
+    if action_name in {"expand_knowledge", "create_structure"}:
+        return
+    if not action.get("target"):
+        raise ValueError("invalid action target")
     Vault(config.vault_path).safe(action["target"])
 
 
@@ -457,6 +555,18 @@ def normalize_page(target: Path, content: str, sources: list[SearchResult]) -> s
     return page + "\n"
 
 
+def commit_and_push(vault: Vault, config: Config, message: str) -> None:
+    """Commit the vault's own changes and push them, when configured to do so."""
+    if not (config.git_enabled and config.auto_commit):
+        return
+    vault_git = Git(vault.root)
+    if not vault_git.is_repo() or not vault_git.status():
+        return
+    vault_git.commit(message)
+    if config.auto_push:
+        vault_git.push()
+
+
 def review_is_blocking(review: dict[str, Any]) -> bool:
     if review.get("approved") is True:
         return False
@@ -488,19 +598,57 @@ def run_once(config: Config) -> dict[str, Any]:
     db.sync_pages(vault)
     if (vault.root / "STOP_AGENT").exists():
         return {"result": "stopped"}
-    pages = [str(path.relative_to(vault.root)) for path in vault.pages()]
+    wiki_snapshot = vault.snapshot()
     action = choose_candidate(vault)
     if config.mode == "autonomous_safe":
         client = Ollama(config.ollama_url, config.model, config.timeout_seconds)
-        if choose_candidate(vault)["action"] == "create_structure":
-            action = client.structure(pages)
-            action.update({"action": "create_structure", "target": "90_System/Wiki Structure.md"})
-        else:
-            action = client.plan(pages)
-    validate_action(action, config)
+        action = client.plan(wiki_snapshot)
+        if action.get("action") == "expand_knowledge":
+            expansion = client.expand(wiki_snapshot, config.max_new_pages)
+            action = {
+                "action": "expand_knowledge",
+                "reason": action.get("reason", "Expand missing knowledge."),
+                "pages": expansion.get("pages", []),
+            }
+        elif action.get("action") == "create_structure":
+            structure = client.structure(wiki_snapshot)
+            action = {
+                "action": "create_structure",
+                "reason": action.get("reason", "Improve the Wiki structure."),
+                "pages": structure.get("pages", []),
+            }
+    try:
+        validate_action(action, config)
+    except ValueError as first_error:
+        if config.mode != "autonomous_safe":
+            raise
+        repaired = client.repair_plan(wiki_snapshot, action)
+        try:
+            validate_action(repaired, config)
+        except ValueError as second_error:
+            run_id = now()
+            error = json.dumps(
+                {
+                    "initial_error": str(first_error),
+                    "repair_error": str(second_error),
+                    "initial_plan": action,
+                    "repaired_plan": repaired,
+                },
+                ensure_ascii=False,
+            )
+            db.db.execute(
+                "INSERT INTO runs VALUES (?, ?, ?, ?, ?, ?, ?)",
+                (run_id, config.model, run_id, now(), "plan_rejected", 0, error),
+            )
+            db.db.commit()
+            return {"result": "plan_rejected", "action": action, "repaired": repaired}
+        action = repaired
     if config.mode == "manual":
         return {"result": "proposal", "action": action}
-    if action["action"] == "create_structure":
+    if action["action"] in {"add_sources", "add_links"}:
+        # These are distinct planning intents but use the same guarded Writer path.
+        action = {**action, "action": "improve_page"}
+    if action["action"] in {"create_structure", "expand_knowledge"}:
         client = Ollama(config.ollama_url, config.model, config.timeout_seconds)
         researcher = Researcher(config.max_searches)
         staged: list[tuple[Path, str]] = []
@@ -512,10 +660,12 @@ def run_once(config: Config) -> dict[str, Any]:
                 continue
             target = Path(str(proposal["target"]))
             validate_action({"action": "create_page", "target": str(target)}, config)
+            if vault.safe(target).exists():
+                continue
             if not vault.safe(target).exists():
                 duplicate = find_similar_page(vault, target.stem)
                 if duplicate is not None:
-                    target = duplicate
+                    continue
             structure_sources: list[SearchResult] = []
             for query in proposal.get("search_queries", [target.stem]):
                 structure_sources.extend(researcher.search(str(query), 3))
@@ -537,33 +687,29 @@ def run_once(config: Config) -> dict[str, Any]:
                 ),
                 unique_structure_sources,
             )
+            related = proposal.get("related_pages", [])
+            if isinstance(related, list) and related:
+                content += "\n\n## 関連ページ\n\n" + "\n".join(
+                    f"- [[{str(link)}]]" for link in related
+                )
             structure_review = client.review(content)
             if review_is_blocking(structure_review):
                 return {"result": "review_rejected", "action": action, "review": structure_review}
             staged.append((target, content))
         if not staged:
             raise ValueError("structure planner produced no valid pages")
-        mocs = [
-            target
-            for target, _ in staged
-            if "moc" in target.stem.casefold() or "index" in target.stem.casefold()
-        ]
-        if mocs:
-            moc_target, moc_content = staged[0]
-            links = "\n".join(
-                f"- [[{target.stem}]]" for target, _ in staged if target != moc_target
-            )
-            staged[0] = (moc_target, moc_content + "\n\n## 今回作成したページ\n\n" + links + "\n")
         for target, content in staged:
             vault.write(target, content)
+        commit_and_push(vault, config, f"wiki: {action['action']} ({len(staged)} page(s))")
         run_id = now()
+        result_name = "expanded" if action["action"] == "expand_knowledge" else "success"
         db.db.execute(
             "INSERT INTO runs VALUES (?, ?, ?, ?, ?, ?, ?)",
-            (run_id, config.model, run_id, now(), "success", researcher.count, None),
+            (run_id, config.model, run_id, now(), result_name, researcher.count, None),
         )
         db.db.commit()
         return {
-            "result": "success",
+            "result": "expanded" if action["action"] == "expand_knowledge" else "success",
             "action": action,
             "run_id": run_id,
             "new_pages": [str(target) for target, _ in staged],
@@ -589,13 +735,13 @@ def run_once(config: Config) -> dict[str, Any]:
             action = {**action, "action": "improve_page", "target": str(duplicate_of)}
             target = duplicate_of
     before = {path.relative_to(vault.root) for path in vault.pages()}
+    review: dict[str, Any] = {}
     if action["action"] in {"create_page", "improve_page"}:
         target_exists = vault.safe(target).exists()
         existing = vault.read(target) if target_exists else ""
         if config.mode == "autonomous_safe":
             client = Ollama(config.ollama_url, config.model, config.timeout_seconds)
             feedback = ""
-            review: dict[str, Any] = {}
             for _attempt in range(2):
                 generated = client.write(
                     target.stem, action["reason"], unique_sources, existing, feedback
@@ -636,13 +782,10 @@ def run_once(config: Config) -> dict[str, Any]:
     run_id = now()
     db.db.execute(
         "INSERT INTO runs VALUES (?, ?, ?, ?, ?, ?, ?)",
-        (run_id, config.model, run_id, now(), "success", 0, None),
+        (run_id, config.model, run_id, now(), "success", researcher.count, None),
     )
     db.db.commit()
-    if config.git_enabled and config.auto_commit:
-        vault_git = Git(vault.root)
-        if vault_git.is_repo() and not vault_git.status():
-            vault_git.commit("wiki: create initial autonomous wiki page")
+    commit_and_push(vault, config, f"wiki: {action['action']} {target}")
     return {
         "result": "success",
         "action": action,

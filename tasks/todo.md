@@ -29,6 +29,15 @@
 - [ ] 結果をLessonsへ記録する
 - [ ] 比較結果に基づき採用モデルを決定する
 
+## Vaultのコミット・push（外部からWikiの変化を確認できるように）
+- [x] `.gitignore`から`live-vault/`の除外を解除し、`.agent-state.sqlite3`のみ除外する
+- [x] `Config`に`git.auto_push`を追加する
+- [x] `Git.push()`を追加し、現在のブランチを`origin`へpushする（force無し）
+- [x] `Git.status()`をVaultディレクトリへのpathspecでスコープし、リポジトリ全体の無関係な差分に反応しないようにする
+- [x] `commit_and_push()`を追加し、`create_page`/`improve_page`/`expand_knowledge`/`create_structure`いずれの成功パスでも、Vaultに実際の変更がある場合だけコミット・pushする
+- [x] 回帰テストを追加する（bareリモートを使ったpush実証を含む）
+- [x] READMEに方針と理由（失敗や未成熟なページも含めて成長過程を記録・公開する）を明記する
+
 ## 知識拡張方針
 - [ ] `expand_knowledge`を主要タスクとして実装する
 - [ ] 改善結果が変わらない場合でも新規知識を追加できるようにする

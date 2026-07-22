@@ -125,6 +125,18 @@ uv run python run_agent.py --config config.json --once
 
 現在の実装は、Vault境界検証、ページ一覧同期、候補選択、Planner・Writer・Reviewer、実Web検索、SQLite実行ログ、Git連携を提供します。検索方式の動的比較と、AI自身による次の改善案生成も実装しています。
 
+### Vaultの変更をこのプロジェクトの一部としてコミット・push する
+
+Wikiがこのマシンの外からでも「その日どう構造が変化したか」を追える状態にするため、Vault（`vault_path`が指すディレクトリ）はこのプロジェクトのリポジトリの一部として扱います。`.gitignore`ではVault内のMarkdownを除外していません（`.agent-state.sqlite3`のみ除外）。
+
+`git.auto_commit`を有効にすると、ページが実際に書き込まれた回（`create_page` / `improve_page` / `expand_knowledge` / `create_structure`）ごとにVault配下の変更だけをコミットします。さらに`git.auto_push`を有効にすると、そのコミットを`origin`へpushします。push先はVaultが属するリポジトリ（＝このプロジェクト自身）で、pushはVaultディレクトリの変更が実際にある場合のみ行われ、force pushは行いません。
+
+```json
+"git": {"enabled": true, "auto_commit": true, "auto_push": true}
+```
+
+レビューに合格した内容だけがVaultへ書き込まれるため、push対象になるのは「Reviewerを通過したページ」のみです。ただしReviewerは完璧さではなく致命的な問題（プレースホルダー・出典欠落・事実誤認・安全性）だけを`blocking`として弾く設計なので、内容が浅い・改善途中のページがpushされることもあります。これは意図的な仕様です。失敗や未成熟な状態も含めてWikiの成長過程として記録・公開する、というこのプロジェクトの方針（「失敗事例」「未解決点」を削除せず保存する）に沿っています。
+
 定期実行は次で開始できます。停止する場合はVault直下に`STOP_AGENT`を作成してください。
 
 ```powershell

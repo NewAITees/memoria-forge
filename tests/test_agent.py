@@ -9,6 +9,7 @@ from src.wiki_agent import (
     Researcher,
     Vault,
     choose_candidate,
+    commit_and_push,
     find_similar_page,
     process_lock,
     review_is_blocking,
@@ -34,6 +35,19 @@ def test_action_target_is_confined(tmp_path: Path) -> None:
     validate_action({"action": "create_page", "target": "note.md"}, config)
     with pytest.raises(ValueError):
         validate_action({"action": "create_page", "target": "../../secret"}, config)
+
+
+def test_structure_action_lets_llm_choose_target(tmp_path: Path) -> None:
+    validate_action({"action": "create_structure", "reason": "connect concepts"}, Config(tmp_path / "vault"))
+
+
+def test_vault_snapshot_contains_content_and_links(tmp_path: Path) -> None:
+    vault = Vault(tmp_path / "vault")
+    vault.write("notes/alpha.md", "# Alpha\n\nSee [[Beta]].")
+    snapshot = vault.snapshot()
+    assert snapshot[0]["path"] == "notes\\alpha.md" or snapshot[0]["path"] == "notes/alpha.md"
+    assert snapshot[0]["links"] == ["Beta"]
+    assert "Alpha" in snapshot[0]["excerpt"]
 
 
 def test_fetch_page_rejects_private_urls() -> None:
@@ -153,3 +167,80 @@ def test_git_is_repo_detects_real_repo(tmp_path: Path) -> None:
     repo_dir.mkdir()
     subprocess.run(["git", "init"], cwd=repo_dir, check=True, capture_output=True)
     assert Git(repo_dir).is_repo()
+
+
+def _init_repo_with_remote(tmp_path: Path) -> tuple[Path, Path]:
+    remote_dir = tmp_path / "remote.git"
+    subprocess.run(["git", "init", "--bare", str(remote_dir)], check=True, capture_output=True)
+    repo_dir = tmp_path / "repo"
+    repo_dir.mkdir()
+    subprocess.run(["git", "init", str(repo_dir)], check=True, capture_output=True)
+    subprocess.run(["git", "-C", str(repo_dir), "symbolic-ref", "HEAD", "refs/heads/main"], check=True)
+    subprocess.run(["git", "-C", str(repo_dir), "config", "user.email", "test@example.com"], check=True)
+    subprocess.run(["git", "-C", str(repo_dir), "config", "user.name", "Test"], check=True)
+    subprocess.run(["git", "-C", str(repo_dir), "remote", "add", "origin", str(remote_dir)], check=True)
+    return repo_dir, remote_dir
+
+
+def test_git_push_sends_commits_to_remote(tmp_path: Path) -> None:
+    repo_dir, remote_dir = _init_repo_with_remote(tmp_path)
+    (repo_dir / "note.md").write_text("# Note", encoding="utf-8")
+    git = Git(repo_dir)
+    git.commit("wiki: add note")
+    git.push()
+    remote_log = subprocess.run(
+        ["git", "--git-dir", str(remote_dir), "log", "--oneline", "main"],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout
+    assert "wiki: add note" in remote_log
+
+
+def test_commit_and_push_noop_when_auto_commit_disabled(tmp_path: Path) -> None:
+    repo_dir, _ = _init_repo_with_remote(tmp_path)
+    vault = Vault(repo_dir)
+    vault.write("note.md", "# Note")
+    config = Config(tmp_path / "unused-vault", git_enabled=True, auto_commit=False)
+    commit_and_push(vault, config, "wiki: test")
+    assert Git(repo_dir).status() != ""
+
+
+def test_commit_and_push_noop_when_not_a_repo(tmp_path: Path) -> None:
+    vault = Vault(tmp_path / "plain_vault")
+    vault.write("note.md", "# Note")
+    config = Config(tmp_path / "unused-vault", git_enabled=True, auto_commit=True, auto_push=True)
+    commit_and_push(vault, config, "wiki: test")
+
+
+def test_commit_and_push_commits_without_pushing_by_default(tmp_path: Path) -> None:
+    repo_dir, remote_dir = _init_repo_with_remote(tmp_path)
+    vault = Vault(repo_dir)
+    vault.write("note.md", "# Note")
+    config = Config(tmp_path / "unused-vault", git_enabled=True, auto_commit=True, auto_push=False)
+    commit_and_push(vault, config, "wiki: test commit")
+    log = subprocess.run(
+        ["git", "-C", str(repo_dir), "log", "--oneline"], capture_output=True, text=True, check=True
+    ).stdout
+    assert "wiki: test commit" in log
+    remote_log = subprocess.run(
+        ["git", "--git-dir", str(remote_dir), "log", "--oneline", "--all"],
+        capture_output=True,
+        text=True,
+    ).stdout
+    assert "wiki: test commit" not in remote_log
+
+
+def test_commit_and_push_pushes_when_auto_push_enabled(tmp_path: Path) -> None:
+    repo_dir, remote_dir = _init_repo_with_remote(tmp_path)
+    vault = Vault(repo_dir)
+    vault.write("note.md", "# Note")
+    config = Config(tmp_path / "unused-vault", git_enabled=True, auto_commit=True, auto_push=True)
+    commit_and_push(vault, config, "wiki: test push")
+    remote_log = subprocess.run(
+        ["git", "--git-dir", str(remote_dir), "log", "--oneline", "main"],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout
+    assert "wiki: test push" in remote_log

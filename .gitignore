@@ -7,5 +7,5 @@ __pycache__/
 .ruff_cache/
 config.json
 vault/.agent-state.sqlite3
-live-vault/
+live-vault/.agent-state.sqlite3
 logs/
