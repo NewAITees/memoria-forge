@@ -20,13 +20,13 @@
 
 ## モデル比較計画
 - [x] `qwen3:8b`を初期正式モデルとして継続使用する
-- [ ] `qwen3.5:4b`を追加取得する
-- [ ] 同一課題で両モデルを実データ比較する
-- [ ] 推論速度を比較する
-- [ ] JSON出力の安定性を比較する
+- [x] `qwen3.5:4b`を追加取得する
+- [x] 同一課題で5モデルを実データ比較する（本番Vaultは変更せず一時コピーを使用）
+- [x] 推論速度を比較する
+- [x] JSON出力の安定性を比較する
 - [ ] 日本語品質を比較する
 - [x] Planner / Writer / Reviewer適性を実Ollamaで確認する
-- [ ] 結果をLessonsへ記録する
+- [x] 結果をLessonsへ記録する
 - [ ] 比較結果に基づき採用モデルを決定する
 
 ## Vaultのコミット・push（外部からWikiの変化を確認できるように）
@@ -56,6 +56,12 @@
 - [x] `choose_candidate()`が`db`を受け取れるようにし、staleなページがあれば優先的に`improve_page`候補にする
 - [x] `Ollama.plan()`のプロンプト/ペイロードに`stale_pages`を追加し、autonomous_safeモードのPlannerも古いページを考慮できるようにする
 - [x] 回帰テストを追加する
+
+## 実行監視（ヘルスレポート）
+- [x] `StateDB.status_summary(stale_days, recent_limit)`を追加する（直近run・result別件数・stale件数・reflection件数）
+- [x] `run_agent.py --status`を追加し、エージェントを実行せず読み取り専用でレポートを出力する
+- [x] 回帰テストを追加する
+- [x] 実際の`live-vault`に対して`--status`を実行し、動作確認する
 
 ## 知識拡張方針
 - [x] `expand_knowledge`を主要タスクとして実装する

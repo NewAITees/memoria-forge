@@ -196,6 +196,33 @@ class StateDB:
         ).fetchall()
         return [row[0] for row in rows]
 
+    def status_summary(self, stale_days: int = 30, recent_limit: int = 10) -> dict[str, Any]:
+        """Read-only health report: recent runs, result counts, staleness, reflections."""
+        recent_rows = self.db.execute(
+            "SELECT run_id, result, start_time, search_count, error_message "
+            "FROM runs ORDER BY start_time DESC LIMIT ?",
+            (recent_limit,),
+        ).fetchall()
+        recent_runs = [
+            {
+                "run_id": row[0],
+                "result": row[1],
+                "start_time": row[2],
+                "search_count": row[3],
+                "error_message": row[4],
+            }
+            for row in recent_rows
+        ]
+        count_rows = self.db.execute("SELECT result, COUNT(*) FROM runs GROUP BY result").fetchall()
+        (reflection_count,) = self.db.execute("SELECT COUNT(*) FROM reflections").fetchone()
+        return {
+            "last_run_at": recent_runs[0]["start_time"] if recent_runs else None,
+            "recent_runs": recent_runs,
+            "result_counts": dict(count_rows),
+            "stale_page_count": len(self.stale_pages(stale_days)),
+            "reflection_count": reflection_count,
+        }
+
     def record_reflection(
         self, run_id: str, problem: str, lesson: str, proposed_rule: str | None = None
     ) -> None:

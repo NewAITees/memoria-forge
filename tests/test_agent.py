@@ -348,6 +348,36 @@ def test_stale_pages_returns_pages_older_than_threshold(tmp_path: Path) -> None:
     assert str(fresh_page.relative_to(vault.root)) not in stale
 
 
+def test_status_summary_reports_recent_runs_and_counts(tmp_path: Path) -> None:
+    db = StateDB(tmp_path / "state.sqlite3")
+    db.db.execute(
+        "INSERT INTO runs VALUES (?, ?, ?, ?, ?, ?, ?)",
+        ("run-1", "qwen3:8b", "2026-01-01T00:00:00+00:00", "2026-01-01T00:01:00+00:00", "success", 2, None),
+    )
+    db.db.execute(
+        "INSERT INTO runs VALUES (?, ?, ?, ?, ?, ?, ?)",
+        (
+            "run-2",
+            "qwen3:8b",
+            "2026-01-02T00:00:00+00:00",
+            "2026-01-02T00:01:00+00:00",
+            "review_rejected",
+            1,
+            "missing sources",
+        ),
+    )
+    db.db.commit()
+    db.record_reflection("run-2", "missing sources", "出典が不足していた。")
+
+    summary = db.status_summary()
+
+    assert summary["last_run_at"] == "2026-01-02T00:00:00+00:00"
+    assert summary["recent_runs"][0]["run_id"] == "run-2"
+    assert summary["result_counts"] == {"success": 1, "review_rejected": 1}
+    assert summary["reflection_count"] == 1
+    assert summary["stale_page_count"] == 0
+
+
 def test_choose_candidate_prefers_stale_page_when_db_given(tmp_path: Path) -> None:
     import os
     import time
