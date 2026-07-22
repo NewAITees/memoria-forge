@@ -626,6 +626,18 @@ def find_similar_page(vault: Vault, title: str, threshold: float = 0.6) -> Path 
     return best_match if best_score >= threshold else None
 
 
+def resolve_target_for_duplicates(vault: Vault, target: Path) -> Path:
+    """Redirect a proposed new-page target to an existing (near-)duplicate page, if any.
+
+    Used by expand_knowledge/create_structure so a colliding proposal still improves the
+    existing page instead of being silently discarded.
+    """
+    if vault.safe(target).exists():
+        return target
+    duplicate = find_similar_page(vault, target.stem)
+    return duplicate if duplicate is not None else target
+
+
 def validate_action(action: dict[str, Any], config: Config) -> None:
     allowed = {
         "expand_knowledge",
@@ -810,12 +822,10 @@ def run_once(config: Config) -> dict[str, Any]:
                 continue
             target = Path(str(proposal["target"]))
             validate_action({"action": "create_page", "target": str(target)}, config)
-            if vault.safe(target).exists():
+            target = resolve_target_for_duplicates(vault, target)
+            if any(staged_target == target for staged_target, _ in staged):
+                # Another proposal in this run already redirected to the same existing page.
                 continue
-            if not vault.safe(target).exists():
-                duplicate = find_similar_page(vault, target.stem)
-                if duplicate is not None:
-                    continue
             structure_sources: list[SearchResult] = []
             for query in proposal.get("search_queries", [target.stem]):
                 structure_sources.extend(researcher.search(str(query), 3))
@@ -857,7 +867,7 @@ def run_once(config: Config) -> dict[str, Any]:
                 return {"result": "review_rejected", "action": action, "review": structure_review}
             staged.append((target, content))
         if not staged:
-            raise ValueError("structure planner produced no valid pages")
+            return {"result": "no_new_pages", "action": action}
         for target, content in staged:
             vault.write(target, content)
         git_status = commit_and_push(

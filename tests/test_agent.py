@@ -13,6 +13,7 @@ from src.wiki_agent import (
     commit_and_push,
     find_similar_page,
     process_lock,
+    resolve_target_for_duplicates,
     review_is_blocking,
     run_once,
     strip_markdown_fence,
@@ -347,6 +348,20 @@ def test_stale_pages_returns_pages_older_than_threshold(tmp_path: Path) -> None:
     stale = db.stale_pages(days=30)
     assert stale == ["old.md"]
     assert str(fresh_page.relative_to(vault.root)) not in stale
+
+
+def test_resolve_target_for_duplicates_redirects_to_similar_existing_page(tmp_path: Path) -> None:
+    vault = Vault(tmp_path / "vault")
+    vault.write("10_Knowledge/自律Wiki構築AI.md", "# body")
+    resolved = resolve_target_for_duplicates(vault, Path("10_Knowledge/自律Wiki構築AIの概要.md"))
+    assert resolved == vault.safe("10_Knowledge/自律Wiki構築AI.md")
+
+
+def test_resolve_target_for_duplicates_keeps_new_target_when_unrelated(tmp_path: Path) -> None:
+    vault = Vault(tmp_path / "vault")
+    vault.write("10_Knowledge/自律Wiki構築AI.md", "# body")
+    target = Path("10_Knowledge/破滅的忘却について.md")
+    assert resolve_target_for_duplicates(vault, target) == target
 
 
 def test_task_queue_round_trip(tmp_path: Path) -> None:

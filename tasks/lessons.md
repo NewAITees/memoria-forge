@@ -5,7 +5,7 @@
 |--------------|-------------------------------|--------|------|
 | meta         | AIとの協働ルール              | -      | 0    |
 | boundary     | データ型・変換・境界契約      | -      | 0    |
-| architecture | 設計・責務・config            | -      | 4    |
+| architecture | 設計・責務・config            | -      | 5    |
 | quality      | テスト・CI/CD・品質保証       | -      | 10   |
 | ui           | フロントエンド・デザイン・VRM | -      | 0    |
 
@@ -42,6 +42,11 @@
 - **症状**: `tasks`テーブル（`task_id, task_type, target_page, priority, status, created_at`）が定義されていたが、`INSERT`する箇所がどこにも無く、`create_structure`/`expand_knowledge`で`max_new_pages`を超えて提案されたページは黙って捨てられていた。
 - **原因**: `reflections`テーブルの時と同様、スキーマ定義と実際の書き込み処理が同時に実装されていなかった。
 - **対策**: `StateDB.enqueue_task/next_pending_task/complete_task`を追加し、`run_once()`の冒頭でPlanner呼び出しより先にキューを確認・優先消化するようにした。処理しきれなかった構造提案は`enqueue_task`で積み、次回runで自動的に拾われる。
+
+### [expand_knowledge/create_structureが重複提案を無言でドロップし、runがクラッシュしていた]
+- **症状**: 実運用の`live-vault`が2ページのまま何回runを回しても増えなかった。`runs`テーブルには`success`が複数記録されているのに、`git log`上のwikiコミットは1件しかなかった。
+- **原因**: `create_structure`/`expand_knowledge`のループが、提案先が既存ページと完全一致または類似と判定された場合に`continue`で無言スキップしており、`create_page`側にある「既存ページへの`improve_page`リダイレクト」が無かった。話題がまだ狭いVaultでは新規提案のほとんどがこの判定に引っかかり、有効な提案が1件も残らず`staged`が空になって`raise ValueError("structure planner produced no valid pages")`が飛び、run全体が例外で終了していた。
+- **対策**: `resolve_target_for_duplicates()`を追加し、完全一致・類似一致のどちらの場合も提案を捨てずに既存ページへの`improve_page`として処理するよう統一した。同一run内で複数提案が同じ既存ページへリダイレクトされた場合は二重書き込みを避ける。有効な提案が本当に1件も無い場合のみ、例外を投げず`{"result": "no_new_pages", ...}`を返すようにした。
 
 ## quality — テスト・CI/CD・品質保証
 ### [サブカテゴリ: タイトル]
