@@ -3,6 +3,7 @@
   "ollama": {"provider": "ollama", "base_url": "http://localhost:11434", "model": "qwen3:8b", "timeout_seconds": 300},
   "agent": {"mode": "manual", "max_run_minutes": 20, "max_searches": 8, "max_pages_fetched": 12, "max_files_changed": 5, "max_new_pages": 2, "max_retries": 2, "stale_days": 30},
   "git": {"enabled": true, "auto_commit": false, "auto_push": false},
+  "rss": {"enabled": false, "sources_file": "./config/rss_sources.txt", "max_entries_per_feed": 10},
   "web": {"max_results_per_query": 5, "blocked_domains": [], "allowed_schemes": ["https"]},
   "memory": {"max_related_pages": 8, "max_failure_notes": 3}
 }

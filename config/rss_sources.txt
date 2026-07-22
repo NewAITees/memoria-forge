@@ -1,0 +1,6 @@
+# RSSフィードURL（1行1件）。空行と # 始まりの行は無視されます。
+# 経路A（RSS起点）で新着話題を発見する入口です。ここで見つけた記事タイトルを
+# 種にウェブ検索で裏取りし、Wikiページ（＝レポート）を生成します。
+# 例:
+# https://www.itmedia.co.jp/rss/2.0/aiplus.xml
+# https://gigazine.net/news/rss_2.0/

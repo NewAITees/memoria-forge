@@ -89,3 +89,30 @@
 - [x] 現時点の採用モデルをQwen3 8Bへ変更する
 - [x] Qwen3.5 9Bのダウンロード完了後に同一条件で比較する
 - [ ] Qwen3.5 9Bの空応答と長時間生成の原因を別途調査する
+- [x] Windowsタスクスケジューラを30分間隔へ変更する
+- [x] 定期実行で`.md`差分がない場合を失敗扱いにする
+- [x] スケジューラ経由の実行で生成・検証・ロック解除を実証する
+
+## スケジューラ安定化（LLM target起因のクラッシュ・キュー停止）
+- [x] `safe_new_page_target()`を追加し、Vault逸脱target（絶対パス・ドライブ・`..`）を無害化、フォルダ無しタイトルを`10_Knowledge/`へ配置、`.md`を保証する
+- [x] `expand_knowledge`/`create_structure`ループで不正targetをスキップ＋反省記録し、run全体を落とさないようにする
+- [x] 永続キューの両端（投入`enqueue_task`・消化`next_pending_task`）でtargetを正規化し、毒タスク（`/Knowledge/...`）による永久`plan_rejected`を解消する
+- [x] 回帰テスト（逸脱target・フォルダ配置・毒/繰延キュー）を追加する
+- [x] 実runで新規ページ生成→`10_Knowledge/`配置→コミットを実証し、origin/masterへpushする
+
+## 経路A：RSS起点でのWiki構築（AIBackgroundWorkerのRSS収集を移植・活用）
+- [x] `src/rss_collector.py`を新規作成し、AIBackgroundWorkerの`RSSCollector`を最小移植する（`RSSEntry`は軽量dataclass化、summarizer/planner/newsは移植しない）
+- [x] `feedparser==6.0.11`を依存に追加する
+- [x] `config/rss_sources.txt`（RSSフィードURL一覧の雛形）を追加する
+- [x] `config.json`/`config.example.json`に`rss`セクション（enabled/sources_file/max_entries_per_feed）を追加し、`Config`に読み込みを実装する
+- [x] `StateDB`に`rss_candidates`テーブルと`ingest_rss_candidates`/`next_rss_candidate`/`mark_rss_candidate`を追加する（url主キーで重複排除＝優先順位#1）
+- [x] `plan_rss_action()`を追加し、未使用候補を1件選び`find_similar_page()`で既存ページと重複チェック（#2）、重複なら`improve_page`・無ければ`create_page`のアクションを組む
+- [x] `run_once()`にRSS入口を統合する（RSS候補があればその回はRSS駆動＝タイトルを種にウェブ検索→Writer→Reviewer→保存。無ければ従来Plannerへフォールスルー）
+- [x] 回帰テストを追加する（RSSパース・候補の重複排除・RSS駆動でcreate_pageアクション組成）
+- [x] `uv run pytest`（63件パス）/ `ruff check`（All checks passed）/ `mypy`（no issues）を通す
+- 未着手（次の候補）: RSS候補を「複数ソース比較・一次資料確認」まで裏取り強化（現状はタイトル種の単発ウェブ検索）。経路Aとリンク構造起点（経路B）の交互実行スケジュール。
+
+## 残課題（次の候補・未着手）
+- [ ] `normalize_page`を修正し、Writer出力が`----`（4本ダッシュ）や閉じ`---`欠落のfrontmatterを返してもObsidianが解析できる正規frontmatterに整える（実生成ページ`Zettelkasten AI Integration.md`で発生）
+- [ ] Reviewerの過剰ブロックを緩和する（実日付を「未来のプレースホルダー」と誤判定する等）。Reviewerプロンプトに今日の日付を明示し、未検証出典は`blocking`でなく`confidence: low`＋未解決点で扱う
+- [ ] 今回のクラッシュ/キュー修正の学びを`tasks/lessons.md`へ記録する

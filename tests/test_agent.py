@@ -15,6 +15,7 @@ from src.wiki_agent import (
     create_client,
     find_similar_page,
     normalize_new_page_target,
+    plan_rss_action,
     process_lock,
     resolve_target_for_duplicates,
     review_is_blocking,
@@ -24,6 +25,7 @@ from src.wiki_agent import (
     unescape_literal_newlines,
     validate_action,
 )
+from src.rss_collector import RSSCollector, RSSEntry, load_rss_sources
 
 
 def test_vault_rejects_escape(tmp_path: Path) -> None:
@@ -583,3 +585,129 @@ def test_choose_candidate_prefers_stale_page_when_db_given(tmp_path: Path) -> No
     candidate = choose_candidate(vault, db, stale_days=30)
     assert candidate["action"] == "improve_page"
     assert candidate["target"] == "old.md"
+
+
+SAMPLE_FEED = """<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"><channel>
+<title>Test Feed</title>
+<item><title>AI breakthrough</title><link>https://example.com/a</link>
+<description>summary a</description></item>
+<item><title>Robotics news</title><link>https://example.com/b</link>
+<description>summary b</description></item>
+</channel></rss>"""
+
+
+def test_rss_collector_parses_feed_content() -> None:
+    # feedparser accepts raw feed text directly, so no network is needed.
+    entries = RSSCollector().collect(SAMPLE_FEED, max_entries=10)
+    assert [e.title for e in entries] == ["AI breakthrough", "Robotics news"]
+    assert entries[0].url == "https://example.com/a"
+    assert entries[0].source_name == "Test Feed"
+
+
+def test_load_rss_sources_skips_comments_and_blanks(tmp_path: Path) -> None:
+    sources_file = tmp_path / "rss_sources.txt"
+    sources_file.write_text(
+        "# comment\n\nhttps://example.com/a.xml\n  \nhttps://example.com/b.xml\n",
+        encoding="utf-8",
+    )
+    assert load_rss_sources(sources_file) == [
+        "https://example.com/a.xml",
+        "https://example.com/b.xml",
+    ]
+    assert load_rss_sources(tmp_path / "missing.txt") == []
+
+
+def test_ingest_rss_candidates_dedupes_by_url(tmp_path: Path) -> None:
+    db = StateDB(tmp_path / "state.sqlite3")
+    entries = [
+        RSSEntry(title="AI breakthrough", url="https://example.com/a", source_name="Feed"),
+        RSSEntry(title="Robotics news", url="https://example.com/b", source_name="Feed"),
+    ]
+    assert db.ingest_rss_candidates(entries) == 2
+    # Re-fetching the same feed must not pile up duplicates.
+    assert db.ingest_rss_candidates(entries) == 0
+
+    first = db.next_rss_candidate()
+    assert first is not None
+    db.mark_rss_candidate(first["url"], "used")
+    second = db.next_rss_candidate()
+    assert second is not None and second["url"] != first["url"]
+    db.mark_rss_candidate(second["url"], "used")
+    assert db.next_rss_candidate() is None
+
+
+def test_plan_rss_action_builds_create_page(tmp_path: Path) -> None:
+    vault = Vault(tmp_path / "vault")
+    db = StateDB(vault.root / ".agent-state.sqlite3")
+    db.ingest_rss_candidates(
+        [RSSEntry(title="量子ネットワークの新技術", url="https://example.com/q", source_name="Feed")]
+    )
+    # No sources file -> load_rss_sources returns [] and no network fetch happens.
+    config = Config(tmp_path / "vault", rss_enabled=True, rss_sources_file=tmp_path / "none.txt")
+
+    action = plan_rss_action(vault, db, config)
+
+    assert action is not None
+    assert action["action"] == "create_page"
+    assert action["search_queries"] == ["量子ネットワークの新技術"]
+    assert action["rss_url"] == "https://example.com/q"
+    # The candidate is consumed so the next run does not repeat it.
+    assert db.next_rss_candidate() is None
+
+
+def test_plan_rss_action_redirects_duplicate_to_improve(tmp_path: Path) -> None:
+    vault = Vault(tmp_path / "vault")
+    vault.write("10_Knowledge/量子ネットワーク.md", "# 量子ネットワーク\n\n既存ページ")
+    db = StateDB(vault.root / ".agent-state.sqlite3")
+    db.ingest_rss_candidates(
+        [RSSEntry(title="量子ネットワーク", url="https://example.com/q", source_name="Feed")]
+    )
+    config = Config(tmp_path / "vault", rss_enabled=True, rss_sources_file=tmp_path / "none.txt")
+
+    action = plan_rss_action(vault, db, config)
+
+    assert action is not None
+    assert action["action"] == "improve_page"
+    assert Path(action["target"]) == Path("10_Knowledge/量子ネットワーク.md")
+
+
+def test_plan_rss_action_returns_none_when_disabled(tmp_path: Path) -> None:
+    vault = Vault(tmp_path / "vault")
+    db = StateDB(vault.root / ".agent-state.sqlite3")
+    db.ingest_rss_candidates(
+        [RSSEntry(title="AI", url="https://example.com/a", source_name="Feed")]
+    )
+    config = Config(tmp_path / "vault", rss_enabled=False)
+    assert plan_rss_action(vault, db, config) is None
+
+
+def test_run_once_rss_drives_page_creation(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import src.wiki_agent as wiki_agent
+
+    vault = Vault(tmp_path / "vault")
+    db = StateDB(vault.root / ".agent-state.sqlite3")
+    db.ingest_rss_candidates(
+        [RSSEntry(title="ニューロモーフィック計算", url="https://example.com/n", source_name="Feed")]
+    )
+    config = Config(
+        tmp_path / "vault",
+        mode="autonomous_safe",
+        rss_enabled=True,
+        rss_sources_file=tmp_path / "none.txt",
+    )
+
+    fake = _FakeClient([])
+    monkeypatch.setattr(wiki_agent, "create_client", lambda _config: fake)
+    monkeypatch.setattr(Researcher, "search", lambda self, query, count=3: [])
+
+    result = run_once(config)
+
+    assert result["result"] == "success"
+    assert result["action"]["action"] == "create_page"
+    created = Vault(config.vault_path).safe(result["action"]["target"])
+    assert created.exists()
+    # The RSS candidate was consumed by the run.
+    assert db.next_rss_candidate() is None

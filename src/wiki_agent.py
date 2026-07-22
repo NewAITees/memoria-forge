@@ -16,6 +16,8 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Generator, cast
 
+from src.rss_collector import RSSCollector, RSSEntry, load_rss_sources
+
 
 def now() -> str:
     return datetime.now(timezone.utc).isoformat()
@@ -55,6 +57,9 @@ class Config:
     auto_commit: bool = False
     auto_push: bool = False
     stale_days: int = 30
+    rss_enabled: bool = False
+    rss_sources_file: Path = Path("config/rss_sources.txt")
+    rss_max_entries_per_feed: int = 10
 
     ALLOWED_MODES = ("manual", "autonomous_safe")
     ALLOWED_PROVIDERS = ("ollama", "lmstudio")
@@ -80,6 +85,7 @@ class Config:
             "timeout_seconds": self.timeout_seconds,
             "max_run_minutes": self.max_run_minutes,
             "stale_days": self.stale_days,
+            "rss_max_entries_per_feed": self.rss_max_entries_per_feed,
         }
         for name, value in positive_fields.items():
             if not isinstance(value, int) or value <= 0:
@@ -91,9 +97,13 @@ class Config:
         ollama = raw.get("ollama", {})
         agent = raw.get("agent", {})
         git = raw.get("git", {})
+        rss = raw.get("rss", {})
         vault_path = Path(raw["vault_path"])
         if not vault_path.is_absolute():
             vault_path = (path.parent / vault_path).resolve()
+        rss_sources_file = Path(rss.get("sources_file", "config/rss_sources.txt"))
+        if not rss_sources_file.is_absolute():
+            rss_sources_file = (path.parent / rss_sources_file).resolve()
         config = cls(
             vault_path=vault_path,
             provider=ollama.get("provider", cls.provider),
@@ -110,6 +120,9 @@ class Config:
             auto_commit=git.get("auto_commit", False),
             auto_push=git.get("auto_push", False),
             stale_days=agent.get("stale_days", 30),
+            rss_enabled=rss.get("enabled", False),
+            rss_sources_file=rss_sources_file,
+            rss_max_entries_per_feed=rss.get("max_entries_per_feed", 10),
         )
         config.validate()
         return config
@@ -173,6 +186,7 @@ class StateDB:
         CREATE TABLE IF NOT EXISTS runs (run_id TEXT PRIMARY KEY, model TEXT, start_time TEXT, end_time TEXT, result TEXT, search_count INTEGER, error_message TEXT);
         CREATE TABLE IF NOT EXISTS sources (url TEXT PRIMARY KEY, title TEXT, domain TEXT, fetched_at TEXT, source_type TEXT, reliability TEXT);
         CREATE TABLE IF NOT EXISTS reflections (run_id TEXT, problem TEXT, lesson TEXT, proposed_rule TEXT);
+        CREATE TABLE IF NOT EXISTS rss_candidates (url TEXT PRIMARY KEY, title TEXT, source_name TEXT, published_at TEXT, fetched_at TEXT, status TEXT);
         """)
         self.db.commit()
 
@@ -258,6 +272,44 @@ class StateDB:
             "INSERT INTO reflections VALUES (?, ?, ?, ?)",
             (run_id, problem, lesson, proposed_rule),
         )
+        self.db.commit()
+
+    def ingest_rss_candidates(self, entries: list[RSSEntry]) -> int:
+        """Store RSS entries as pending candidates; already-seen urls are ignored.
+
+        Returns how many new candidates were inserted (the url primary key drops
+        duplicates so a feed re-fetched every run never piles up the same items).
+        """
+        added = 0
+        for entry in entries:
+            cursor = self.db.execute(
+                "INSERT OR IGNORE INTO rss_candidates "
+                "(url, title, source_name, published_at, fetched_at, status) "
+                "VALUES (?, ?, ?, ?, ?, 'pending')",
+                (
+                    entry.url,
+                    entry.title,
+                    entry.source_name,
+                    entry.published_at.isoformat() if entry.published_at else None,
+                    now(),
+                ),
+            )
+            added += cursor.rowcount if cursor.rowcount > 0 else 0
+        self.db.commit()
+        return added
+
+    def next_rss_candidate(self) -> dict[str, Any] | None:
+        """Return the freshest pending RSS candidate, newest publication first."""
+        row = self.db.execute(
+            "SELECT url, title, source_name FROM rss_candidates WHERE status = 'pending' "
+            "ORDER BY COALESCE(published_at, fetched_at) DESC, fetched_at DESC LIMIT 1"
+        ).fetchone()
+        if row is None:
+            return None
+        return {"url": row[0], "title": row[1], "source_name": row[2]}
+
+    def mark_rss_candidate(self, url: str, status: str) -> None:
+        self.db.execute("UPDATE rss_candidates SET status = ? WHERE url = ?", (status, url))
         self.db.commit()
 
     def save_source(self, source: SearchResult) -> None:
@@ -831,6 +883,49 @@ def review_is_blocking(review: dict[str, Any]) -> bool:
     return any(term in text for term in blocking_terms)
 
 
+def plan_rss_action(vault: Vault, db: StateDB, config: Config) -> dict[str, Any] | None:
+    """Ingest configured feeds and turn the freshest unused candidate into an action.
+
+    This is the entry point of the news-driven (経路A) flow: RSS discovers a topic,
+    and the returned create_page/improve_page action -- seeded with the article
+    title as the web-search query -- flows through the existing Researcher/Writer/
+    Reviewer pipeline to become a sourced Wiki page (the "report"). Returns None
+    when RSS is disabled or no pending candidate remains, so the caller falls back
+    to the usual planner.
+    """
+    if not config.rss_enabled:
+        return None
+    feeds = load_rss_sources(config.rss_sources_file)
+    if feeds:
+        entries = RSSCollector().collect_multiple(feeds, config.rss_max_entries_per_feed)
+        db.ingest_rss_candidates(entries)
+    candidate = db.next_rss_candidate()
+    if candidate is None:
+        return None
+    title = candidate["title"]
+    url = candidate["url"]
+    # Consume the candidate now so a run that later fails review never loops
+    # forever on the same item; the web search still verifies the topic.
+    db.mark_rss_candidate(url, "used")
+    duplicate = find_similar_page(vault, title)
+    if duplicate is not None:
+        return {
+            "action": "improve_page",
+            "target": str(duplicate.relative_to(vault.root)),
+            "reason": f"RSSで新着情報を検知（出典: {url}）:「{title}」。ウェブ検索で裏取りして更新する。",
+            "search_queries": [title],
+            "rss_url": url,
+        }
+    target = safe_new_page_target(Path(title[:80]))
+    return {
+        "action": "create_page",
+        "target": str(target),
+        "reason": f"RSSで発見した話題（出典: {url}）:「{title}」。ウェブ検索で一次資料を確認して記事化する。",
+        "search_queries": [title],
+        "rss_url": url,
+    }
+
+
 def run_once(config: Config) -> dict[str, Any]:
     vault = Vault(config.vault_path)
     db = StateDB(vault.root / ".agent-state.sqlite3")
@@ -859,23 +954,27 @@ def run_once(config: Config) -> dict[str, Any]:
             "task_id": pending_task["task_id"],
         }
     else:
-        action = choose_candidate(vault, db, config.stale_days)
-        if client is not None:
-            action = client.plan(wiki_snapshot, stale)
-            if action.get("action") == "expand_knowledge":
-                expansion = client.expand(wiki_snapshot, config.max_new_pages)
-                action = {
-                    "action": "expand_knowledge",
-                    "reason": action.get("reason", "Expand missing knowledge."),
-                    "pages": expansion.get("pages", []),
-                }
-            elif action.get("action") == "create_structure":
-                structure = client.structure(wiki_snapshot)
-                action = {
-                    "action": "create_structure",
-                    "reason": action.get("reason", "Improve the Wiki structure."),
-                    "pages": structure.get("pages", []),
-                }
+        rss_action = plan_rss_action(vault, db, config)
+        if rss_action is None:
+            action = choose_candidate(vault, db, config.stale_days)
+            if client is not None:
+                action = client.plan(wiki_snapshot, stale)
+                if action.get("action") == "expand_knowledge":
+                    expansion = client.expand(wiki_snapshot, config.max_new_pages)
+                    action = {
+                        "action": "expand_knowledge",
+                        "reason": action.get("reason", "Expand missing knowledge."),
+                        "pages": expansion.get("pages", []),
+                    }
+                elif action.get("action") == "create_structure":
+                    structure = client.structure(wiki_snapshot)
+                    action = {
+                        "action": "create_structure",
+                        "reason": action.get("reason", "Improve the Wiki structure."),
+                        "pages": structure.get("pages", []),
+                    }
+        else:
+            action = rss_action
     try:
         validate_action(action, config)
     except ValueError as first_error:
