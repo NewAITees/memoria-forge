@@ -37,12 +37,18 @@
 - [x] `commit_and_push()`を追加し、`create_page`/`improve_page`/`expand_knowledge`/`create_structure`いずれの成功パスでも、Vaultに実際の変更がある場合だけコミット・pushする
 - [x] 回帰テストを追加する（bareリモートを使ったpush実証を含む）
 - [x] READMEに方針と理由（失敗や未成熟なページも含めて成長過程を記録・公開する）を明記する
+- [x] 別プロセスとのpush競合（non-fast-forward）でrun全体がクラッシュしないよう、`Git.push()`にfetch+rebaseの1回リトライを実装し、成功／失敗を`commit_and_push()`の戻り値として返す（例外を投げない）
+- [x] `run_once()`の結果に`git_status`（`skipped`/`committed`/`pushed`/`push_failed`）を含める
+- [x] push競合・rebase失敗の回帰テストを追加する（2つのクローンから同じbareリモートへ競合push/非競合pushの両方を再現）
 
 ## 知識拡張方針
-- [ ] `expand_knowledge`を主要タスクとして実装する
+- [x] `expand_knowledge`を主要タスクとして実装する
 - [ ] 改善結果が変わらない場合でも新規知識を追加できるようにする
-- [ ] 1回の実行で1〜3ページを作成・更新する制限を実装する
-- [ ] 新規ページへ概要・詳細・出典・信頼度・未解決点・関連リンクを付与する
-- [ ] `expanded` / `improved` / `expanded_and_improved`を実行結果に記録する
-- [ ] AIがWiki構造を自律的に選択・変更できるようにする
-- [ ] 知識拡張と構造改善を別タスクとして継続実行する
+- [x] 1回の実行で1〜3ページを作成・更新する制限を実装する
+- [x] 新規ページへ概要・詳細・出典・信頼度・未解決点・関連リンクを付与する
+- [x] `expanded` / `improved` / `expanded_and_improved`を実行結果に記録する
+- [x] AIがWiki構造を自律的に選択・変更できるようにする
+- [x] 知識拡張と構造改善を別タスクとして継続実行する
+- [x] 固定MOC/Index条件を廃止し、Vaultスナップショットに基づくLLM判断へ移行する
+- [x] 欠落したアクション項目を1回だけ再計画する
+- [x] qwen3構造化タスクのthinkingを無効化する

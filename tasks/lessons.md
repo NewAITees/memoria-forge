@@ -6,7 +6,7 @@
 | meta         | AIとの協働ルール              | -      | 0    |
 | boundary     | データ型・変換・境界契約      | -      | 0    |
 | architecture | 設計・責務・config            | -      | 1    |
-| quality      | テスト・CI/CD・品質保証       | -      | 7    |
+| quality      | テスト・CI/CD・品質保証       | -      | 8    |
 | ui           | フロントエンド・デザイン・VRM | -      | 0    |
 
 ---
@@ -75,6 +75,16 @@
 - **症状**: `if vault_git.is_repo() and not vault_git.status(): commit()` となっており、「状態がクリーン（＝差分なし）」の時だけコミットする条件になっていた。直前に`vault.write()`で新しい内容を書き込んだ直後は必ず差分が生じるため、この条件はほぼ常にFalseになり、`auto_commit`を有効にしても実際にはコミットが発火しない状態だった。
 - **原因**: 「差分があるときにコミットする」の条件を`not status()`と書き間違えていた（元の実装から存在していた）。また`create_structure`/`expand_knowledge`の成功パスにはコミット処理自体が存在しなかった。
 - **対策**: `commit_and_push()`として条件を`vault_git.status()`（差分がある場合）に修正し、`Git.status()`もVaultディレクトリへのpathspec（`--  <root>`）でスコープすることで、リポジトリ内の無関係な変更（同じリポジトリで並行作業している別プロセスの未コミット差分等）に反応しないようにした。全ての書き込みパスから`commit_and_push()`を呼ぶよう統一した。
+
+### [qwen3のthinkingによる実行時間超過]
+- **症状**: qwen3:8bが単純なJSON応答でも長いthinkingを生成し、Planner単体がタイムアウトした。
+- **原因**: 構造化された短い判断タスクにも思考出力が有効化され、`keep_alive: 0`によるモデルロード時間も各呼び出しに加算された。
+- **対策**: Ollama Chat APIへ`think: false`を指定し、thinkingを使わない構造化タスクとして実行する。改善しない場合は軽量モデルとの比較へ進める。
+
+### [auto_push有効化直後、pushの衝突でrun全体がクラッシュする設計だった]
+- **症状**: `auto_push`を有効化した直後に想定される事態として、この同じリポジトリへ並行して書き込んでいる別プロセスが先にpushしていた場合、`git push`がnon-fast-forwardで拒否され、`Git.push()`の`check=True`がそのまま例外を投げてrun全体を失敗させてしまう設計だった。ローカルの知識自体は正しく保存されているのに、push層の問題だけでrunが失敗扱いになるのは過剰な失敗判定である。
+- **原因**: `subprocess.run(..., check=True)`で単純にpushしているだけで、リジェクト時のリトライ・非致命化処理がなかった。
+- **対策**: `Git.push()`を「1回失敗したら`fetch`＋`rebase`を試し、それでも失敗したら例外を投げず`False`を返す」形に変更。`commit_and_push()`の戻り値を`"skipped"/"committed"/"pushed"/"push_failed"`の文字列にし、`run_once()`の結果へ`git_status`として記録するようにした。push失敗はrun失敗として扱わない。
 
 ## ui — フロントエンド・デザイン・VRM
 ### [サブカテゴリ: タイトル]

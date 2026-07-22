@@ -187,7 +187,7 @@ def test_git_push_sends_commits_to_remote(tmp_path: Path) -> None:
     (repo_dir / "note.md").write_text("# Note", encoding="utf-8")
     git = Git(repo_dir)
     git.commit("wiki: add note")
-    git.push()
+    assert git.push() is True
     remote_log = subprocess.run(
         ["git", "--git-dir", str(remote_dir), "log", "--oneline", "main"],
         capture_output=True,
@@ -202,7 +202,7 @@ def test_commit_and_push_noop_when_auto_commit_disabled(tmp_path: Path) -> None:
     vault = Vault(repo_dir)
     vault.write("note.md", "# Note")
     config = Config(tmp_path / "unused-vault", git_enabled=True, auto_commit=False)
-    commit_and_push(vault, config, "wiki: test")
+    assert commit_and_push(vault, config, "wiki: test") == "skipped"
     assert Git(repo_dir).status() != ""
 
 
@@ -210,7 +210,7 @@ def test_commit_and_push_noop_when_not_a_repo(tmp_path: Path) -> None:
     vault = Vault(tmp_path / "plain_vault")
     vault.write("note.md", "# Note")
     config = Config(tmp_path / "unused-vault", git_enabled=True, auto_commit=True, auto_push=True)
-    commit_and_push(vault, config, "wiki: test")
+    assert commit_and_push(vault, config, "wiki: test") == "skipped"
 
 
 def test_commit_and_push_commits_without_pushing_by_default(tmp_path: Path) -> None:
@@ -218,7 +218,7 @@ def test_commit_and_push_commits_without_pushing_by_default(tmp_path: Path) -> N
     vault = Vault(repo_dir)
     vault.write("note.md", "# Note")
     config = Config(tmp_path / "unused-vault", git_enabled=True, auto_commit=True, auto_push=False)
-    commit_and_push(vault, config, "wiki: test commit")
+    assert commit_and_push(vault, config, "wiki: test commit") == "committed"
     log = subprocess.run(
         ["git", "-C", str(repo_dir), "log", "--oneline"], capture_output=True, text=True, check=True
     ).stdout
@@ -236,7 +236,7 @@ def test_commit_and_push_pushes_when_auto_push_enabled(tmp_path: Path) -> None:
     vault = Vault(repo_dir)
     vault.write("note.md", "# Note")
     config = Config(tmp_path / "unused-vault", git_enabled=True, auto_commit=True, auto_push=True)
-    commit_and_push(vault, config, "wiki: test push")
+    assert commit_and_push(vault, config, "wiki: test push") == "pushed"
     remote_log = subprocess.run(
         ["git", "--git-dir", str(remote_dir), "log", "--oneline", "main"],
         capture_output=True,
@@ -244,3 +244,64 @@ def test_commit_and_push_pushes_when_auto_push_enabled(tmp_path: Path) -> None:
         check=True,
     ).stdout
     assert "wiki: test push" in remote_log
+
+
+def _clone(remote_dir: Path, target_dir: Path) -> Path:
+    subprocess.run(["git", "clone", str(remote_dir), str(target_dir)], check=True, capture_output=True)
+    subprocess.run(["git", "-C", str(target_dir), "config", "user.email", "test@example.com"], check=True)
+    subprocess.run(["git", "-C", str(target_dir), "config", "user.name", "Test"], check=True)
+    subprocess.run(
+        ["git", "-C", str(target_dir), "checkout", "-B", "main", "origin/main"],
+        check=True,
+        capture_output=True,
+    )
+    return target_dir
+
+
+def test_git_push_rebases_and_retries_on_non_conflicting_race(tmp_path: Path) -> None:
+    repo_dir, remote_dir = _init_repo_with_remote(tmp_path)
+    (repo_dir / "shared.md").write_text("# Shared", encoding="utf-8")
+    git = Git(repo_dir)
+    git.commit("wiki: initial")
+    assert git.push() is True
+
+    other_dir = _clone(remote_dir, tmp_path / "other")
+    (other_dir / "from-other.md").write_text("# Other", encoding="utf-8")
+    Git(other_dir).commit("wiki: from other process")
+    assert Git(other_dir).push() is True
+
+    (repo_dir / "from-repo.md").write_text("# Mine", encoding="utf-8")
+    git.commit("wiki: from this process")
+    assert git.push() is True
+
+    remote_log = subprocess.run(
+        ["git", "--git-dir", str(remote_dir), "log", "--oneline", "main"],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout
+    assert "wiki: from other process" in remote_log
+    assert "wiki: from this process" in remote_log
+
+
+def test_commit_and_push_returns_push_failed_on_unresolvable_conflict(tmp_path: Path) -> None:
+    repo_dir, remote_dir = _init_repo_with_remote(tmp_path)
+    (repo_dir / "shared.md").write_text("# Original", encoding="utf-8")
+    git = Git(repo_dir)
+    git.commit("wiki: initial")
+    assert git.push() is True
+
+    other_dir = _clone(remote_dir, tmp_path / "other")
+    (other_dir / "shared.md").write_text("# Changed by other process", encoding="utf-8")
+    Git(other_dir).commit("wiki: conflicting change from other process")
+    assert Git(other_dir).push() is True
+
+    (repo_dir / "shared.md").write_text("# Changed by this process", encoding="utf-8")
+    vault = Vault(repo_dir)
+    config = Config(tmp_path / "unused-vault", git_enabled=True, auto_commit=True, auto_push=True)
+    assert commit_and_push(vault, config, "wiki: conflicting change from this process") == "push_failed"
+
+    log = subprocess.run(
+        ["git", "-C", str(repo_dir), "log", "--oneline"], capture_output=True, text=True, check=True
+    ).stdout
+    assert "wiki: conflicting change from this process" in log

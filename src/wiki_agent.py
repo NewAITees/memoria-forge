@@ -274,6 +274,8 @@ class Ollama:
             "model": self.model,
             "stream": False,
             "format": "json",
+            # Disable qwen3 hidden reasoning for bounded JSON agent operations.
+            "think": False,
             "keep_alive": 0,
             "messages": [
                 {"role": "system", "content": system},
@@ -438,7 +440,10 @@ class Git:
         subprocess.run(["git", "add", "--", str(self.root)], cwd=self.root, check=True)
         subprocess.run(["git", "commit", "-m", message], cwd=self.root, check=True)
 
-    def push(self) -> None:
+    def push(self) -> bool:
+        """Push the current branch. On rejection (e.g. another process pushed first), fetch and
+        rebase once and retry; if that still fails, return False instead of raising so a
+        concurrent push race never fails the whole run."""
         branch = subprocess.run(
             ["git", "rev-parse", "--abbrev-ref", "HEAD"],
             cwd=self.root,
@@ -446,7 +451,26 @@ class Git:
             text=True,
             check=True,
         ).stdout.strip()
-        subprocess.run(["git", "push", "origin", branch], cwd=self.root, check=True)
+        if self._try_push(branch):
+            return True
+        subprocess.run(
+            ["git", "fetch", "origin", branch], cwd=self.root, capture_output=True, text=True
+        )
+        rebase = subprocess.run(
+            ["git", "rebase", f"origin/{branch}"], cwd=self.root, capture_output=True, text=True
+        )
+        if rebase.returncode != 0:
+            subprocess.run(
+                ["git", "rebase", "--abort"], cwd=self.root, capture_output=True, text=True
+            )
+            return False
+        return self._try_push(branch)
+
+    def _try_push(self, branch: str) -> bool:
+        result = subprocess.run(
+            ["git", "push", "origin", branch], cwd=self.root, capture_output=True, text=True
+        )
+        return result.returncode == 0
 
 
 def choose_candidate(vault: Vault) -> dict[str, Any]:
@@ -555,16 +579,24 @@ def normalize_page(target: Path, content: str, sources: list[SearchResult]) -> s
     return page + "\n"
 
 
-def commit_and_push(vault: Vault, config: Config, message: str) -> None:
-    """Commit the vault's own changes and push them, when configured to do so."""
+def commit_and_push(vault: Vault, config: Config, message: str) -> str:
+    """Commit the vault's own changes and push them, when configured to do so.
+
+    Returns one of: "skipped" (nothing to do), "committed" (local only),
+    "pushed", or "push_failed" (committed locally, but push was rejected even
+    after a rebase retry -- e.g. a concurrent process pushed first). A failed
+    push never raises: the local commit is never lost, and a later run can
+    push it.
+    """
     if not (config.git_enabled and config.auto_commit):
-        return
+        return "skipped"
     vault_git = Git(vault.root)
     if not vault_git.is_repo() or not vault_git.status():
-        return
+        return "skipped"
     vault_git.commit(message)
-    if config.auto_push:
-        vault_git.push()
+    if not config.auto_push:
+        return "committed"
+    return "pushed" if vault_git.push() else "push_failed"
 
 
 def review_is_blocking(review: dict[str, Any]) -> bool:
@@ -700,7 +732,9 @@ def run_once(config: Config) -> dict[str, Any]:
             raise ValueError("structure planner produced no valid pages")
         for target, content in staged:
             vault.write(target, content)
-        commit_and_push(vault, config, f"wiki: {action['action']} ({len(staged)} page(s))")
+        git_status = commit_and_push(
+            vault, config, f"wiki: {action['action']} ({len(staged)} page(s))"
+        )
         run_id = now()
         result_name = "expanded" if action["action"] == "expand_knowledge" else "success"
         db.db.execute(
@@ -714,6 +748,7 @@ def run_once(config: Config) -> dict[str, Any]:
             "run_id": run_id,
             "new_pages": [str(target) for target, _ in staged],
             "search_count": researcher.count,
+            "git_status": git_status,
         }
     target = Path(action["target"])
     researcher = Researcher(config.max_searches)
@@ -785,7 +820,7 @@ def run_once(config: Config) -> dict[str, Any]:
         (run_id, config.model, run_id, now(), "success", researcher.count, None),
     )
     db.db.commit()
-    commit_and_push(vault, config, f"wiki: {action['action']} {target}")
+    git_status = commit_and_push(vault, config, f"wiki: {action['action']} {target}")
     return {
         "result": "success",
         "action": action,
@@ -796,4 +831,5 @@ def run_once(config: Config) -> dict[str, Any]:
         "review_warnings": review.get("issues", [])
         if review and review.get("approved") is not True
         else [],
+        "git_status": git_status,
     }
