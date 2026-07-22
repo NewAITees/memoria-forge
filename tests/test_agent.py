@@ -14,6 +14,7 @@ from src.wiki_agent import (
     find_similar_page,
     process_lock,
     review_is_blocking,
+    run_once,
     strip_markdown_fence,
     unescape_literal_newlines,
     validate_action,
@@ -346,6 +347,34 @@ def test_stale_pages_returns_pages_older_than_threshold(tmp_path: Path) -> None:
     stale = db.stale_pages(days=30)
     assert stale == ["old.md"]
     assert str(fresh_page.relative_to(vault.root)) not in stale
+
+
+def test_task_queue_round_trip(tmp_path: Path) -> None:
+    db = StateDB(tmp_path / "state.sqlite3")
+    assert db.next_pending_task() is None
+
+    db.enqueue_task("create_page", "10_Knowledge/new.md")
+    task = db.next_pending_task()
+    assert task is not None
+    assert task["task_type"] == "create_page"
+    assert task["target_page"] == "10_Knowledge/new.md"
+
+    db.complete_task(task["task_id"])
+    assert db.next_pending_task() is None
+
+
+def test_run_once_prefers_queued_task_over_smallest_page(tmp_path: Path) -> None:
+    vault = Vault(tmp_path / "vault")
+    vault.write("small.md", "# Small")
+    config = Config(tmp_path / "vault", mode="manual")
+
+    db = StateDB(vault.root / ".agent-state.sqlite3")
+    db.enqueue_task("improve_page", "small.md")
+
+    result = run_once(config)
+    assert result["result"] == "proposal"
+    assert result["action"]["target"] == "small.md"
+    assert "task_id" in result["action"]
 
 
 def test_status_summary_reports_recent_runs_and_counts(tmp_path: Path) -> None:

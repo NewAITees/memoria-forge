@@ -5,8 +5,8 @@
 |--------------|-------------------------------|--------|------|
 | meta         | AIとの協働ルール              | -      | 0    |
 | boundary     | データ型・変換・境界契約      | -      | 0    |
-| architecture | 設計・責務・config            | -      | 3    |
-| quality      | テスト・CI/CD・品質保証       | -      | 9    |
+| architecture | 設計・責務・config            | -      | 4    |
+| quality      | テスト・CI/CD・品質保証       | -      | 10   |
 | ui           | フロントエンド・デザイン・VRM | -      | 0    |
 
 ---
@@ -37,6 +37,11 @@
 - **症状**: 鮮度管理機能（#7）を実装しようとしたところ、`StateDB.sync_pages()`が`updated_at`を常に`now()`で書き込んでおり、`run_once()`が呼ばれるたび（＝ページ内容が変わっていなくても）に「今更新された」扱いになっていた。このままでは「古いページ」を検出する仕組みが原理的に成立しない。
 - **原因**: `sync_pages()`はVault上のファイルをDBに反映する処理として実装されただけで、「実際にいつ変更されたか」という観点が考慮されていなかった。
 - **対策**: `updated_at`をファイルの実際のmtime（`path.stat().st_mtime`）に基づく値へ変更した。これによりファイルが実際に書き換えられた時だけ`updated_at`が進むようになり、`StateDB.stale_pages(days)`で閾値より古いページを正しく検出できるようになった。
+
+### [`tasks`テーブルも`reflections`同様、定義されているだけで一度も使われていなかった]
+- **症状**: `tasks`テーブル（`task_id, task_type, target_page, priority, status, created_at`）が定義されていたが、`INSERT`する箇所がどこにも無く、`create_structure`/`expand_knowledge`で`max_new_pages`を超えて提案されたページは黙って捨てられていた。
+- **原因**: `reflections`テーブルの時と同様、スキーマ定義と実際の書き込み処理が同時に実装されていなかった。
+- **対策**: `StateDB.enqueue_task/next_pending_task/complete_task`を追加し、`run_once()`の冒頭でPlanner呼び出しより先にキューを確認・優先消化するようにした。処理しきれなかった構造提案は`enqueue_task`で積み、次回runで自動的に拾われる。
 
 ## quality — テスト・CI/CD・品質保証
 ### [サブカテゴリ: タイトル]
@@ -90,6 +95,11 @@
 - **症状**: qwen3:8bが単純なJSON応答でも長いthinkingを生成し、Planner単体がタイムアウトした。
 - **原因**: 構造化された短い判断タスクにも思考出力が有効化され、`keep_alive: 0`によるモデルロード時間も各呼び出しに加算された。
 - **対策**: Ollama Chat APIへ`think: false`を指定し、thinkingを使わない構造化タスクとして実行する。改善しない場合は軽量モデルとの比較へ進める。
+
+### [モデル比較で判明した出力互換性の差]
+- **症状**: `think: false`で5モデルを同一の実Vaultコピーへ実行したところ、`qwen3:4b`と`qwen3:8b`は構造提案が空、`gemma3:4b`はJSON途中切れ、`phi4-mini`は独自スキーマ、`qwen3.5:4b`はPlannerを通過したがWriterの重複FrontmatterでReviewer却下となった。
+- **原因**: モデルごとにJSON厳密性、アクションスキーマ遵守、Markdown生成の安定性が異なる。thinkingを外すと速度は改善するが、出力契約の差は残る。
+- **対策**: 暫定候補を`qwen3.5:4b`とし、正式採用前に日本語品質とWriterのFrontmatter正規化を追加検証する。モデル交換だけでなく、空提案・JSON破損・独自スキーマを安全に再試行する実装が必要。
 
 ### [auto_push有効化直後、pushの衝突でrun全体がクラッシュする設計だった]
 - **症状**: `auto_push`を有効化した直後に想定される事態として、この同じリポジトリへ並行して書き込んでいる別プロセスが先にpushしていた場合、`git push`がnon-fast-forwardで拒否され、`Git.push()`の`check=True`がそのまま例外を投げてrun全体を失敗させてしまう設計だった。ローカルの知識自体は正しく保存されているのに、push層の問題だけでrunが失敗扱いになるのは過剰な失敗判定である。

@@ -63,6 +63,13 @@
 - [x] 回帰テストを追加する
 - [x] 実際の`live-vault`に対して`--status`を実行し、動作確認する
 
+## 永続タスクキュー
+- [x] `StateDB.enqueue_task/next_pending_task/complete_task`を追加する
+- [x] `create_structure`/`expand_knowledge`で`max_new_pages`を超えた提案をキューへ積む
+- [x] `run_once()`がPlanner呼び出しより先にキューを優先消化するようにする
+- [x] `create_page`/`improve_page`成功時に対応する`task_id`を完了にする
+- [x] 回帰テストを追加する
+
 ## 知識拡張方針
 - [x] `expand_knowledge`を主要タスクとして実装する
 - [ ] 改善結果が変わらない場合でも新規知識を追加できるようにする

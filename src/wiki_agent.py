@@ -188,6 +188,27 @@ class StateDB:
             )
         self.db.commit()
 
+    def enqueue_task(self, task_type: str, target_page: str, priority: float = 0.5) -> None:
+        self.db.execute(
+            "INSERT INTO tasks (task_type, target_page, priority, status, created_at) "
+            "VALUES (?, ?, ?, ?, ?)",
+            (task_type, target_page, priority, "pending", now()),
+        )
+        self.db.commit()
+
+    def next_pending_task(self) -> dict[str, Any] | None:
+        row = self.db.execute(
+            "SELECT task_id, task_type, target_page, priority FROM tasks "
+            "WHERE status = 'pending' ORDER BY priority DESC, created_at ASC LIMIT 1"
+        ).fetchone()
+        if row is None:
+            return None
+        return {"task_id": row[0], "task_type": row[1], "target_page": row[2], "priority": row[3]}
+
+    def complete_task(self, task_id: int) -> None:
+        self.db.execute("UPDATE tasks SET status = 'done' WHERE task_id = ?", (task_id,))
+        self.db.commit()
+
     def stale_pages(self, days: int = 30) -> list[str]:
         """Return page paths whose file has not been modified in `days`, oldest first."""
         cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
@@ -708,28 +729,42 @@ def run_once(config: Config) -> dict[str, Any]:
         return {"result": "stopped"}
     wiki_snapshot = vault.snapshot()
     stale = db.stale_pages(config.stale_days)
-    action = choose_candidate(vault, db, config.stale_days)
-    if config.mode == "autonomous_safe":
-        client = Ollama(config.ollama_url, config.model, config.timeout_seconds)
-        action = client.plan(wiki_snapshot, stale)
-        if action.get("action") == "expand_knowledge":
-            expansion = client.expand(wiki_snapshot, config.max_new_pages)
-            action = {
-                "action": "expand_knowledge",
-                "reason": action.get("reason", "Expand missing knowledge."),
-                "pages": expansion.get("pages", []),
-            }
-        elif action.get("action") == "create_structure":
-            structure = client.structure(wiki_snapshot)
-            action = {
-                "action": "create_structure",
-                "reason": action.get("reason", "Improve the Wiki structure."),
-                "pages": structure.get("pages", []),
-            }
+    client = (
+        Ollama(config.ollama_url, config.model, config.timeout_seconds)
+        if config.mode == "autonomous_safe"
+        else None
+    )
+    pending_task = db.next_pending_task()
+    if pending_task is not None:
+        action: dict[str, Any] = {
+            "action": pending_task["task_type"],
+            "target": pending_task["target_page"],
+            "reason": "Queued from a previous run's deferred proposal.",
+            "search_queries": [],
+            "task_id": pending_task["task_id"],
+        }
+    else:
+        action = choose_candidate(vault, db, config.stale_days)
+        if client is not None:
+            action = client.plan(wiki_snapshot, stale)
+            if action.get("action") == "expand_knowledge":
+                expansion = client.expand(wiki_snapshot, config.max_new_pages)
+                action = {
+                    "action": "expand_knowledge",
+                    "reason": action.get("reason", "Expand missing knowledge."),
+                    "pages": expansion.get("pages", []),
+                }
+            elif action.get("action") == "create_structure":
+                structure = client.structure(wiki_snapshot)
+                action = {
+                    "action": "create_structure",
+                    "reason": action.get("reason", "Improve the Wiki structure."),
+                    "pages": structure.get("pages", []),
+                }
     try:
         validate_action(action, config)
     except ValueError as first_error:
-        if config.mode != "autonomous_safe":
+        if client is None:
             raise
         repaired = client.repair_plan(wiki_snapshot, action)
         try:
@@ -767,6 +802,9 @@ def run_once(config: Config) -> dict[str, Any]:
         proposals = action.get("pages", [])
         if not isinstance(proposals, list) or not proposals:
             raise ValueError("structure planner returned no pages")
+        for deferred in proposals[config.max_new_pages :]:
+            if isinstance(deferred, dict) and deferred.get("target"):
+                db.enqueue_task("create_page", str(deferred["target"]))
         for proposal in proposals[: config.max_new_pages]:
             if not isinstance(proposal, dict) or not proposal.get("target"):
                 continue
@@ -917,6 +955,8 @@ def run_once(config: Config) -> dict[str, Any]:
         (run_id, config.model, run_id, now(), "success", researcher.count, None),
     )
     db.db.commit()
+    if "task_id" in action:
+        db.complete_task(action["task_id"])
     git_status = commit_and_push(vault, config, f"wiki: {action['action']} {target}")
     if git_status == "push_failed":
         db.record_reflection(
