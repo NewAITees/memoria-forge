@@ -53,6 +53,27 @@ class Config:
     git_enabled: bool = True
     auto_commit: bool = False
 
+    ALLOWED_MODES = ("manual", "autonomous_safe")
+
+    def validate(self) -> None:
+        if self.mode not in self.ALLOWED_MODES:
+            raise ValueError(f"mode must be one of {self.ALLOWED_MODES}, got {self.mode!r}")
+        if not self.ollama_url.startswith(("http://", "https://")):
+            raise ValueError(f"ollama_url must start with http:// or https://, got {self.ollama_url!r}")
+        if not self.model.strip():
+            raise ValueError("model must not be empty")
+        positive_fields = {
+            "max_searches": self.max_searches,
+            "max_pages_fetched": self.max_pages_fetched,
+            "max_files_changed": self.max_files_changed,
+            "max_new_pages": self.max_new_pages,
+            "timeout_seconds": self.timeout_seconds,
+            "max_run_minutes": self.max_run_minutes,
+        }
+        for name, value in positive_fields.items():
+            if not isinstance(value, int) or value <= 0:
+                raise ValueError(f"{name} must be a positive integer, got {value!r}")
+
     @classmethod
     def load(cls, path: Path) -> Config:
         raw: dict[str, Any] = json.loads(path.read_text(encoding="utf-8"))
@@ -62,7 +83,7 @@ class Config:
         vault_path = Path(raw["vault_path"])
         if not vault_path.is_absolute():
             vault_path = (path.parent / vault_path).resolve()
-        return cls(
+        config = cls(
             vault_path,
             ollama.get("base_url", cls.ollama_url),
             ollama.get("model", cls.model),
@@ -76,6 +97,8 @@ class Config:
             git.get("enabled", True),
             git.get("auto_commit", False),
         )
+        config.validate()
+        return config
 
 
 class Vault:
@@ -259,6 +282,12 @@ class Ollama:
             ),
         )
 
+    def structure(self, pages: list[str]) -> dict[str, Any]:
+        return self.chat(
+            "Design the next small Wiki structure improvement. Return JSON only with a pages array. Each page needs target, reason, and search_queries. Include an Index or MOC and at most two pages.",
+            json.dumps({"existing_pages": pages, "max_new_pages": 2}, ensure_ascii=False),
+        )
+
     def write(
         self,
         title: str,
@@ -298,8 +327,19 @@ class Ollama:
 
 
 class Git:
+    """Git operations scoped to the Wiki vault's own repository (never the agent's source repo)."""
+
     def __init__(self, root: Path) -> None:
         self.root = root
+
+    def is_repo(self) -> bool:
+        result = subprocess.run(
+            ["git", "rev-parse", "--is-inside-work-tree"],
+            cwd=self.root,
+            capture_output=True,
+            text=True,
+        )
+        return result.returncode == 0 and result.stdout.strip() == "true"
 
     def status(self) -> str:
         return subprocess.run(
@@ -324,6 +364,14 @@ def choose_candidate(vault: Vault) -> dict[str, Any]:
             "reason": "Vault is empty",
             "search_queries": [],
         }
+    titles = {page.stem.casefold() for page in pages}
+    if len(pages) < 4 or not any("moc" in title or "index" in title for title in titles):
+        return {
+            "action": "create_structure",
+            "target": "90_System/Wiki Structure.md",
+            "reason": "The Vault lacks a connected Index/MOC structure.",
+            "search_queries": ["Obsidian MOC knowledge wiki structure"],
+        }
     shallow = min(pages, key=lambda p: p.stat().st_size)
     return {
         "action": "improve_page",
@@ -333,8 +381,46 @@ def choose_candidate(vault: Vault) -> dict[str, Any]:
     }
 
 
+def _normalize_title(title: str) -> str:
+    return re.sub(r"\s+", "", title).casefold()
+
+
+def _bigram_similarity(a: str, b: str) -> float:
+    def bigrams(text: str) -> set[str]:
+        return {text[i : i + 2] for i in range(len(text) - 1)} or {text}
+
+    left, right = bigrams(a), bigrams(b)
+    union = left | right
+    if not union:
+        return 1.0
+    return len(left & right) / len(union)
+
+
+def find_similar_page(vault: Vault, title: str, threshold: float = 0.6) -> Path | None:
+    """Return an existing page whose title looks like a duplicate/synonym of `title`, if any."""
+    normalized_target = _normalize_title(title)
+    if not normalized_target:
+        return None
+    best_match: Path | None = None
+    best_score = 0.0
+    for page in vault.pages():
+        normalized_existing = _normalize_title(page.stem)
+        if not normalized_existing:
+            continue
+        if normalized_existing == normalized_target:
+            return page
+        if len(normalized_target) >= 4 and (
+            normalized_target in normalized_existing or normalized_existing in normalized_target
+        ):
+            return page
+        score = _bigram_similarity(normalized_target, normalized_existing)
+        if score > best_score:
+            best_score, best_match = score, page
+    return best_match if best_score >= threshold else None
+
+
 def validate_action(action: dict[str, Any], config: Config) -> None:
-    allowed = {"create_page", "improve_page", "add_links", "add_sources"}
+    allowed = {"create_page", "create_structure", "improve_page", "add_links", "add_sources"}
     if action.get("action") not in allowed or not action.get("target"):
         raise ValueError("invalid action")
     Vault(config.vault_path).safe(action["target"])
@@ -405,10 +491,84 @@ def run_once(config: Config) -> dict[str, Any]:
     pages = [str(path.relative_to(vault.root)) for path in vault.pages()]
     action = choose_candidate(vault)
     if config.mode == "autonomous_safe":
-        action = Ollama(config.ollama_url, config.model, config.timeout_seconds).plan(pages)
+        client = Ollama(config.ollama_url, config.model, config.timeout_seconds)
+        if choose_candidate(vault)["action"] == "create_structure":
+            action = client.structure(pages)
+            action.update({"action": "create_structure", "target": "90_System/Wiki Structure.md"})
+        else:
+            action = client.plan(pages)
     validate_action(action, config)
     if config.mode == "manual":
         return {"result": "proposal", "action": action}
+    if action["action"] == "create_structure":
+        client = Ollama(config.ollama_url, config.model, config.timeout_seconds)
+        researcher = Researcher(config.max_searches)
+        staged: list[tuple[Path, str]] = []
+        proposals = action.get("pages", [])
+        if not isinstance(proposals, list) or not proposals:
+            raise ValueError("structure planner returned no pages")
+        for proposal in proposals[: config.max_new_pages]:
+            if not isinstance(proposal, dict) or not proposal.get("target"):
+                continue
+            target = Path(str(proposal["target"]))
+            validate_action({"action": "create_page", "target": str(target)}, config)
+            if not vault.safe(target).exists():
+                duplicate = find_similar_page(vault, target.stem)
+                if duplicate is not None:
+                    target = duplicate
+            structure_sources: list[SearchResult] = []
+            for query in proposal.get("search_queries", [target.stem]):
+                structure_sources.extend(researcher.search(str(query), 3))
+                if len(structure_sources) >= config.max_pages_fetched:
+                    break
+            unique_structure_sources = list(
+                {source.url: source for source in structure_sources}.values()
+            )[: config.max_pages_fetched]
+            for source in unique_structure_sources:
+                db.save_source(source)
+            existing_structure_content = vault.read(target) if vault.safe(target).exists() else ""
+            content = normalize_page(
+                target,
+                client.write(
+                    target.stem,
+                    str(proposal.get("reason", "Wiki構造を改善します。")),
+                    unique_structure_sources,
+                    existing_structure_content,
+                ),
+                unique_structure_sources,
+            )
+            structure_review = client.review(content)
+            if review_is_blocking(structure_review):
+                return {"result": "review_rejected", "action": action, "review": structure_review}
+            staged.append((target, content))
+        if not staged:
+            raise ValueError("structure planner produced no valid pages")
+        mocs = [
+            target
+            for target, _ in staged
+            if "moc" in target.stem.casefold() or "index" in target.stem.casefold()
+        ]
+        if mocs:
+            moc_target, moc_content = staged[0]
+            links = "\n".join(
+                f"- [[{target.stem}]]" for target, _ in staged if target != moc_target
+            )
+            staged[0] = (moc_target, moc_content + "\n\n## 今回作成したページ\n\n" + links + "\n")
+        for target, content in staged:
+            vault.write(target, content)
+        run_id = now()
+        db.db.execute(
+            "INSERT INTO runs VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (run_id, config.model, run_id, now(), "success", researcher.count, None),
+        )
+        db.db.commit()
+        return {
+            "result": "success",
+            "action": action,
+            "run_id": run_id,
+            "new_pages": [str(target) for target, _ in staged],
+            "search_count": researcher.count,
+        }
     target = Path(action["target"])
     researcher = Researcher(config.max_searches)
     sources: list[SearchResult] = []
@@ -422,6 +582,12 @@ def run_once(config: Config) -> dict[str, Any]:
     ]
     for source in unique_sources:
         db.save_source(source)
+    duplicate_of: Path | None = None
+    if action["action"] == "create_page" and not vault.safe(target).exists():
+        duplicate_of = find_similar_page(vault, target.stem)
+        if duplicate_of is not None:
+            action = {**action, "action": "improve_page", "target": str(duplicate_of)}
+            target = duplicate_of
     before = {path.relative_to(vault.root) for path in vault.pages()}
     if action["action"] in {"create_page", "improve_page"}:
         target_exists = vault.safe(target).exists()
@@ -473,14 +639,17 @@ def run_once(config: Config) -> dict[str, Any]:
         (run_id, config.model, run_id, now(), "success", 0, None),
     )
     db.db.commit()
-    if config.git_enabled and config.auto_commit and not Git(Path.cwd()).status():
-        Git(Path.cwd()).commit("wiki: create initial autonomous wiki page")
+    if config.git_enabled and config.auto_commit:
+        vault_git = Git(vault.root)
+        if vault_git.is_repo() and not vault_git.status():
+            vault_git.commit("wiki: create initial autonomous wiki page")
     return {
         "result": "success",
         "action": action,
         "run_id": run_id,
         "search_count": researcher.count,
         "source_count": len(unique_sources),
+        "duplicate_of": str(duplicate_of) if duplicate_of is not None else None,
         "review_warnings": review.get("issues", [])
         if review and review.get("approved") is not True
         else [],

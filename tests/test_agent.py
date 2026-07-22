@@ -1,12 +1,15 @@
+import subprocess
 from pathlib import Path
 
 import pytest
 
 from src.wiki_agent import (
     Config,
+    Git,
     Researcher,
     Vault,
     choose_candidate,
+    find_similar_page,
     process_lock,
     review_is_blocking,
     strip_markdown_fence,
@@ -92,3 +95,61 @@ def test_strip_markdown_fence_unwraps_whole_page() -> None:
 def test_strip_markdown_fence_leaves_unfenced_content_untouched() -> None:
     plain = "---\ntitle: Home\n---\n\n# Home\n本文"
     assert strip_markdown_fence(plain) == plain
+
+
+def test_config_rejects_unknown_mode(tmp_path: Path) -> None:
+    with pytest.raises(ValueError):
+        Config(tmp_path / "vault", mode="autonomous_full").validate()
+
+
+def test_config_rejects_bad_ollama_url(tmp_path: Path) -> None:
+    with pytest.raises(ValueError):
+        Config(tmp_path / "vault", ollama_url="localhost:11434").validate()
+
+
+def test_config_rejects_empty_model(tmp_path: Path) -> None:
+    with pytest.raises(ValueError):
+        Config(tmp_path / "vault", model="  ").validate()
+
+
+def test_config_rejects_non_positive_limits(tmp_path: Path) -> None:
+    with pytest.raises(ValueError):
+        Config(tmp_path / "vault", max_searches=0).validate()
+
+
+def test_config_accepts_valid_settings(tmp_path: Path) -> None:
+    Config(tmp_path / "vault").validate()
+
+
+def test_find_similar_page_matches_exact_normalized_title(tmp_path: Path) -> None:
+    vault = Vault(tmp_path / "vault")
+    vault.write("10_Knowledge/Ollama の モデル管理.md", "# body")
+    match = find_similar_page(vault, "Ollamaのモデル管理")
+    assert match is not None
+    assert match.stem == "Ollama の モデル管理"
+
+
+def test_find_similar_page_matches_substring_title(tmp_path: Path) -> None:
+    vault = Vault(tmp_path / "vault")
+    vault.write("10_Knowledge/自律Wiki構築AIの検索方針.md", "# body")
+    match = find_similar_page(vault, "自律Wiki構築AI")
+    assert match is not None
+
+
+def test_find_similar_page_returns_none_for_unrelated_titles(tmp_path: Path) -> None:
+    vault = Vault(tmp_path / "vault")
+    vault.write("10_Knowledge/Ollamaのモデル管理.md", "# body")
+    assert find_similar_page(vault, "破滅的忘却について") is None
+
+
+def test_git_is_repo_detects_non_repo_directory(tmp_path: Path) -> None:
+    plain_dir = tmp_path / "not-a-repo"
+    plain_dir.mkdir()
+    assert not Git(plain_dir).is_repo()
+
+
+def test_git_is_repo_detects_real_repo(tmp_path: Path) -> None:
+    repo_dir = tmp_path / "repo"
+    repo_dir.mkdir()
+    subprocess.run(["git", "init"], cwd=repo_dir, check=True, capture_output=True)
+    assert Git(repo_dir).is_repo()
