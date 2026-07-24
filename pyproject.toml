@@ -4,7 +4,10 @@ version = "0.1.0"
 description = "A safe autonomous Obsidian wiki builder backed by Ollama"
 requires-python = ">=3.12"
 dependencies = [
+    "beautifulsoup4==4.14.2",
+    "ddgs==9.11.4",
     "feedparser==6.0.11",
+    "requests==2.32.5",
 ]
 
 [tool.pytest.ini_options]
