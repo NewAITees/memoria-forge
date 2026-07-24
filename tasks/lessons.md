@@ -5,7 +5,7 @@
 |--------------|-------------------------------|--------|------|
 | meta         | AIとの協働ルール              | -      | 0    |
 | boundary     | データ型・変換・境界契約      | -      | 0    |
-| architecture | 設計・責務・config            | -      | 9    |
+| architecture | 設計・責務・config            | -      | 10   |
 | quality      | テスト・CI/CD・品質保証       | -      | 15   |
 | ui           | フロントエンド・デザイン・VRM | -      | 0    |
 
@@ -72,6 +72,11 @@
 - **症状**: 2026-07-23夜から定期実行がほぼ全て`{"result": "error", "error_message": "TimeoutError('timed out')"}`で失敗し、半日以上Wikiが生成されなかった。qwen3:8b自体は小さな生成なら約19秒で完走する。
 - **原因**: `Ollama.chat()`が`timeout_seconds=300`のsocketタイムアウトで生成を打ち切っていた。RSS深掘り経路は複数Web本文をWriterプロンプトに載せるためプロンプト・出力が肥大化し、5分では完結しない。プロセス上限`max_run_minutes=20`より先にsocketタイムアウト（5分）が発火するため、`result:"timeout"`の綺麗な終了ではなく`except BaseException`経由の`error`になっていた。加えて`keep_alive:0`で1run内の各LLM呼び出しごとに8Bモデルを再ロードしていた。
 - **対策**: 品質・完結を優先し、`timeout_seconds`を`None`許容にして`config.json`で`null`（socketタイムアウト撤廃）。真のハングを止める安全網は`max_run_minutes`（20→50）に一本化し、スケジューラ間隔も30分→1時間（PT1H）へ緩めてlock競合による`skipped_locked`も解消。`keep_alive`は`"10m"`にして再ロードの無駄を除去した。
+
+### [LLM Plannerがtargetを返さずplan_rejectedが多発していた]
+- **症状**: スケジューラ実行で`plan_rejected`が続いた。ログのactionは`improve_page`/`create_page`だが、散文の`reason`のみでtargetが無く、`validate_action`も`repair_plan`も通らなかった。
+- **原因**: `run_once`が`choose_candidate`（target付きの有効行動）を作った直後に`client.plan()`の結果で無条件に上書きしており、Plannerがtargetを省いた`improve_page`/`create_page`を返すと必ず検証に落ちていた。`plan()`プロンプトの`required_fields`も`["action","reason"]`のみでtargetを要求していなかった。
+- **対策**: LLMの計画が`expand_knowledge`/`create_structure`以外でtargetを欠く場合、`choose_candidate`のcandidate（有効なtarget）へフォールバックし、reasonだけLLMのものを引き継ぐようにした。あわせて`plan()`プロンプトに、improve_page/create_page/add_sources/add_linksではtargetを必須とする指示と`target_required_for`を追加した。回帰テスト追加。
 
 ### [Reviewerのwarningが文言のsubstring一致でblockingに昇格していた]
 - **症状**: 定期実行が`review_rejected`を繰り返し、Reviewerは「一部主張に出典がない」「AI生成の明示不足」等をwarningのつもりで返しても保存がブロックされていた。

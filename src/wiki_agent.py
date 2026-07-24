@@ -510,7 +510,10 @@ class Ollama:
             "improve a page, add links, add sources, or redesign structure based on evidence. "
             "Do not assume that an Index, MOC, fixed folder names, or a fixed page template is required. "
             "stale_pages lists pages that have not been modified in a long time and are good "
-            "improve_page candidates if nothing else stands out.",
+            "improve_page candidates if nothing else stands out. "
+            "For improve_page, add_sources, and add_links, set target to the exact path of an "
+            "existing page taken from the snapshot. For create_page, set target to a new page "
+            "path. expand_knowledge and create_structure need no target.",
             json.dumps(
                 {
                     "wiki_snapshot": wiki_snapshot,
@@ -524,6 +527,12 @@ class Ollama:
                         "add_links",
                     ],
                     "required_fields": ["action", "reason"],
+                    "target_required_for": [
+                        "create_page",
+                        "improve_page",
+                        "add_sources",
+                        "add_links",
+                    ],
                 },
                 ensure_ascii=False,
             ),
@@ -1059,6 +1068,7 @@ def run_once(config: Config) -> dict[str, Any]:
         if rss_action is None:
             action = choose_candidate(vault, db, config.stale_days)
             if client is not None:
+                candidate = action
                 action = client.plan(wiki_snapshot, stale)
                 if action.get("action") == "expand_knowledge":
                     expansion = client.expand(wiki_snapshot, config.max_new_pages)
@@ -1073,6 +1083,15 @@ def run_once(config: Config) -> dict[str, Any]:
                         "action": "create_structure",
                         "reason": action.get("reason", "Improve the Wiki structure."),
                         "pages": structure.get("pages", []),
+                    }
+                elif not action.get("target"):
+                    # improve_page/create_page/add_sources/add_links need a target.
+                    # The Planner often returns only a prose reason without one; fall
+                    # back to the deterministic candidate (which always carries a valid
+                    # target) so the run does real work instead of ending plan_rejected.
+                    action = {
+                        **candidate,
+                        "reason": action.get("reason", candidate.get("reason", "")),
                     }
         else:
             action = rss_action

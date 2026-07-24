@@ -358,6 +358,32 @@ def test_run_once_salvages_poisoned_queue_target(
     assert Vault(config.vault_path).root in created.parents
 
 
+def test_run_once_falls_back_when_planner_omits_target(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import src.wiki_agent as wiki_agent
+
+    vault = Vault(tmp_path / "vault")
+    vault.write("10_Knowledge/seed.md", "# seed\n\n本文")
+    config = Config(tmp_path / "vault", mode="autonomous_safe")
+
+    class TargetlessPlanner(_FakeClient):
+        def plan(self, snapshot: object, stale: object = None) -> dict[str, object]:
+            # Prose reason only, no target -- exactly what caused plan_rejected.
+            return {"action": "improve_page", "reason": "改善案を提示します。"}
+
+    fake = TargetlessPlanner([])
+    monkeypatch.setattr(wiki_agent, "create_client", lambda _config: fake)
+    monkeypatch.setattr(Researcher, "search", lambda self, query, count=3: [])
+
+    result = run_once(config)
+
+    # Previously the targetless plan failed validation and repair, ending plan_rejected.
+    assert result["result"] == "success"
+    assert result["action"]["action"] == "improve_page"
+    assert result["action"]["target"]
+
+
 def test_run_once_normalizes_deferred_queue_targets(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
