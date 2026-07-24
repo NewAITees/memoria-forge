@@ -1,4 +1,5 @@
 import subprocess
+import tempfile
 from pathlib import Path
 
 import pytest
@@ -26,6 +27,8 @@ from src.wiki_agent import (
     validate_action,
 )
 from src.rss_collector import RSSCollector, RSSEntry, load_rss_sources
+from run_agent import run_once_with_timeout, scheduled_lock_path
+from src.research.deep_research import research_article
 
 
 def test_vault_rejects_escape(tmp_path: Path) -> None:
@@ -77,6 +80,64 @@ def test_process_lock_prevents_concurrent_runs(tmp_path: Path) -> None:
         with process_lock(lock_path) as second:
             assert not second
     assert not lock_path.exists()
+
+
+def test_scheduled_lock_path_is_outside_vault(tmp_path: Path) -> None:
+    config = Config(tmp_path / "vault")
+    lock_path = scheduled_lock_path(config)
+    assert config.vault_path not in lock_path.parents
+    assert lock_path.parent == Path(tempfile.gettempdir())
+
+
+def test_run_once_with_timeout_returns_worker_result(tmp_path: Path) -> None:
+    config = Config(tmp_path / "vault", max_run_minutes=1)
+    result = run_once_with_timeout(config)
+    assert result["result"] in {"success", "proposal", "expanded", "no_new_pages"}
+
+
+def test_commit_failure_does_not_fail_wiki_result(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    vault = Vault(tmp_path / "vault")
+    config = Config(tmp_path / "vault", git_enabled=True, auto_commit=True)
+    monkeypatch.setattr(Git, "is_repo", lambda self: True)
+    monkeypatch.setattr(Git, "status", lambda self: " M note.md")
+    monkeypatch.setattr(
+        Git,
+        "commit",
+        lambda self, message: (_ for _ in ()).throw(subprocess.CalledProcessError(128, "git")),
+    )
+
+    assert commit_and_push(vault, config, "wiki: test") == "commit_failed"
+
+
+def test_deep_research_accepts_content_key_from_llm(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class Client:
+        def chat(self, system: str, prompt: str) -> dict[str, object]:
+            if "queries" in prompt:
+                return {"queries": ["primary source"]}
+            return {"content": "統合された調査結果"}
+
+    class Search:
+        def __init__(self, *args: object, **kwargs: object) -> None:
+            pass
+
+        def search(self, query: str, region: str = "jp-jp") -> list[dict[str, str]]:
+            return [{"title": "Source", "url": "https://example.com", "snippet": "x" * 50}]
+
+    monkeypatch.setattr("src.research.deep_research.DDGSearchClient", Search)
+    monkeypatch.setattr(
+        "src.research.deep_research.fetch_pages",
+        lambda results, total_limit, per_page_limit: [
+            {**results[0], "page_content": "evidence"}
+        ],
+    )
+
+    result = research_article(Client(), title="Topic")
+
+    assert result["synthesis"] == "統合された調査結果"
 
 
 def test_unescape_literal_newlines_fixes_double_escaped_content() -> None:
@@ -202,11 +263,17 @@ class _FakeClient:
         return {"pages": self._pages}
 
     def write(
-        self, title: str, reason: str, sources: object, existing: str = "", feedback: str = ""
+        self,
+        title: str,
+        reason: str,
+        sources: object,
+        existing: str = "",
+        feedback: str = "",
+        research_context: str = "",
     ) -> str:
         return f"---\ntype: knowledge\nstatus: draft\n---\n\n# {title}\n\n## 概要\n\n{reason}\n"
 
-    def review(self, content: str) -> dict[str, object]:
+    def review(self, content: str, research_context: str = "") -> dict[str, object]:
         return {"approved": True, "issues": []}
 
 
@@ -656,6 +723,28 @@ def test_ingest_rss_candidates_dedupes_by_url(tmp_path: Path) -> None:
     assert second is not None and second["url"] != first["url"]
     db.mark_rss_candidate(second["url"], "used")
     assert db.next_rss_candidate() is None
+
+
+def test_ingest_rss_candidate_preserves_article_metadata(tmp_path: Path) -> None:
+    db = StateDB(tmp_path / "state.sqlite3")
+    entry = RSSEntry(
+        title="AI breakthrough",
+        url="https://example.com/a",
+        content="Article body",
+        snippet="Short summary",
+        source_name="Feed",
+        feed_url="https://example.com/feed.xml",
+        author="Author",
+    )
+
+    assert db.ingest_rss_candidates([entry]) == 1
+    candidate = db.next_rss_candidate()
+
+    assert candidate is not None
+    assert candidate["content"] == "Article body"
+    assert candidate["snippet"] == "Short summary"
+    assert candidate["feed_url"] == "https://example.com/feed.xml"
+    assert candidate["author"] == "Author"
 
 
 def test_plan_rss_action_builds_create_page(tmp_path: Path) -> None:

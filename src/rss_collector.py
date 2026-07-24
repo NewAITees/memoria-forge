@@ -29,9 +29,12 @@ class RSSEntry:
 
     title: str
     url: str
+    content: str = ""
     snippet: str = ""
     published_at: datetime | None = None
     source_name: str = ""
+    feed_url: str = ""
+    author: str = ""
 
 
 class RSSCollector:
@@ -63,13 +66,24 @@ class RSSCollector:
             parsed = entry.get("published_parsed") or entry.get("updated_parsed")
             if parsed:
                 published_at = datetime.fromtimestamp(calendar.timegm(parsed), tz=timezone.utc)
+            raw_content = entry.get("content", [])
+            content = ""
+            if isinstance(raw_content, list) and raw_content:
+                first_content = raw_content[0]
+                if isinstance(first_content, dict):
+                    content = str(first_content.get("value", ""))
+            if not content:
+                content = str(entry.get("summary", ""))
             entries.append(
                 RSSEntry(
                     title=title,
                     url=url,
+                    content=content,
                     snippet=str(entry.get("summary", "")),
                     published_at=published_at,
                     source_name=str(feed_title),
+                    feed_url=feed_url,
+                    author=str(entry.get("author", "")),
                 )
             )
         return entries

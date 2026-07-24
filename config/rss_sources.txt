@@ -4,3 +4,5 @@
 # 例:
 # https://www.itmedia.co.jp/rss/2.0/aiplus.xml
 # https://gigazine.net/news/rss_2.0/
+
+https://wired.jp/feed/rss
