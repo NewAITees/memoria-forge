@@ -1,0 +1,55 @@
+{
+  "created_at": "2026-07-22T11:53:55.227318+00:00",
+  "task": "Create a concise Japanese knowledge page titled『AI外部記憶としてのObsidian Wiki』.\nUse only the supplied source excerpts as factual evidence. Do not invent numerical results,\nproduct capabilities, dates, or claims not supported by the excerpts. Clearly label inference\nas 推測 and missing evidence as 未確認. Explain how internal links, YAML properties, and RAG\ncould work together, while distinguishing what the sources directly support from what is a\ndesign proposal. Return JSON with exactly these keys: content, claims, uncertainties.\nclaims must be an array of objects with claim and source_urls. uncertainties must be an array\nof strings. content must be Markdown and include a 概要 section and 出典 section.\n",
+  "sources": [
+    {
+      "title": "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks",
+      "url": "https://arxiv.org/abs/2005.11401",
+      "excerpt": "The paper introduces a framework that combines a parametric generator with a non-parametric memory retrieved from a dense vector index."
+    },
+    {
+      "title": "Obsidian Help: Internal links",
+      "url": "https://help.obsidian.md/linking-notes-and-files/internal-links",
+      "excerpt": "Obsidian supports internal links between notes. Links can point to notes and specific sections or blocks."
+    },
+    {
+      "title": "Obsidian Help: Properties",
+      "url": "https://help.obsidian.md/properties",
+      "excerpt": "Properties are structured data assigned to notes and can be written in YAML frontmatter."
+    }
+  ],
+  "models": {
+    "Qwen3.5 9B": {
+      "model": "qwen/qwen3.5-9b",
+      "elapsed_seconds": 283.64,
+      "stage_seconds": {
+        "planner": 56.21,
+        "writer": 95.13,
+        "reviewer": 132.3
+      },
+      "planner": {
+        "_parse_error": "Expecting value: line 1 column 1 (char 0)",
+        "_raw_content": ""
+      },
+      "output": {
+        "_parse_error": "Expecting value: line 1 column 1 (char 0)",
+        "_raw_content": ""
+      },
+      "review": {
+        "_parse_error": "Expecting value: line 1 column 1 (char 0)",
+        "_raw_content": ""
+      },
+      "metrics": {
+        "json_object": true,
+        "has_overview": false,
+        "has_sources": false,
+        "source_urls_in_content": 0,
+        "source_count": 3,
+        "claims_array": true,
+        "claim_count": 0,
+        "uncertainty_count": 0,
+        "numeric_token_count": 0
+      }
+    }
+  }
+}

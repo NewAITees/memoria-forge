@@ -1,0 +1,84 @@
+{
+  "created_at": "2026-07-22T10:26:30.199866+00:00",
+  "task": "Create a concise Japanese knowledge page titled『AI外部記憶としてのObsidian Wiki』.\nUse only the supplied source excerpts as factual evidence. Do not invent numerical results,\nproduct capabilities, dates, or claims not supported by the excerpts. Clearly label inference\nas 推測 and missing evidence as 未確認. Explain how internal links, YAML properties, and RAG\ncould work together, while distinguishing what the sources directly support from what is a\ndesign proposal. Return JSON with exactly these keys: content, claims, uncertainties.\nclaims must be an array of objects with claim and source_urls. uncertainties must be an array\nof strings. content must be Markdown and include a 概要 section and 出典 section.\n",
+  "sources": [
+    {
+      "title": "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks",
+      "url": "https://arxiv.org/abs/2005.11401",
+      "excerpt": "The paper introduces a framework that combines a parametric generator with a non-parametric memory retrieved from a dense vector index."
+    },
+    {
+      "title": "Obsidian Help: Internal links",
+      "url": "https://help.obsidian.md/linking-notes-and-files/internal-links",
+      "excerpt": "Obsidian supports internal links between notes. Links can point to notes and specific sections or blocks."
+    },
+    {
+      "title": "Obsidian Help: Properties",
+      "url": "https://help.obsidian.md/properties",
+      "excerpt": "Properties are structured data assigned to notes and can be written in YAML frontmatter."
+    }
+  ],
+  "models": {
+    "Gemma 4 E4B": {
+      "model": "google/gemma-4-e4b",
+      "elapsed_seconds": 114.46,
+      "stage_seconds": {
+        "planner": 32.4,
+        "writer": 50.69,
+        "reviewer": 31.37
+      },
+      "planner": {
+        "action": "expand_knowledge",
+        "reason": "The sources introduce advanced structural concepts for Obsidian, specifically 'Properties' (structured data via YAML frontmatter), which significantly expands the knowledge base regarding how structured information can be managed within a wiki environment beyond simple linking.",
+        "target": "『自律Wiki構築AI』",
+        "search_queries": [
+          "Obsidian Properties structure",
+          "YAML frontmatter for wikis",
+          "Structured data management in Obsidian"
+        ]
+      },
+      "output": {
+        "content": "# AI外部記憶としてのObsidian Wiki\n\n## 概要\n\n本システムは、ローカルな知識ベース構築ツールであるObsidianの構造的機能と、高度な情報検索技術であるRAG（Retrieval-Augmented Generation）を組み合わせた概念的な枠組みを説明する。\n\n**Obsidianによる構造化:**\nObsidianでは、ノート間に内部リンクを設定でき、特定のセクションやブロックにまでリンクを張ることが可能である[^obsidian_links]。また、YAMLフロントマターを用いてノートに構造化データ（プロパティ）を付与できるため、知識のメタ情報管理に適している[^obsidian_properties]。\n\n**RAGとの連携（設計提案）:**\n一般的に、RAGフレームワークは、パラメトリックなジェネレーターと、密なベクトルインデックスから検索されるノンパラメトリックなメモリを組み合わせることで構成されることが知られている[^arxiv_rag]。本システムでは、Obsidianの内部リンクやYAMLプロパティによって構造化された知識群が、このRAGシステムの「非パラメトリックな記憶」として機能することが提案されている。\n\n**【注意】** 以下の連携は、提供された情報に基づいた設計上の推測であり、具体的な実装手順を示すものではない。\n\n## 出典\n\n*   [Obsidian Help: Internal links](https://help.obsidian.md/linking-notes-and-files/internal-links)\n*   [Obsidian Help: Properties](https://help.obsidian.md/properties)\n*   [Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks](https://arxiv.org/abs/2005.11401)",
+        "claims": [
+          {
+            "claim": "Obsidianは、ノート間、さらには特定のセクションやブロックへの内部リンクをサポートしている。",
+            "source_urls": [
+              "https://help.obsidian.md/linking-notes-and-files/internal-links"
+            ]
+          },
+          {
+            "claim": "Obsidianのプロパティは、ノートに付与される構造化データであり、YAMLフロントマターで記述できる。",
+            "source_urls": [
+              "https://help.obsidian.md/properties"
+            ]
+          },
+          {
+            "claim": "RAGフレームワークは、パラメトリックなジェネレーターと、密なベクトルインデックスから検索されるノンパラメトリックなメモリを組み合わせる。",
+            "source_urls": [
+              "https://arxiv.org/abs/2005.11401"
+            ]
+          }
+        ],
+        "uncertainties": [
+          "Obsidianの内部リンクやYAMLプロパティが、RAGシステムの「非パラメトリックなメモリ」として具体的にどのように機能するかについての直接的な記述はない。",
+          "Obsidianの知識ベースを実際にベクトルインデックス化し、RAGシステムに組み込むための具体的な手順や技術的詳細（例：どのデータ構造を埋め込みベクトルとするか）は未確認である。"
+        ]
+      },
+      "review": {
+        "approved": true,
+        "issues": []
+      },
+      "metrics": {
+        "json_object": true,
+        "has_overview": true,
+        "has_sources": true,
+        "source_urls_in_content": 3,
+        "source_count": 3,
+        "claims_array": true,
+        "claim_count": 3,
+        "uncertainty_count": 2,
+        "numeric_token_count": 1
+      }
+    }
+  }
+}
