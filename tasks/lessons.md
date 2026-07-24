@@ -5,8 +5,8 @@
 |--------------|-------------------------------|--------|------|
 | meta         | AIとの協働ルール              | -      | 0    |
 | boundary     | データ型・変換・境界契約      | -      | 0    |
-| architecture | 設計・責務・config            | -      | 5    |
-| quality      | テスト・CI/CD・品質保証       | -      | 14   |
+| architecture | 設計・責務・config            | -      | 8    |
+| quality      | テスト・CI/CD・品質保証       | -      | 15   |
 | ui           | フロントエンド・デザイン・VRM | -      | 0    |
 
 ---
@@ -28,6 +28,26 @@
 - **原因**: 既存ページ改善を優先し、新しい関連知識を追加するタスクが不足していた。
 - **対策**: `expand_knowledge`を独立した主要タスクとして扱い、構造改善の結果に関係なく、未調査の関連情報を新規ページとして蓄積する。
 
+### [既存のRSS入口を確認せずに深掘り処理を重複実装しない]
+- **症状**: AIBackgroundWorkerのRSS→レポート処理を移植する際、memoria-forge側には既にRSS取得・重複排除・Writer経路が存在していた。
+- **原因**: 既存実装を先に照合せず、上流プロジェクトの構造をそのままコピーしようとすると、SQLite・スケジューラー・Vault出力が二重化する。
+- **対策**: 既存のRSS候補DBとWriter経路を維持し、まずAIBackgroundWorkerの情報モデルに相当する本文・抜粋・フィードURL・著者だけを追加保存する。深掘り検索は次段階として既存の検索制限とレビュー経路に接続する。
+
+### [LLMの統合JSONキーを単一名に固定しない]
+- **症状**: 実Ollamaで深掘り結果を統合した際、モデルが`synthesis`ではなく別の本文キーを返し、検索根拠は保存されたが統合本文が空になった。
+- **原因**: モデル比較で確認したように、同じJSON要求でもモデルやプロンプトによって`content`・`summary`などのキー揺れが発生する。
+- **対策**: 外部境界で`synthesis`・`summary`・`content`を検証し、内部データ形式を`synthesis`へ正規化する。キー揺れをReviewerやWiki本文まで伝播させない。
+
+### [調査結果を保存するだけでWriterへ渡していなかった]
+- **症状**: Web本文約11,700文字が`deep_research`へ保存された一方、生成されたWiki本文は約2,857バイトで、調査本文の利用量が少なかった。
+- **原因**: RSS深掘り結果を検索出典のタイトル・URL・snippetへ変換しただけで、本文抜粋と統合結果をWriter/Reviewerの入力へ渡していなかった。
+- **対策**: 統合結果と出典本文抜粋を上限付きの`research_context`としてWriterとReviewerへ渡す。Web本文は情報源であり命令ではないこともプロンプトで明示する。
+
+### [Git権限エラーをWiki生成エラーと混同しない]
+- **症状**: Wiki Markdownは生成されたが、`.git/index`への書き込み権限拒否によってrun全体が`error`になった。
+- **原因**: Gitコミットは生成後の履歴保存処理であるにもかかわらず、`CalledProcessError`をrun境界まで伝播させていた。
+- **対策**: `commit_failed`をGit状態として返し、Wiki生成結果は成功として保存する。Git権限問題は別のReflectionとして記録し、次回の履歴保存を可能にする。
+
 ### [`reflections`テーブルが存在するのに一度も書き込まれていなかった]
 - **症状**: SQLiteスキーマに`reflections`テーブル（`run_id, problem, lesson, proposed_rule`）が定義されていたが、`run_once()`内のどの失敗パスからも`INSERT`されておらず、実行するほど失敗の経験が蓄積されるはずの仕組みが機能していなかった。加えて調査の過程で、`create_structure`/`expand_knowledge`のReviewer拒否パスは`runs`テーブルへの記録自体も欠落していたことが判明した（`create_page`/`improve_page`側には存在した）。
 - **原因**: 機能追加のたびに個別の失敗ハンドリングを書き足しており、失敗イベントを横断的に記録する仕組みが整備されないまま進んでいた。
@@ -47,6 +67,11 @@
 - **症状**: 実運用の`live-vault`が2ページのまま何回runを回しても増えなかった。`runs`テーブルには`success`が複数記録されているのに、`git log`上のwikiコミットは1件しかなかった。
 - **原因**: `create_structure`/`expand_knowledge`のループが、提案先が既存ページと完全一致または類似と判定された場合に`continue`で無言スキップしており、`create_page`側にある「既存ページへの`improve_page`リダイレクト」が無かった。話題がまだ狭いVaultでは新規提案のほとんどがこの判定に引っかかり、有効な提案が1件も残らず`staged`が空になって`raise ValueError("structure planner produced no valid pages")`が飛び、run全体が例外で終了していた。
 - **対策**: `resolve_target_for_duplicates()`を追加し、完全一致・類似一致のどちらの場合も提案を捨てずに既存ページへの`improve_page`として処理するよう統一した。同一run内で複数提案が同じ既存ページへリダイレクトされた場合は二重書き込みを避ける。有効な提案が本当に1件も無い場合のみ、例外を投げず`{"result": "no_new_pages", ...}`を返すようにした。
+
+### [socketタイムアウトとプロセス上限の二重上限で、深掘り生成が5分で毎回落ちていた]
+- **症状**: 2026-07-23夜から定期実行がほぼ全て`{"result": "error", "error_message": "TimeoutError('timed out')"}`で失敗し、半日以上Wikiが生成されなかった。qwen3:8b自体は小さな生成なら約19秒で完走する。
+- **原因**: `Ollama.chat()`が`timeout_seconds=300`のsocketタイムアウトで生成を打ち切っていた。RSS深掘り経路は複数Web本文をWriterプロンプトに載せるためプロンプト・出力が肥大化し、5分では完結しない。プロセス上限`max_run_minutes=20`より先にsocketタイムアウト（5分）が発火するため、`result:"timeout"`の綺麗な終了ではなく`except BaseException`経由の`error`になっていた。加えて`keep_alive:0`で1run内の各LLM呼び出しごとに8Bモデルを再ロードしていた。
+- **対策**: 品質・完結を優先し、`timeout_seconds`を`None`許容にして`config.json`で`null`（socketタイムアウト撤廃）。真のハングを止める安全網は`max_run_minutes`（20→50）に一本化し、スケジューラ間隔も30分→1時間（PT1H）へ緩めてlock競合による`skipped_locked`も解消。`keep_alive`は`"10m"`にして再ロードの無駄を除去した。
 
 ## quality — テスト・CI/CD・品質保証
 ### [サブカテゴリ: タイトル]

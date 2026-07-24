@@ -110,9 +110,20 @@
 - [x] `run_once()`にRSS入口を統合する（RSS候補があればその回はRSS駆動＝タイトルを種にウェブ検索→Writer→Reviewer→保存。無ければ従来Plannerへフォールスルー）
 - [x] 回帰テストを追加する（RSSパース・候補の重複排除・RSS駆動でcreate_pageアクション組成）
 - [x] `uv run pytest`（63件パス）/ `ruff check`（All checks passed）/ `mypy`（no issues）を通す
+- [x] AIBackgroundWorkerとの差分を確認し、既存RSS候補DBへ本文・抜粋・フィードURL・著者を保持する機能を移植する
+- [x] 既存SQLiteへの列追加マイグレーションとメタデータ保持の回帰テストを追加する
+- [x] 実RSSフィードへ接続し、取得結果に本文・出典情報が含まれることを確認する
+- [x] AIBackgroundWorkerのDuckDuckGo検索クライアントとWeb本文取得器を移植する
+- [x] RSS起点に検索クエリ生成・複数検索・本文取得・深掘り結果保存を接続する
+- [x] 深掘り結果を実Ollama・実Webで検証し、統合JSONキーの差異を正規化する
+- [x] スケジュール用ロックをVault外へ移し、ロックファイルのGit混入を防ぐ
+- [x] 深掘り本文・統合結果をWriterとReviewerへ渡し、保存だけで終わらないようにする
+- [x] Git権限エラー時もWiki生成結果を失敗扱いにせず、`git_status: commit_failed`で記録する
+- [x] DDGクライアントへ検索タイムアウトを渡し、外部検索失敗を短時間で終了させる
 - 未着手（次の候補）: RSS候補を「複数ソース比較・一次資料確認」まで裏取り強化（現状はタイトル種の単発ウェブ検索）。経路Aとリンク構造起点（経路B）の交互実行スケジュール。
 
 ## 残課題（次の候補・未着手）
 - [ ] `normalize_page`を修正し、Writer出力が`----`（4本ダッシュ）や閉じ`---`欠落のfrontmatterを返してもObsidianが解析できる正規frontmatterに整える（実生成ページ`Zettelkasten AI Integration.md`で発生）
 - [ ] Reviewerの過剰ブロックを緩和する（実日付を「未来のプレースホルダー」と誤判定する等）。Reviewerプロンプトに今日の日付を明示し、未検証出典は`blocking`でなく`confidence: low`＋未解決点で扱う
+- [x] タイムアウト連続失敗（`TimeoutError('timed out')`）を解消する：Ollama socketタイムアウトを撤廃（`timeout_seconds: null`）、安全網を`max_run_minutes`（20→50）へ一本化、スケジューラ間隔を30分→1時間（PT1H）へ変更、`keep_alive`を`"10m"`化。回帰テスト追加・pytest/ruff/mypy通過済み
 - [ ] 今回のクラッシュ/キュー修正の学びを`tasks/lessons.md`へ記録する
