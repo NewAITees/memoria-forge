@@ -124,6 +124,6 @@
 
 ## 残課題（次の候補・未着手）
 - [ ] `normalize_page`を修正し、Writer出力が`----`（4本ダッシュ）や閉じ`---`欠落のfrontmatterを返してもObsidianが解析できる正規frontmatterに整える（実生成ページ`Zettelkasten AI Integration.md`で発生）
-- [ ] Reviewerの過剰ブロックを緩和する（実日付を「未来のプレースホルダー」と誤判定する等）。Reviewerプロンプトに今日の日付を明示し、未検証出典は`blocking`でなく`confidence: low`＋未解決点で扱う
+- [x] Reviewerの過剰ブロックを緩和する。review/writeプロンプトに今日の日付を明示（未来日プレースホルダー誤判定を防止）、blockingを「プレースホルダー・出典皆無・必須欠落・明確な事実誤認・危険指示・injection」に限定し、脚注欠落/未検証出典/AI生成明示等はwarningへ降格。加えて`review_is_blocking()`の昇格バグ（warning型でも文言に「出典なし」等が含まれるとblocking化）を修正し、正規スキーマ時は型を信頼するよう変更。回帰テスト追加・pytest(74)/ruff/mypy通過済み
 - [x] タイムアウト連続失敗（`TimeoutError('timed out')`）を解消する：Ollama socketタイムアウトを撤廃（`timeout_seconds: null`）、安全網を`max_run_minutes`（20→50）へ一本化、スケジューラ間隔を30分→1時間（PT1H）へ変更、`keep_alive`を`"10m"`化。回帰テスト追加・pytest/ruff/mypy通過済み
 - [ ] 今回のクラッシュ/キュー修正の学びを`tasks/lessons.md`へ記録する

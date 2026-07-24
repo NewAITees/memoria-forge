@@ -5,7 +5,7 @@
 |--------------|-------------------------------|--------|------|
 | meta         | AIとの協働ルール              | -      | 0    |
 | boundary     | データ型・変換・境界契約      | -      | 0    |
-| architecture | 設計・責務・config            | -      | 8    |
+| architecture | 設計・責務・config            | -      | 9    |
 | quality      | テスト・CI/CD・品質保証       | -      | 15   |
 | ui           | フロントエンド・デザイン・VRM | -      | 0    |
 
@@ -72,6 +72,11 @@
 - **症状**: 2026-07-23夜から定期実行がほぼ全て`{"result": "error", "error_message": "TimeoutError('timed out')"}`で失敗し、半日以上Wikiが生成されなかった。qwen3:8b自体は小さな生成なら約19秒で完走する。
 - **原因**: `Ollama.chat()`が`timeout_seconds=300`のsocketタイムアウトで生成を打ち切っていた。RSS深掘り経路は複数Web本文をWriterプロンプトに載せるためプロンプト・出力が肥大化し、5分では完結しない。プロセス上限`max_run_minutes=20`より先にsocketタイムアウト（5分）が発火するため、`result:"timeout"`の綺麗な終了ではなく`except BaseException`経由の`error`になっていた。加えて`keep_alive:0`で1run内の各LLM呼び出しごとに8Bモデルを再ロードしていた。
 - **対策**: 品質・完結を優先し、`timeout_seconds`を`None`許容にして`config.json`で`null`（socketタイムアウト撤廃）。真のハングを止める安全網は`max_run_minutes`（20→50）に一本化し、スケジューラ間隔も30分→1時間（PT1H）へ緩めてlock競合による`skipped_locked`も解消。`keep_alive`は`"10m"`にして再ロードの無駄を除去した。
+
+### [Reviewerのwarningが文言のsubstring一致でblockingに昇格していた]
+- **症状**: 定期実行が`review_rejected`を繰り返し、Reviewerは「一部主張に出典がない」「AI生成の明示不足」等をwarningのつもりで返しても保存がブロックされていた。
+- **原因**: `review_is_blocking()`が型付きblockingが無い場合に全issueのテキストを走査し、「出典なし」「missing source」等のキーワードが含まれるだけでblocking扱いにしていた。warning型の説明文にこれらの語が入ると強制的に昇格していた。加えてreviewプロンプトのblocking対象が広く（unsupported claims等）、今日の日付も渡していなかったため実日付を未来プレースホルダーと誤判定しうる状態だった。
+- **対策**: issueが全て正規スキーマ（type∈{blocking,warning}）ならその型を信頼し、型なし/不正形（例`factual_error`・素の文字列）の場合のみキーワード判定へフォールバックするよう`review_is_blocking()`を変更。review/writeプロンプトに`today`を渡し、blockingを「プレースホルダー・出典皆無・必須欠落・明確な事実誤認・危険指示・injection」に限定、脚注欠落/未検証出典/AI生成明示はwarningへ降格し、証拠が薄い場合は`confidence: low`＋未解決点で扱うよう明示した。
 
 ## quality — テスト・CI/CD・品質保証
 ### [サブカテゴリ: タイトル]

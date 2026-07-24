@@ -8,6 +8,7 @@ from src.wiki_agent import (
     Config,
     Git,
     LMStudio,
+    Ollama,
     Researcher,
     StateDB,
     Vault,
@@ -169,6 +170,38 @@ def test_review_with_only_typed_warnings_is_not_blocking() -> None:
         "issues": [{"type": "warning", "description": "表現の統一が必要です。"}],
     }
     assert not review_is_blocking(review)
+
+
+def test_typed_warning_with_blocking_keyword_is_not_escalated() -> None:
+    # A warning must stay a warning even when its wording contains a blocking keyword.
+    review = {
+        "approved": False,
+        "issues": [
+            {"type": "warning", "description": "一部の主張に出典がないので confidence を下げてください。"},
+            {"type": "warning", "description": "missing source title polish needed"},
+        ],
+    }
+    assert not review_is_blocking(review)
+
+
+def test_untyped_issue_with_blocking_keyword_still_blocks() -> None:
+    # Untyped/malformed issues keep the keyword fallback so real problems are caught.
+    assert review_is_blocking({"approved": False, "issues": ["missing sources"]})
+    assert review_is_blocking({"approved": False, "issues": [{"type": "factual_error"}]})
+
+
+def test_review_prompt_includes_today(monkeypatch: pytest.MonkeyPatch) -> None:
+    from datetime import date
+
+    captured: dict[str, str] = {}
+
+    def fake_chat(self: Ollama, system: str, prompt: str) -> dict[str, object]:
+        captured["prompt"] = prompt
+        return {"approved": True, "issues": []}
+
+    monkeypatch.setattr(Ollama, "chat", fake_chat)
+    Ollama("http://localhost:11434", "qwen3:8b").review("# page")
+    assert date.today().isoformat() in captured["prompt"]
 
 
 def test_strip_markdown_fence_unwraps_whole_page() -> None:
