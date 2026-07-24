@@ -299,6 +299,27 @@ def test_config_accepts_valid_settings(tmp_path: Path) -> None:
     Config(tmp_path / "vault").validate()
 
 
+def test_config_accepts_disabled_timeout(tmp_path: Path) -> None:
+    Config(tmp_path / "vault", timeout_seconds=None).validate()
+
+
+def test_config_rejects_non_positive_timeout(tmp_path: Path) -> None:
+    with pytest.raises(ValueError):
+        Config(tmp_path / "vault", timeout_seconds=0).validate()
+
+
+def test_disabled_timeout_loads_and_reaches_client(tmp_path: Path) -> None:
+    config_file = tmp_path / "config.json"
+    config_file.write_text(
+        '{"vault_path": "./vault", "ollama": '
+        '{"base_url": "http://localhost:11434", "timeout_seconds": null}}',
+        encoding="utf-8",
+    )
+    config = Config.load(config_file)
+    assert config.timeout_seconds is None
+    assert create_client(config).timeout is None
+
+
 def test_find_similar_page_matches_exact_normalized_title(tmp_path: Path) -> None:
     vault = Vault(tmp_path / "vault")
     vault.write("10_Knowledge/Ollama の モデル管理.md", "# body")

@@ -51,7 +51,7 @@ class Config:
     max_pages_fetched: int = 12
     max_files_changed: int = 5
     max_new_pages: int = 2
-    timeout_seconds: int = 300
+    timeout_seconds: int | None = 300
     max_run_minutes: int = 20
     git_enabled: bool = True
     auto_commit: bool = False
@@ -82,7 +82,6 @@ class Config:
             "max_pages_fetched": self.max_pages_fetched,
             "max_files_changed": self.max_files_changed,
             "max_new_pages": self.max_new_pages,
-            "timeout_seconds": self.timeout_seconds,
             "max_run_minutes": self.max_run_minutes,
             "stale_days": self.stale_days,
             "rss_max_entries_per_feed": self.rss_max_entries_per_feed,
@@ -90,6 +89,15 @@ class Config:
         for name, value in positive_fields.items():
             if not isinstance(value, int) or value <= 0:
                 raise ValueError(f"{name} must be a positive integer, got {value!r}")
+        # timeout_seconds may be None to disable the per-request socket timeout so
+        # long, high-quality generations run to completion (max_run_minutes remains
+        # the hard safety net that terminates a genuinely hung run).
+        if self.timeout_seconds is not None and (
+            not isinstance(self.timeout_seconds, int) or self.timeout_seconds <= 0
+        ):
+            raise ValueError(
+                f"timeout_seconds must be a positive integer or null, got {self.timeout_seconds!r}"
+            )
 
     @classmethod
     def load(cls, path: Path) -> Config:
@@ -406,7 +414,7 @@ def unescape_literal_newlines(text: str) -> str:
 
 
 class Ollama:
-    def __init__(self, base_url: str, model: str, timeout: int = 300) -> None:
+    def __init__(self, base_url: str, model: str, timeout: int | None = 300) -> None:
         self.base_url, self.model, self.timeout = base_url.rstrip("/"), model, timeout
 
     def chat(self, system: str, prompt: str) -> dict[str, Any]:
@@ -416,7 +424,9 @@ class Ollama:
             "format": "json",
             # Disable qwen3 hidden reasoning for bounded JSON agent operations.
             "think": False,
-            "keep_alive": 0,
+            # Keep the model resident across the several LLM calls in one run
+            # (plan -> write -> review) so it is not cold-reloaded each call.
+            "keep_alive": "10m",
             "messages": [
                 {"role": "system", "content": system},
                 {"role": "user", "content": prompt},
