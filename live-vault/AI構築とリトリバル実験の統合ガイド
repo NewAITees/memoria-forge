@@ -1,5 +1,7 @@
 ---
 title: AI構築とリトリバル実験の統合ガイド
+created: 2026-07-25
+updated: 2026-07-25
 ---
 
 # AI構築とリトリバル実験の統合ガイド
@@ -30,7 +32,13 @@ AIとリトリバル実験の統合は、研究開発の効率向上に大きな
 
 ## 出典
 
+- [AI構築の基本ステップ！訓練方法や注意すること | DX/AI研究所](https://ai-kenkyujo.com/artificial-intelligence/algorithm/ai-kouchiku/)
+- [AI（人工知能）の作り方4ステップを初心者向けに解説！個人で作る方法も紹介 - mouse LABO](https://www.mouse-jp.co.jp/mouselabo/entry/2024/09/02/100109)
+- [AIの作り方！初心者がいちから開発する全手順 | 侍エンジニア](https://generative-ai.sejuku.net/blog/3946/)
 
 ## 未解決点
-
-- 追加調査が必要です。
+- リトリバル実験における信頼性の検証方法が未明確です。
+- 再帰的自己改善の実装における倫理的・技術的課題が未解決です。
+- リトリバル実験の精度向上に向けた具体的な指針が不足しています。
+- [マイリスト| ABEMA](https://abema.tv/mylist)
+- [Yahoo! JAPAN](https://www.yahoo.co.jp/)
