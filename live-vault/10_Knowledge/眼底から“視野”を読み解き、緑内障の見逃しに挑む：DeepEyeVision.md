@@ -25,3 +25,4 @@ DeepEyeVisionは、眼底画像の分析を通じて視野の変化を検出し�
 
 ## 出典
 
+- [ganka-doc.com/glaucoma/glaucoma-after-surgery-burry](https://ganka-doc.com/glaucoma/glaucoma-after-surgery-burry/)
