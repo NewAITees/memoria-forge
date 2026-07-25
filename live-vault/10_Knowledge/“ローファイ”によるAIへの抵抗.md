@@ -1,5 +1,7 @@
 ---
 title: "ローファイ"によるAIへの抵抗
+created: 2026-07-25
+updated: 2026-07-25
 ---
 
 ## 概要
@@ -32,6 +34,9 @@ title: "ローファイ"によるAIへの抵抗
 
 ## 出典
 
+- [信頼できるAIへの本質的な道:目的と責任のビジョン](https://jp.linkedin.com/pulse/essential-path-trustworthy-ai-vision-purpose-christiaan-pieter-lok-728oe?tl=ja)
+- [マイクロファイバー汚染に終止符を打つ - Patagonia Stories](https://www.patagonia.jp/stories/planet/our-footprint/toward-an-end-to-microfiber-pollution/story-141340.html)
+- [Aiが最適なポジションを導く！ MyVeloFit... | IT技術者ロードバイク日記](https://rbs.ta36.com/?p=61348)
 
 ## 未解決点
 
