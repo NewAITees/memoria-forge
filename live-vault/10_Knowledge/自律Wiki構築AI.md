@@ -1,42 +1,37 @@
 ---
 type: knowledge
 status: draft
-created: 2026-07-22
-updated: 2026-07-22
+created: 2026-07-25
+updated: 2026-07-25
 confidence: medium
 sources:
-- title: "知識を編む - NISHIO Hirokazu"
-  url: https://mem.nhiro.org/知識を編む
-- title: "知識を編む"
-  url: https://37108.dev/articles/weaving-knowledge/
-- title: "Zettelkasten実践法!知識管理を仕組み化する最強メソッド"
-  url: https://note.com/brisk_hosta7969/n/n31d3850623f2
-- title: "社内wikiの作り方完全ガイド｜ゼロから始めて定着するまでの運用ルールを徹底解説"
-  url: https://www.jcc-ltd.com/column/column_2366/
-- title: "社内wikiの作り方完全ガイド｜5ステップで組織知識を一元化【2026年最新版】 - GBase Knowledgeブログ"
-  url: https://gbase.ai/blog/wiki-how-to-build-2026/
+- title: "自律型AIエージェントのおすすめ12選｜活用目的別にツールを紹介 - Salesforceブログ"
+  url: https://www.salesforce.com/jp/blog/jp-12-recommended-autonomous-ai-agents/
+- title: "自律型AIの仕組みと活用事例は？導入のメリットや注意点を紹介 | NTTドコモビジネス 法人のお客さま"
+  url: https://www.ntt.com/business/services/xmanaged/lp/column/autonomous-ai.html
+- title: "自分だけのAI知識ベースLLM Wikiを簡単作成！難易度別で解説 | 豆腐ハードボイルド"
+  url: https://tofuhardboiled.com/entry/自分だけのai知識ベースllm-wikiを簡単作成！難易度別で/
 ---
 
 # 自律Wiki構築AI
 
 ## 概要
-自律的に知識を構築するためのWiki構築AIの方法論を整理し、最新の実践法とベストプラクティスを網羅。
+AIを活用して知識ベースのWikiを自律的に構築する方法論と実践法を整理。未確認の状態に留意しつつ、リソース管理に関する改善案を提示。
 
 ## 詳細
-- **知識を編む**（NISHIO Hirokazu）
-  知識を構造化し、相互に関連付けることで深く理解を促進する手法。各知識の関連性を明確にし、ネットワーク形式で整理する。
-- **難易度別解説**
-  初心者向けから上級者向けまで、知識構築の手順を段階的に説明し、実践に向けた具体的なステップを提供。
-- **次世代ナレッジ構築術**
-  AIを活用した知識編纂技術で、情報の自動整理と構造化を可能にし、個人の知識ベースを効率的に構築。
+- **自律型AIの仕組み**
+  特定のゴールを設定するだけで、AIが行動を自律的に選択・実行します。行動と評価、修正の繰り返しによって目標を達成します。
+- **LLM Wiki構築の実践法**
+  ノーコード/ローコード開発型は、プログラミングの知識がなくても、GUIベースの操作画面でワークフローを組み、業務プロセスに合わせたWikiを設計できます。
+- **知識構築の改善案**
+  モデル再訓練時のリソース管理手順を明確化し、必要に応じてAIの学習データを制御する仕組みを導入する必要があります。
 
 ## 出典
-- [知識を編む - NISHIO Hirokazu](https://mem.nhiro.org/知識を編む)
-- [知識を編む](https://37108.dev/articles/weaving-knowledge/)
-- [Zettelkasten実践法!知識管理を仕組み化する最強メソッド](https://note.com/brisk_hosta7969/n/n31d3850623f2)
-- [社内wikiの作り方完全ガイド｜ゼロから始めて定着するまでの運用ルールを徹底解説](https://www.jcc-ltd.com/column/column_2366/)
-- [社内wikiの作り方完全ガイド｜5ステップで組織知識を一元化【2026年最新版】 - GBase Knowledgeブログ](https://gbase.ai/blog/wiki-how-to-build-2026/)
+- [自律型AIエージェントのおすすめ12選｜活用目的別にツールを紹介 - Salesforceブログ](https://www.salesforce.com/jp/blog/jp-12-recommended-autonomous-ai-agents/)
+- [自律型AIの仕組みと活用事例は？導入のメリットや注意点を紹介 | NTTドコモビジネス 法人のお客さま](https://www.ntt.com/business/services/xmanaged/lp/column/autonomous-ai.html)
+- [自分だけのAI知識ベースLLM Wikiを簡単作成！難易度別で解説 | 豆腐ハードボイルド](https://tofuhardboiled.com/entry/自分だけのai知識ベースllm-wikiを簡単作成！難易度別で/)
 
 ## 未解決点
-- 一次資料との照合が必要
-- 実施手順の補完や、各技術の詳細な実践例が不足している
+- モデル再訓練時のリソース管理手順の具体的な改善案が不足している
+- AIとWiki構築の関連性が明確でない
+- リソース管理の実際の運用例や実証データが不足している
