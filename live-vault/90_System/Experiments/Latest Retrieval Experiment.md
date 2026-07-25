@@ -33,3 +33,5 @@ updated: 2026-07-25
 
 # Latest Retrieval Experiment
 
+- [AI stress test reveals retrieval challenges across ... - MSN](https://www.msn.com/en-us/news/other/ai-stress-test-reveals-retrieval-challenges-across-leading-ai-platforms/ar-AA26bNaV)
+- [Combining Generative Tasks and Retrieval Tasks - APA PsycNet](https://psycnet.apa.org/fulltext/2026-08573-001.pdf)
