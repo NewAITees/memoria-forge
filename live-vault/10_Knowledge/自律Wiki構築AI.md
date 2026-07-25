@@ -1,8 +1,8 @@
 ---
 type: knowledge
 status: draft
-created: 2026-07-25
-updated: 2026-07-25
+created: 2026-07-26
+updated: 2026-07-26
 confidence: medium
 sources:
 - title: "自律型AIエージェントのおすすめ12選｜活用目的別にツールを紹介 - Salesforceブログ"
