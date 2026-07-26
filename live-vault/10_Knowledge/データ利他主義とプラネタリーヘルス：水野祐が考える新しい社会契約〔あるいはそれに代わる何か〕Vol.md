@@ -38,3 +38,4 @@ updated: 2026-07-27
 ## 未解決点
 
 - 追加調査が必要です。
+- [WIRED VOL.46 | dマガジンなら人気雑誌が読み放題！](https://dmagazine.docomo.ne.jp/item/40ac1bc21a1d2d40f90ed042e732e5c7a87f9179e31b520e9eb5a8a2da891d82/1000/)
