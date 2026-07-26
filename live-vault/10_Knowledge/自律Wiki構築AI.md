@@ -4,14 +4,22 @@ status: draft
 created: 2026-07-26
 updated: 2026-07-26
 confidence: medium
+---
+
++++
+type: knowledge
+status: draft
+created: 2026-07-26
+updated: 2026-07-26
+confidence: medium
 sources:
 - title: "自律型AIエージェントのおすすめ12選｜活用目的別にツールを紹介"
   url: https://www.salesforce.com/jp/blog/jp-12-recommended-autonomous-ai-agents/
 - title: "自律型AIの仕組みと活用事例は？導入のメリットや注意点を紹介"
   url: https://www.ntt.com/business/services/xmanaged/lp/column/autonomous-ai.html
-- title: "自分だけのAI知識ベースLLM Wikiを簡単作成！難易度別で解説"
-  url: https://tofuhardboiled.com/entry/自分だけのai知識ベースllm-wikiを簡単作成！難易度別で/
----
+- title: "AIエージェントとは？【2026年最新版】AI Marketでの活用例、企業様から頂いた相談事例、生成AIとの違い・自律型の仕組み・種類を徹底解説！"
+  url: https://ai-market.jp/technology/ai-agent/
++++
 
 # 自律Wiki構築AI
 
@@ -31,10 +39,9 @@ AIを活用して知識ベースのWikiを自律的に構築する方法論と�
 ## 出典
 - [自律型AIエージェントのおすすめ12選｜活用目的別にツールを紹介]
 - [自律型AIの仕組みと活用事例は？導入のメリットや注意点を紹介]
-- [自分だけのAI知識ベースLLM Wikiを簡単作成！難易度別で解説]
+- [AIエージェントとは？【2026年最新版】AI Marketでの活用例、企業様から頂いた相談事例、生成AIとの違い・自律型の仕組み・種類を徹底解説！]
 
 ## 未解決点
 - モデル再訓練時のリソース管理手順の具体的な改善案が不足している
 - AIとWiki構築の関連性が明確でない
 - リソース管理の実際の運用例や実証データが不足している
-- [AIエージェントとは？【2026年最新版】AI Marketでの活用例、企業様から頂いた相談事例、生成AIとの違い・自律型の仕組み・種類を徹底解説！ - AI Market](https://ai-market.jp/technology/ai-agent/)
