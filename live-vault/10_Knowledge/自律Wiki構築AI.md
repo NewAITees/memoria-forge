@@ -13,12 +13,12 @@ created: 2026-07-26
 updated: 2026-07-26
 confidence: medium
 sources:
+- title: "自律型AIエージェントのおすすめ12選｜活用目的別にツールを紹介"
+  url: https://www.salesforce.com/jp/blog/jp-12-recommended-autonomous-ai-agents/
+- title: "自律型AIの仕組みと活用事例は？導入のメリットや注意点を紹介"
+  url: https://www.ntt.com/business/services/xmanaged/lp/column/autonomous-ai.html
 - title: "自分だけのAI知識ベースLLM Wikiを簡単作成！難易度別で解説"
   url: https://tofuhardboiled.com/entry/自分だけのai知識ベースllm-wikiを簡単作成！難易度別で/
-- title: "「コードを書くより、知識を編む」元Tesla AI責任者が公開した、AIにW..."
-  url: https://llm-news-sage.vercel.app/article/810cfece-1490-467a-be1a-74b15e7ce373
-- title: "AIエージェントで構築する自己進化型Wikiの仕組み｜生成AI活用研究部"
-  url: https://note.com/genaird/n/n55d03d517a61
 +++
 
 # 自律Wiki構築AI
@@ -37,9 +37,9 @@ AIを活用して知識ベースのWikiを自律的に構築する方法論と�
   モデル再訓練時のリソース管理手順を明確化し、必要に応じてAIの学習データを制御する仕組みを導入する必要があります。
 
 ## 出典
+- [自律型AIエージェントのおすすめ12選｜活用目的別にツールを紹介]
+- [自律型AIの仕組みと活用事例は？導入のメリットや注意点を紹介]
 - [自分だけのAI知識ベースLLM Wikiを簡単作成！難易度別で解説]
-- [「コードを書くより、知識を編む」元Tesla AI責任者が公開した、AIにW...]
-- [AIエージェントで構築する自己進化型Wikiの仕組み｜生成AI活用研究部]
 
 ## 未解決点
 - モデル再訓練時のリソース管理手順の具体的な改善案が不足している
