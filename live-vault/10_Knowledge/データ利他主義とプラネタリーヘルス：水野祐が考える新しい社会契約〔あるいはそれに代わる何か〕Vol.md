@@ -1,7 +1,7 @@
 ---
 title: データ利他主義とプラネタリーヘルス：水野祐が考える新しい社会契約〔あるいはそれに代わる何か〕Vol.24
-created: 2026-07-25
-updated: 2026-07-25
+created: 2026-07-26
+updated: 2026-07-26
 ---
 
 ## 概要
@@ -19,8 +19,8 @@ updated: 2026-07-25
 従来の社会契約論（例：ルソーの『社会契約論』）に代わる新しい枠組みを提唱しています。個人と社会の関係を再定義し、データと環境を軸にした社会的合意を模索しています。
 
 ## 出典
-記事はWired Japanの以下のURLで掲載されています：
-https://wired.jp/article/new-trust-new-social-contract-24/
+- [WIRED.jp](https://wired.jp/article/new-trust-new-social-contract-24/)
+- [note.com](https://note.com/tasukumizuno/n/n4d0bff180fcf)
 
 ## 解決されていない点
 - データ利他主義の実行モデルが不明。
@@ -32,13 +32,10 @@ https://wired.jp/article/new-trust-new-social-contract-24/
 - 新しい社会契約の具体的な実現方法が未検討。
 - 経済的・制度的支援が未明確。
 
-## 参考文献
-- 水野祐氏の著作や講演内容（詳細は出典記事を参照）
-- 環境経済学やデータ倫理に関する研究文献
-
 ## 注意
 - [news.livedoor.com](https://news.livedoor.com/article/detail/31875536/) および [YouTube](https://www.youtube.com/watch?v=-PeJHb6gZpM) のリンクは、水野祐氏に関する内容とは関連がなく、記事の主張と関連性がありません。
 - [Google](https://www.google.com/?hl=ja) のリンクは、一般的な検索エンジンのリンクであり、研究または論文への参照ではありません。
 
 # データ利他主義とプラネタリーヘルス：水野祐が考える新しい社会契約〔あるいはそれに代わる何か〕Vol
 
+- [WIRED VOL.46 | dマガジンなら人気雑誌が読み放題！](https://dmagazine.docomo.ne.jp/item/40ac1bc21a1d2d40f90ed042e732e5c7a87f9179e31b520e9eb5a8a2da891d82/1000/)
