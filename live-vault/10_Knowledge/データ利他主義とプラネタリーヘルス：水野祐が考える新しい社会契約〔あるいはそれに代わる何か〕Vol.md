@@ -1,7 +1,7 @@
 ---
 title: データ利他主義とプラネタリーヘルス：水野祐が考える新しい社会契約〔あるいはそれに代わる何か〕Vol.24
-created: 2026-07-26
-updated: 2026-07-26
+created: 2026-07-27
+updated: 2026-07-27
 ---
 
 ## 概要
@@ -27,15 +27,15 @@ updated: 2026-07-26
 - プラネタリーヘルスを実現する政策的枠組みが未確立。
 - 新しい社会契約の具体的な形態や実現可能性についての議論が不足。
 
-## 未解決点
-- データ利他主義とプラネタリーヘルスの実行モデルが不明。
-- 新しい社会契約の具体的な実現方法が未検討。
-- 経済的・制度的支援が未明確。
-
 ## 注意
 - [news.livedoor.com](https://news.livedoor.com/article/detail/31875536/) および [YouTube](https://www.youtube.com/watch?v=-PeJHb6gZpM) のリンクは、水野祐氏に関する内容とは関連がなく、記事の主張と関連性がありません。
 - [Google](https://www.google.com/?hl=ja) のリンクは、一般的な検索エンジンのリンクであり、研究または論文への参照ではありません。
 
 # データ利他主義とプラネタリーヘルス：水野祐が考える新しい社会契約〔あるいはそれに代わる何か〕Vol
 
-- [WIRED VOL.46 | dマガジンなら人気雑誌が読み放題！](https://dmagazine.docomo.ne.jp/item/40ac1bc21a1d2d40f90ed042e732e5c7a87f9179e31b520e9eb5a8a2da891d82/1000/)
+- [【ホロドリ】音ゲー初心者だけど推しを引いて遊んでみたいッッ...](https://www.youtube.com/watch?v=At__QYJKER8)
+- [香水(女性用) Giorgio Armani LIGHT di Gioia 100ml Shop Giorgio...](https://kurier-yandex.kz/?shop/items/Y157281659/)
+
+## 未解決点
+
+- 追加調査が必要です。
