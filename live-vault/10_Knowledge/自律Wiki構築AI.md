@@ -5,11 +5,11 @@ created: 2026-07-26
 updated: 2026-07-26
 confidence: medium
 sources:
-- title: "自律型AIエージェントのおすすめ12選｜活用目的別にツールを紹介 - Salesforceブログ"
-  url: https://www.salesforce.com/jp/blog/jp-12-recommended-autonomous-ai-agents/
-- title: "自律型AIの仕組みと活用事例は？導入のメリットや注意点を紹介 | NTTドコモビジネス 法人のお客さま"
-  url: https://www.ntt.com/business/services/xmanaged/lp/column/autonomous-ai.html
-- title: "自分だけのAI知識ベースLLM Wikiを簡単作成！難易度別で解説 | 豆腐ハードボイルド"
+- title: "コードを書くより、知識を編む"元Tesla AI責任者が公開した、AIにWikiを自律生成させる異次元の活用術
+  url: https://llm-news-sage.vercel.app/article/810cfece-1490-467a-be1a-74b15e7ce373
+- title: "Claude Code × Obsidian で作る「自己増殖型ナレッジベース」——LLM Wiki の実装ガイド"
+  url: https://qiita.com/TaichiEndoh/items/eddc358e42d6c575fded
+- title: "自分だけのAI知識ベースLLM Wikiを簡単作成!難易度別で解説"
   url: https://tofuhardboiled.com/entry/自分だけのai知識ベースllm-wikiを簡単作成！難易度別で/
 ---
 
@@ -22,14 +22,14 @@ AIを活用して知識ベースのWikiを自律的に構築する方法論と�
 - **自律型AIの仕組み**
   特定のゴールを設定するだけで、AIが行動を自律的に選択・実行します。行動と評価、修正の繰り返しによって目標を達成します。
 - **LLM Wiki構築の実践法**
-  ノーコード/ローコード開発型は、プログラミングの知識がなくても、GUIベースの操作画面でワークフローを組み、業務プロセスに合わせたWikiを設計できます。
+  Obsidianとエージェント型RAGを組み合わせ、100ページ以上の知識グラフをLLMが自動生成・拡張する仕組みです。生データをLLMに「コンパイル」させ、知識ベースを編成します。
 - **知識構築の改善案**
   モデル再訓練時のリソース管理手順を明確化し、必要に応じてAIの学習データを制御する仕組みを導入する必要があります。
 
 ## 出典
-- [自律型AIエージェントのおすすめ12選｜活用目的別にツールを紹介 - Salesforceブログ](https://www.salesforce.com/jp/blog/jp-12-recommended-autonomous-ai-agents/)
-- [自律型AIの仕組みと活用事例は？導入のメリットや注意点を紹介 | NTTドコモビジネス 法人のお客さま](https://www.ntt.com/business/services/xmanaged/lp/column/autonomous-ai.html)
-- [自分だけのAI知識ベースLLM Wikiを簡単作成！難易度別で解説 | 豆腐ハードボイルド](https://tofuhardboiled.com/entry/自分だけのai知識ベースllm-wikiを簡単作成！難易度別で/)
+- [コードを書くより、知識を編む]元Tesla AI責任者が公開した、AIにWikiを自律生成させる異次元の活用術
+- [Claude Code × Obsidian で作る「自己増殖型ナレッジベース」——LLM Wiki の実装ガイド]
+- [自分だけのAI知識ベースLLM Wikiを簡単作成!難易度別で解説]
 
 ## 未解決点
 - モデル再訓練時のリソース管理手順の具体的な改善案が不足している
