@@ -1,30 +1,30 @@
 ---
 type: knowledge
 status: draft
-created: 2026-07-27
-updated: 2026-07-27
+created: 2026-07-28
+updated: 2026-07-28
 confidence: medium
 ---
 
 +++
 type: knowledge
 status: draft
-created: 2026-07-27
-updated: 2026-07-27
+created: 2026-07-28
+updated: 2026-07-28
 confidence: medium
 sources:
 - title: "自律型AIエージェントのおすすめ12選｜活用目的別にツールを紹介"
   url: https://www.salesforce.com/jp/blog/jp-12-recommended-autonomous-ai-agents/
 - title: "自律型AIの仕組みと活用事例は？導入のメリットや注意点を紹介"
   url: https://www.ntt.com/business/services/xmanaged/lp/column/autonomous-ai.html
-- title: "AIエージェントとは？【2026年最新版】AI Marketでの活用例、企業様から頂いた相談事例、生成AIとの違い・自律型の仕組み・種類を徹底解説！"
-  url: https://ai-market.jp/technology/ai-agent/
+- title: "自分だけのAI知識ベースLLM Wikiを簡単作成！難易度別で解説"
+  url: https://tofuhardboiled.com/entry/自分だけのai知識ベースllm-wikiを簡単作成！難易度別で/
 +++
 
 # 自律Wiki構築AI
 
 ## 概要
-自律Wiki構築AIは、リトリバル実験とAI検索の関連性を明確化し、知識ベースの構築と拡張を自動化する仕組みを提供します。本稿では、AIが自律的に知識を編集・整理する仕組みや、実験結果を活用した検索改善に焦点を当てます。未解決点も整理し、信頼性を高めています。
+自律Wiki構築AIは、AI検索とリトリバル実験の関係性を明確化し、知識ベースの構築と拡張を自動化する仕組みを提供します。本稿では、AIが自律的に知識を編集・整理する仕組みや、実験結果を活用した検索改善に焦点を当てます。未解決点も整理し、信頼性を高めています。
 
 ## 詳細
 - **自律型Wiki構築の仕組み**
@@ -37,10 +37,9 @@ sources:
 ## 出典
 - [自律型AIエージェントのおすすめ12選｜活用目的別にツールを紹介]
 - [自律型AIの仕組みと活用事例は？導入のメリットや注意点を紹介]
-- [AIエージェントとは？【2026年最新版】AI Marketでの活用例、企業様から頂いた相談事例、生成AIとの違い・自律型の仕組み・種類を徹底解説！]
+- [自分だけのAI知識ベースLLM Wikiを簡単作成！難易度別で解説]
 
 ## 未解決点
 - モデル再訓練時のリソース管理手順の具体的な改善案が不足しています。
 - AIとWiki構築の関連性が明確ではありません。
 - リソース管理の実際の運用例や実証データが不足しています。
-- [自律型AIエージェントとは？仕組み・種類・活用事例からメリット・注意点 | JAPAN AI ラボ](https://japan-ai.co.jp/media/7118/)
