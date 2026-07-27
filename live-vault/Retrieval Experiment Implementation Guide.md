@@ -1,8 +1,8 @@
 ---
 type: knowledge
 status: draft
-created: 2026-07-25
-updated: 2026-07-25
+created: 2026-07-28
+updated: 2026-07-28
 confidence: medium
 ---
 
@@ -39,15 +39,6 @@ confidence: medium
 - 実験の長期的効果はまだ評価されていない。
 - モデル再訓練時のリソース管理のベストプラクティスが明確でない。
 - AI検索とリトリバル実験の関連性が十分に強調されていない。
-
-# Retrieval Experiment Implementation Guide
-
-- [PDF Improving the Use of Retrieval Practice for Both Easy and Difficult ...](https://metacog.bnu.edu.cn/pdf/articles/2024/Fan2024.pdf)
-- [Improving the Use of Retrieval Practice for Both Easy and Difficult ...](https://www.researchgate.net/publication/384572535_Improving_the_Use_of_Retrieval_Practice_for_Both_Easy_and_Difficult_Materials_The_Effect_of_an_Instructional_Intervention)
-- [Improving the Use of Retrieval Practice for Both Easy and Difficult ...](https://www.semanticscholar.org/paper/Improving-the-Use-of-Retrieval-Practice-for-Both-of-Fan-Hui/39670f313dae64735d514f63233474769538e288)
-- [Retrieval Practice: A Tool for Teaching the Control-of-Variables ...](https://www.tandfonline.com/doi/full/10.1080/00220973.2024.2392684)
-- [Retrieval Practice: A Tool for Teaching the Control-of-Variables ...](https://www.researchgate.net/publication/386880856_Retrieval_Practice_A_Tool_for_Teaching_the_Control-of-Variables_Strategy_in_Science_Classrooms)
-
-## 関連ページ
-
-- [[Latest Retrieval Experiment]]
+- [Information Retrieval Experiments | OER Commons](https://oercommons.org/courseware/lesson/123324/student/)
+- [How to Use Retrieval Practice to Improve Learning](http://psychnet.wustl.edu/memory/wp-content/uploads/2018/04/RetrievalPracticeGuide.pdf)
+- [Retrieval Practice: The Most Powerful Learning Strategy You're Not Using | Cult of Pedagogy](https://www.cultofpedagogy.com/retrieval-practice/)
