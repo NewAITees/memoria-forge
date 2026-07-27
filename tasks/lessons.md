@@ -5,7 +5,7 @@
 |--------------|-------------------------------|--------|------|
 | meta         | AIとの協働ルール              | -      | 0    |
 | boundary     | データ型・変換・境界契約      | -      | 0    |
-| architecture | 設計・責務・config            | -      | 10   |
+| architecture | 設計・責務・config            | -      | 11   |
 | quality      | テスト・CI/CD・品質保証       | -      | 15   |
 | ui           | フロントエンド・デザイン・VRM | -      | 0    |
 
@@ -72,6 +72,11 @@
 - **症状**: 2026-07-23夜から定期実行がほぼ全て`{"result": "error", "error_message": "TimeoutError('timed out')"}`で失敗し、半日以上Wikiが生成されなかった。qwen3:8b自体は小さな生成なら約19秒で完走する。
 - **原因**: `Ollama.chat()`が`timeout_seconds=300`のsocketタイムアウトで生成を打ち切っていた。RSS深掘り経路は複数Web本文をWriterプロンプトに載せるためプロンプト・出力が肥大化し、5分では完結しない。プロセス上限`max_run_minutes=20`より先にsocketタイムアウト（5分）が発火するため、`result:"timeout"`の綺麗な終了ではなく`except BaseException`経由の`error`になっていた。加えて`keep_alive:0`で1run内の各LLM呼び出しごとに8Bモデルを再ロードしていた。
 - **対策**: 品質・完結を優先し、`timeout_seconds`を`None`許容にして`config.json`で`null`（socketタイムアウト撤廃）。真のハングを止める安全網は`max_run_minutes`（20→50）に一本化し、スケジューラ間隔も30分→1時間（PT1H）へ緩めてlock競合による`skipped_locked`も解消。`keep_alive`は`"10m"`にして再ロードの無駄を除去した。
+
+### [choose_candidateが最小ページを毎回選び、1ページを延々と再改善していた]
+- **症状**: 24時間で`improve_page`の約1/3（8回）が同一ページ（vault直下の小さな`最新検索実験結果解説.md`）に費やされ、知識の幅が広がらなかった。
+- **原因**: `choose_candidate`が「最小サイズのページ＝改善候補」を選ぶため、改善しても最小のままの小さなページが毎回再選択されていた。stale判定（30日）は短期の再改善には効かない。
+- **対策**: `improve_cooldown_hours`（既定24h）を追加し、クールダウン以内に更新されたページを候補から除外して残りの最小を選ぶ。全ページが最近更新済みなら「最も長く更新されていないページ」を選び、自然にラウンドロビンさせる。改善直後はmtimeが最新になるため、他が一巡するまで再選択されない。
 
 ### [LLM Plannerがtargetを返さずplan_rejectedが多発していた]
 - **症状**: スケジューラ実行で`plan_rejected`が続いた。ログのactionは`improve_page`/`create_page`だが、散文の`reason`のみでtargetが無く、`validate_action`も`repair_plan`も通らなかった。

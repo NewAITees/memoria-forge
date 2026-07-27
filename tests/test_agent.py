@@ -1,5 +1,7 @@
+import os
 import subprocess
 import tempfile
+import time
 from pathlib import Path
 
 import pytest
@@ -41,6 +43,35 @@ def test_vault_rejects_escape(tmp_path: Path) -> None:
 def test_empty_vault_gets_creation_candidate(tmp_path: Path) -> None:
     candidate = choose_candidate(Vault(tmp_path / "vault"))
     assert candidate["action"] == "create_page"
+
+
+def test_choose_candidate_skips_recently_improved_smallest_page(tmp_path: Path) -> None:
+    vault = Vault(tmp_path / "vault")
+    small = vault.write("10_Knowledge/small.md", "# small")
+    big = vault.write("10_Knowledge/big.md", "# big\n\n" + "x" * 500)
+    now = time.time()
+    os.utime(small, (now, now))  # just improved -> inside the cooldown window
+    os.utime(big, (now - 48 * 3600, now - 48 * 3600))  # eligible (48h old)
+
+    candidate = choose_candidate(vault, improve_cooldown_hours=24)
+
+    assert candidate["action"] == "improve_page"
+    # The small page would normally win on size, but it is skipped during cooldown.
+    assert candidate["target"].endswith("big.md")
+
+
+def test_choose_candidate_round_robins_when_all_pages_recent(tmp_path: Path) -> None:
+    vault = Vault(tmp_path / "vault")
+    newer = vault.write("10_Knowledge/newer.md", "# newer")
+    older = vault.write("10_Knowledge/older.md", "# older\n\n" + "x" * 500)
+    now = time.time()
+    os.utime(newer, (now, now))
+    os.utime(older, (now - 3600, now - 3600))  # 1h ago, still within cooldown
+
+    candidate = choose_candidate(vault, improve_cooldown_hours=24)
+
+    # Every page is recent, so pick the least recently updated one, not the smallest.
+    assert candidate["target"].endswith("older.md")
 
 
 def test_action_target_is_confined(tmp_path: Path) -> None:

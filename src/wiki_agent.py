@@ -61,6 +61,7 @@ class Config:
     auto_commit: bool = False
     auto_push: bool = False
     stale_days: int = 30
+    improve_cooldown_hours: int = 24
     rss_enabled: bool = False
     rss_sources_file: Path = Path("config/rss_sources.txt")
     rss_max_entries_per_feed: int = 10
@@ -88,6 +89,7 @@ class Config:
             "max_new_pages": self.max_new_pages,
             "max_run_minutes": self.max_run_minutes,
             "stale_days": self.stale_days,
+            "improve_cooldown_hours": self.improve_cooldown_hours,
             "rss_max_entries_per_feed": self.rss_max_entries_per_feed,
         }
         for name, value in positive_fields.items():
@@ -132,6 +134,7 @@ class Config:
             auto_commit=git.get("auto_commit", False),
             auto_push=git.get("auto_push", False),
             stale_days=agent.get("stale_days", 30),
+            improve_cooldown_hours=agent.get("improve_cooldown_hours", 24),
             rss_enabled=rss.get("enabled", False),
             rss_sources_file=rss_sources_file,
             rss_max_entries_per_feed=rss.get("max_entries_per_feed", 10),
@@ -759,7 +762,10 @@ class Git:
 
 
 def choose_candidate(
-    vault: Vault, db: StateDB | None = None, stale_days: int = 30
+    vault: Vault,
+    db: StateDB | None = None,
+    stale_days: int = 30,
+    improve_cooldown_hours: int = 24,
 ) -> dict[str, Any]:
     pages = vault.pages()
     if not pages:
@@ -778,11 +784,22 @@ def choose_candidate(
                 "reason": f"Page has not been updated in over {stale_days} days",
                 "search_queries": [],
             }
-    shallow = min(pages, key=lambda p: p.stat().st_size)
+    # Avoid hammering one small page every run: skip pages improved within the
+    # cooldown window and improve the smallest of the rest. When every page is
+    # recent, fall back to the least-recently-updated page so selection round-robins
+    # instead of always re-picking the same smallest stub.
+    cooldown_cutoff = datetime.now(timezone.utc).timestamp() - improve_cooldown_hours * 3600
+    eligible = [page for page in pages if page.stat().st_mtime < cooldown_cutoff]
+    if eligible:
+        target = min(eligible, key=lambda p: p.stat().st_size)
+        reason = "Smallest page outside the improvement cooldown is a review candidate"
+    else:
+        target = min(pages, key=lambda p: p.stat().st_mtime)
+        reason = "All pages are recent; improving the least recently updated page"
     return {
         "action": "improve_page",
-        "target": str(shallow.relative_to(vault.root)),
-        "reason": "Smallest page is a review candidate",
+        "target": str(target.relative_to(vault.root)),
+        "reason": reason,
         "search_queries": [],
     }
 
@@ -1066,7 +1083,9 @@ def run_once(config: Config) -> dict[str, Any]:
     else:
         rss_action = plan_rss_action(vault, db, config)
         if rss_action is None:
-            action = choose_candidate(vault, db, config.stale_days)
+            action = choose_candidate(
+                vault, db, config.stale_days, config.improve_cooldown_hours
+            )
             if client is not None:
                 candidate = action
                 action = client.plan(wiki_snapshot, stale)
