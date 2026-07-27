@@ -1,10 +1,11 @@
 ---
 title: AI知識構築手順ガイド
-date: 2025-09-17
+created: 2026-07-27
+updated: 2026-07-27
 ---
 
 # 概要
-AI知識構築は、データ収集、事前処理、モデル選定、学習、評価、デプロイを含む一連のプロセスです。ノーコードプラットフォームやオープンソースライブラリを主なツールとして活用します。
+AI知識構築は、データ収集、事前処理、モデル選定、学習、評価、デプロイを含む一連のプロセスです。リトリバル実験とAI検索の関連性を強調し、実験結果の分析を深めることが信頼性と実用性の向上に重要です。
 
 # 詳細手順
 1. **データ収集**
@@ -40,18 +41,15 @@ AI知識構築は、データ収集、事前処理、モデル選定、学習、
 # 未解決点
 - 大規模データ取得に必要な法的許可が未確認
 - モデル再訓練時のリソース管理手順が不足
+- AI検索とリトリバル実験の関係性が明確でない
 
 # 出典
-- [GitHub - joshylchen/zettelkasten: Comprehensive AI-powered knowledge ...](https://github.com/joshylchen/zettelkasten)
-- [Automate Zettlekasten Note Taking with AI - Medium](https://medium.com/@theo-james/automate-zettlekasten-note-taking-with-ai-97bfc92c966a)
-- [How To Build Your Zettelkasten to Master AI](https://zettelkasten.de/posts/how-to-build-zettelkasten-master-ai/)
-- [RAG Implementation Tutorial Guide | PDF | Information Retrieval - Scribd](https://www.scribd.com/document/931407655/complete-Tutorial-Implementing-AI-Retrieval-Augmented-Generation-RAG)
-- [Retrieval practice - Structural Learning](https://www.structural-learning.com/post/retrieval-practice-a-teachers-guide)
+- [AI（人工知能）の作り方4ステップを初心者向けに解説！個人で作る方法も紹介 - mouse LABO](https://www.mouse-jp.co.jp/mouselabo/entry/2024/09/02/100109)
+- [AI学習の方法について解説！必要なスキルや導入するメリットもあわせて紹介](https://www.tryeting.jp/column/1207/)
+- [【2026年7月最新】AIの作り方完全ガイド｜初心者がゼロから開発する手順・ノーコード・業務活用まで - AI鬼管理](https://genai-ai.co.jp/ai-kanri/blog/cc-ai-development-guide/)
 
 ## 出典
 
-- [テキストをAI確認にかける | テキストでAIを素早く検出 | 99%のAI検出精度](https://duckduckgo.com/y.js?ad_domain=textguard.ai)
-- [more info](https://duckduckgo.com/duckduckgo-help-pages/company/ads-by-microsoft-on-duckduckgo-private-search/)
 
 ## 未解決点
 
