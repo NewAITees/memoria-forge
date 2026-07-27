@@ -1,15 +1,15 @@
 ---
 type: knowledge
 status: draft
-created: 2026-07-25
-updated: 2026-07-25
+created: 2026-07-27
+updated: 2026-07-27
 confidence: medium
 ---
 
 +++
 title: Zettelkasten AI Integration
-created: 2026-07-25
-updated: 2026-07-25
+created: 2026-07-27
+updated: 2026-07-27
 +++
 
 # Zettelkasten AI Integration
@@ -55,3 +55,4 @@ new_note = zk.generate("AIはZettelkastenにどう活用できるか")
 - AI+Zettelkasten: The New Knowledge Workflow | Evernote: https://evernote.com/learn/ai-zettelkasten-the-new-knowledge-workflow
 - How To Build Your Zettelkasten to Master AI•Zettelkasten Method: https://zettelkasten.de/posts/how-to-build-zettelkasten-master-ai/
 - zettelkasten/README.md at main · joshylchen/zettelkasten· GitHub: https://github.com/joshylchen/zettelkasten/blob/main/README.md
+- [GitHub - Zettelgarden/Zettelgarden: Intelligent zettelkasten where AI agents help you capture, process, and recall knowledge seamlessly · GitHub](https://github.com/Zettelgarden/Zettelgarden)
