@@ -1,7 +1,7 @@
 ---
 title: 眼底から「視野」を読み解き、緑内障の見逃しに挑む：DeepEyeVision
-created: 2026-07-26
-updated: 2026-07-26
+created: 2026-07-27
+updated: 2026-07-27
 ---
 
 ## 概要
@@ -16,7 +16,7 @@ DeepEyeVision for RetinaStationは2026年1月に販売開始。眼底カメラ�
 ## 出典
 - [眼底から「視野」を読み解き、緑内障の見逃しに挑む：DeepEyeVision | WIRED.jp](https://wired.jp/article/vol59-deepeyevision-hidenori-takahashi-ai-startups/)
 - [Technologies | DeepEyeVision Inc.](https://deepeyevision.com/en/technologies/)
-- [DeepEyeVision株式会社](https://deepeyevision.com/)
+- [DeepEyeVision株式会社](https://morningpitch.com/startups/32374/)
 
 ## 未解決点
 - 臨床実用化における具体的な進捗や課題は不明
