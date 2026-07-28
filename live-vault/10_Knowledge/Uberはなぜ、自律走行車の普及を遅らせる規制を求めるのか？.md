@@ -1,8 +1,8 @@
 ---
 type: knowledge
 status: draft
-created: 2026-07-27
-updated: 2026-07-27
+created: 2026-07-28
+updated: 2026-07-28
 confidence: medium
 ---
 
@@ -10,7 +10,7 @@ confidence: medium
 
 ## 概要
 
-Uberは、自律走行車（ロボタクシー）の普及を遅らせる規制を求める動きを強めています。これは、競争優位を確保し、自身のプラットフォーム戦略を支えるための戦略とされています。ニュージャージー州やワシントンD.C.で具体的な政策案が提案され、業界の競争環境を制限する可能性があります。
+Uberは、自律走行車（ロボタクシー）の普及を遅らせる規制を求める動きを強めています。この動きは、競争優位を確保し、自身のプラットフォーム戦略を支えるための戦略とされています。ニュージャージー州やワシントンD.C.で具体的な政策案が提案され、業界の競争環境を制限する可能性があります。
 
 ## 詳細
 
@@ -33,9 +33,9 @@ Uberは、自律走行車（ロボタクシー）の普及を遅らせる規制�
 
 ## 出典
 
-- [Uberはなぜ、自律走行車の普及を遅らせる規制を求めるのか？](https://www.wired.com/story/ubers-autonomous-vehicle-strategy-slow-their-adoption/)
-- [Uber Pushes Policy to Slow Rival Self-Driving Cars](https://www.techbuzz.ai/articles/uber-pushes-policy-to-slow-rival-self-driving-cars)
-- [ライドシェアサービスの日本参入・普及を阻害している障壁とは？｜MaaS・スマートシティの事例を多数掲載｜Mobility Transformation[モビリティ トランスフォーメーション]](https://mobility-transformation.com/magazine/rideshare/)
+- [Uberはなぜ、自律走行車の普及を遅らせる規制を求めるのか？](https://news.livedoor.com/article/detail/31891255/)
+- [Google Gemini](https://gemini.google.com/?hl=ja)
+- [Uberはトランジットと価格競争力がありません](https://ichi.pro/uber-wa-toranjitto-to-kakaku-kyosoryoku-ga-arimasen-64535072594389)
 
 ## 未解決点
 
