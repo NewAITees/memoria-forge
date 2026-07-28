@@ -42,3 +42,4 @@ confidence: medium
 - [Information Retrieval Experiments | OER Commons](https://oercommons.org/courseware/lesson/123324/student/)
 - [How to Use Retrieval Practice to Improve Learning](http://psychnet.wustl.edu/memory/wp-content/uploads/2018/04/RetrievalPracticeGuide.pdf)
 - [Retrieval Practice: The Most Powerful Learning Strategy You're Not Using | Cult of Pedagogy](https://www.cultofpedagogy.com/retrieval-practice/)
+- [Embeddings in Practice: A Research & Implementation Guide | by Adnan Masood, PhD. | Medium](https://medium.com/@adnanmasood/embeddings-in-practice-a-research-implementation-guide-9dbf20961590)
