@@ -1,15 +1,15 @@
 ---
 type: knowledge
 status: draft
-created: 2026-07-28
-updated: 2026-07-28
+created: 2026-07-29
+updated: 2026-07-29
 confidence: medium
 ---
 
 +++
 title: Zettelkasten AI Integration
-created: 2026-07-28
-updated: 2026-07-28
+created: 2026-07-29
+updated: 2026-07-29
 +++
 
 # Zettelkasten AI Integration
