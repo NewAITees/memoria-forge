@@ -1,7 +1,7 @@
 ---
 title: 「AI軍拡競争」という物語が現実をつくる──元DeepMind幹部が警鐘
-created: 2026-07-28
-updated: 2026-07-28
+created: 2026-07-29
+updated: 2026-07-29
 ---
 
 # 概要
