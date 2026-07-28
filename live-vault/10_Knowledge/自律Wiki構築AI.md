@@ -1,24 +1,32 @@
 ---
 type: knowledge
 status: draft
-created: 2026-07-28
-updated: 2026-07-28
+created: 2026-07-29
+updated: 2026-07-29
 confidence: medium
 ---
 
 +++
 type: knowledge
 status: draft
-created: 2026-07-28
-updated: 2026-07-28
+created: 2026-07-29
+updated: 2026-07-29
 confidence: medium
 sources:
+- title: "Retrieval Experiment Implementation Guide.md"
+  url: "https://example.com/retrieval-experiment-guide.md"
+- title: "Google Gemini"
+  url: "https://gemini.google.com/?hl=ja"
+- title: "Threads"
+  url: "https://www.threads.com/login/"
+- title: "Manus"
+  url: "https://manus.im/app"
 - title: "自律型AIエージェントのおすすめ12選｜活用目的別にツールを紹介"
-  url: https://www.salesforce.com/jp/blog/jp-12-recommended-autonomous-ai-agents/
+  url: "https://www.salesforce.com/jp/blog/jp-12-recommended-autonomous-ai-agents/"
 - title: "自律型AIの仕組みと活用事例は？導入のメリットや注意点を紹介"
-  url: https://www.ntt.com/business/services/xmanaged/lp/column/autonomous-ai.html
+  url: "https://www.ntt.com/business/services/xmanaged/lp/column/autonomous-ai.html"
 - title: "自分だけのAI知識ベースLLM Wikiを簡単作成！難易度別で解説"
-  url: https://tofuhardboiled.com/entry/自分だけのai知識ベースllm-wikiを簡単作成！難易度別で/
+  url: "https://tofuhardboiled.com/entry/自分だけのai知識ベースllm-wikiを簡単作成！難易度別で/"
 +++
 
 # 自律Wiki構築AI
@@ -35,6 +43,7 @@ sources:
   モデル再訓練時のリソース管理を明確化し、AIの学習データを制御する仕組みを導入する必要があります。リソースの利用効率を高め、構築プロセスを安定化させる必要があります。
 
 ## 出典
+- [Retrieval Experiment Implementation Guide.md]
 - [自律型AIエージェントのおすすめ12選｜活用目的別にツールを紹介]
 - [自律型AIの仕組みと活用事例は？導入のメリットや注意点を紹介]
 - [自分だけのAI知識ベースLLM Wikiを簡単作成！難易度別で解説]
