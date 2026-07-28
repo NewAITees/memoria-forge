@@ -1,16 +1,17 @@
 ---
 title: 最新のリトリバル実験
-created: 2026-07-27
-updated: 2026-07-27
+created: 2026-07-28
+updated: 2026-07-28
 ---
 
 ## 概要
-リトリバル実験は情報検索システムの性能評価に用いられる手法であり、AI検索との関連性が強く、実装ガイドと実験結果の解説を統合して整理した。
+リトリバル実験は情報検索システムの性能評価において重要な手法であり、AI検索との関連性が明確に示されている。本ページでは、実装手順、AI検索との関連性、出典、および未解決点を整理し、信頼性を高める。
 
 ## 背景
-- リトリバル実験は情報検索システムの性能を評価するための主要手法。
+- リトリバル実験は情報検索システムの性能評価に用いられる主要手法。
 - AI検索においても、リトリバル実験は評価や改善に利用される。
 - ロングテール評価や情報需要の変化を追跡する点でも関連性がある。
+- 研究背景として、リトリバル実験は教育分野でも活用され、学習効果の向上に寄与している。
 
 ## 実装手順
 1. **実験設計**: タスクや条件に基づき、実験の目的を明確にする。
@@ -26,9 +27,12 @@ updated: 2026-07-27
 - AI検索はリトリバル実験の効率化や精度向上に寄与する可能性がある。
 
 ## 出典
-1. [hscells/pybool_ir: Toolkit for domain-specific information retrieval...](https://github.com/hscells/pybool_ir) - リトリバル実験の実装例と拡張性の説明。
-2. [Axiomatic Retrieval Experimentation with ir_axioms](https://downloads.webis.de/publications/papers/bondarenko_2022d.pdf) - 統計的評価と実験の設計。
-3. [Water Has Memory! Dr. Masaru Emoto's Water Experiment! - YouTube](https://www.youtube.com/watch?v=5cyQVu_8EFc) - 情報検索とは無関係な実験。
+1. [Effects of retrieval practice on retention and application of complex educational concepts - ScienceDirect](https://www.sciencedirect.com/science/article/pii/S0959475225001434)
+   - 2025年9月20日、実験結果を示した研究。
+2. [Information Retrieval Experiments | OER Commons](https://oercommons.org/courseware/lesson/123324/student/)
+   - いくつかのIR実験の概要を提供。
+3. [The Information Retrieval Experiment Platform | Proceedings of the 46th International ACM SIGIR Conference](https://dl.acm.org/doi/10.1145/3539618.3591888)
+   - リトリバル実験の標準化と再現性に関する研究。
 
 ## 未解決点
 - 実験の詳細な設定や結果の解釈方法については追加調査が必要。
