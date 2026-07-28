@@ -6,12 +6,12 @@ updated: 2026-07-28
 
 ## 概要
 
-"ローファイ"は、高精細なデジタル表現ではなく、アナログ的手法やシンプルなデザインを重視するアプローチを指す。この概念は、AI技術の急速な進化とその影響に対して、一部のクリエイターが抵抗を示すきっかけとなった。ローファイは、AIによる自動生成コンテンツや高度なアルゴリズムの制御に反発し、人間の手による創造性や感情の表現を再評価する動きを促進している。
+「ローファイ」は、高精細なデジタル表現を避け、アナログ的手法やシンプルなデザインを重視するアプローチを指す。この概念は、AI技術の進化に伴う一部のクリエイターによる抵抗運動として注目されている。ローファイは、AIによる自動生成コンテンツや高度なアルゴリズムの制御への反発を示し、人間の手による創造性や感情の表現を再評価する動きを促進している。
 
 ## 詳細
 
 ローファイの抵抗は、以下の点に注目している。
-- AIが生成するコンテンツの「無機質さ」への不満
+- AI生成コンテンツの「無機質さ」への不満
 - 人間の感情や不完全さを反映した表現の重要性
 - デジタル技術の過度な依存による創造性の低下への懸念
 
@@ -19,17 +19,15 @@ updated: 2026-07-28
 
 ## ソース
 
-- ["ローファイ"によるAIへの抵抗 - WIRED.jp](https://wired.jp/article/sz-a-lo-fi-rebellion-against-ai/)
-- ["ローファイ"によるaiへの抵抗 - ライブドアニュース](https://news.livedoor.com/article/detail/31882687/)
-- [WIRED.jp on X: ""ローファイ"によるAIへの抵抗" / X](https://x.com/wired_jp/status/2079690552585687205)
+- [ハイファイと ローファイ プロト作成はAIでどう変わるか｜yummyAI](https://note.com/just_snipe6244/n/nbe3f18f497ce)
+- [GoogleのAIプロジェクト「Magenta」による無料ローファイ・ヒップホップ自動生成アプリを使ってみよう! | block.fm](https://block.fm/news/lofiplayer)
+- [ローファイ（Lo-fi）徹底解説：起源・音作り・文化的影響と制作ガイド | EverPlay（エバープレイ）](https://everplay.jp/column/43432)
 
 ## 解決されていない点
 
 - ローファイとAIの協働の具体的なモデルは未解決
 - 人間の創造性とAIの機能性の境界が明確でない
 - ローファイが持つ文化的・社会的意味合いが十分に理解されていない
-
-## ローファイによるAIへの抵抗の背景
 
 ## ハイファイ移行における課題
 
@@ -55,15 +53,12 @@ AIとジェネレーティブ技術の進展により、ローファイ風のビ
 
 ## 参考資料
 
-- [ハイファイと ローファイ プロト作成はAIでどう変わるか｜yummyAI](https://note.com/just_snipe6240/n/nbe3f18f497ce)
+- [ハイファイと ローファイ プロト作成はAIでどう変わるか｜yummyAI](https://note.com/just_snipe6244/n/nbe3f18f497ce)
 - [ローファイ（Lo-fi）徹底解説：起源・音作り・文化的影響と制作ガイド | EverPlay（エバープレイ）](https://everplay.jp/column/43432)
 - [GoogleのAIプロジェクト「Magenta」による無料ローファイ・ヒップホップ自動生成アプリを使ってみよう! | block.fm](https://block.fm/news/lofiplayer)
 
-## 出典
-
-- [マイクロファイバー汚染に終止符を打つ - Patagonia Stories](https://www.patagonia.jp/stories/planet/our-footprint/toward-an-end-to-microfiber-pollution/story-141340.html)
-- [ファイア ウルフ 2022のインプレ! バーサタイルロッドの極み!](https://advanced-angler.com/fire-wolf-2022-impressions)
-- [アルゴリズムによる試練：Reddit... | note（ノート）](https://note.com/jun_miyakawa/n/n22338fdd6c04)
-
 # “ローファイ”によるAIへの抵抗
+
+
+## 出典
 
