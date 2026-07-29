@@ -1,8 +1,8 @@
 ---
 type: knowledge
 status: draft
-created: 2026-07-28
-updated: 2026-07-28
+created: 2026-07-29
+updated: 2026-07-29
 confidence: medium
 ---
 
@@ -47,3 +47,6 @@ confidence: medium
 ## 信頼性の高い知識ドキュメントとしての改善点
 - AI検索とリトリバル実験の関連性を明確にし、信頼性を高める。
 - 出典の整合性を整理し、読みやすさを向上させた。
+- [Retrieval practice - Structural Learning](https://www.structural-learning.com/post/retrieval-practice-a-teachers-guide)
+- [Full article: Retrieval Practice: A Tool for Teaching the ...](https://www.tandfonline.com/doi/full/10.1080/00220973.2024.2392684)
+- [Retrieval Practice: A Powerful Strategy for Learning](https://www.retrievalpractice.org/retrievalpractice)
