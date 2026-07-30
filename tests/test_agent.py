@@ -15,6 +15,7 @@ from src.wiki_agent import (
     StateDB,
     Vault,
     choose_candidate,
+    cohesion,
     commit_and_push,
     cosine,
     create_client,
@@ -28,6 +29,7 @@ from src.wiki_agent import (
     running_mean,
     safe_new_page_target,
     strip_markdown_fence,
+    two_means,
     unescape_literal_newlines,
     update_world_map,
     validate_action,
@@ -980,8 +982,40 @@ def test_update_world_map_assigns_then_is_idempotent(tmp_path: Path) -> None:
     }
     config = Config(vault_path=tmp_path / "v", embed_prompt="")
     first = update_world_map(db, config, embed_fn=lambda text: vectors[text])
-    assert first == {"assigned": 3, "new_clusters": 2}
+    assert first == {"assigned": 3, "new_clusters": 2, "splits": 0, "merges": 0}
     assert [s["size"] for s in db.cluster_summary()] == [2, 1]
     # A second pass re-embeds nothing: every candidate is already on the map.
     second = update_world_map(db, config, embed_fn=lambda text: vectors[text])
-    assert second == {"assigned": 0, "new_clusters": 0}
+    assert second == {"assigned": 0, "new_clusters": 0, "splits": 0, "merges": 0}
+
+
+def test_two_means_and_cohesion_separate_two_blobs() -> None:
+    vectors = [[1.0, 0.0], [0.98, 0.02], [0.0, 1.0], [0.02, 0.98]]
+    labels = two_means(vectors)
+    assert labels[0] == labels[1] and labels[2] == labels[3]
+    assert labels[0] != labels[2]
+    assert cohesion([[1.0, 0.0], [1.0, 0.0]]) == pytest.approx(1.0)
+    assert cohesion(vectors) < 0.9  # a two-blob set is not cohesive
+
+
+def test_consolidate_merges_near_duplicate_clusters(tmp_path: Path) -> None:
+    db = StateDB(tmp_path / "s.sqlite3")
+    # A high attach threshold forces two near (cos 0.9) points into separate clusters.
+    db.assign_point("a", [1.0, 0.0], 0.99)
+    db.assign_point("b", [0.9, 0.436], 0.99)
+    assert len(db.cluster_summary()) == 2
+    stats = db.consolidate(merge_threshold=0.86, split_cohesion=0.0, min_split_size=100)
+    assert stats["merges"] == 1
+    assert [s["size"] for s in db.cluster_summary()] == [2]
+
+
+def test_consolidate_splits_a_dispersed_cluster(tmp_path: Path) -> None:
+    db = StateDB(tmp_path / "s.sqlite3")
+    blob = [[1.0, 0.0, 0.0], [0.95, 0.05, 0.0], [0.9, 0.1, 0.0],
+            [0.0, 1.0, 0.0], [0.05, 0.95, 0.0], [0.1, 0.9, 0.0]]
+    for i, v in enumerate(blob):  # attach threshold 0.0 forces one cluster
+        db.assign_point(f"x{i}", v, 0.0)
+    assert len(db.cluster_summary()) == 1
+    stats = db.consolidate(merge_threshold=0.99, split_cohesion=0.9, min_split_size=6)
+    assert stats["splits"] == 1
+    assert sorted(s["size"] for s in db.cluster_summary()) == [3, 3]

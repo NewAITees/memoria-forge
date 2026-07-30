@@ -134,6 +134,11 @@ class Config:
     # tightens the geometry (without it, streaming attach yields all singletons).
     embed_prompt: str = "task: clustering | query: "
     cluster_attach_threshold: float = 0.76
+    # S2 consolidation: merge clusters whose centroids are this close; split a
+    # cluster larger than min_split whose members cohere less than split_cohesion.
+    cluster_merge_threshold: float = 0.86
+    cluster_split_cohesion: float = 0.70
+    cluster_min_split_size: int = 6
 
     ALLOWED_MODES = ("manual", "autonomous_safe")
     ALLOWED_PROVIDERS = ("ollama", "lmstudio")
@@ -178,6 +183,18 @@ class Config:
                 "cluster_attach_threshold must be in (0, 1], "
                 f"got {self.cluster_attach_threshold!r}"
             )
+        if not 0.0 < self.cluster_merge_threshold <= 1.0:
+            raise ValueError(
+                f"cluster_merge_threshold must be in (0, 1], got {self.cluster_merge_threshold!r}"
+            )
+        if not 0.0 < self.cluster_split_cohesion <= 1.0:
+            raise ValueError(
+                f"cluster_split_cohesion must be in (0, 1], got {self.cluster_split_cohesion!r}"
+            )
+        if not isinstance(self.cluster_min_split_size, int) or self.cluster_min_split_size < 2:
+            raise ValueError(
+                f"cluster_min_split_size must be an integer >= 2, got {self.cluster_min_split_size!r}"
+            )
 
     @classmethod
     def load(cls, path: Path) -> Config:
@@ -217,6 +234,9 @@ class Config:
             embed_url=embed.get("base_url", ollama.get("base_url", cls.embed_url)),
             embed_prompt=embed.get("prompt", cls.embed_prompt),
             cluster_attach_threshold=embed.get("attach_threshold", cls.cluster_attach_threshold),
+            cluster_merge_threshold=embed.get("merge_threshold", cls.cluster_merge_threshold),
+            cluster_split_cohesion=embed.get("split_cohesion", cls.cluster_split_cohesion),
+            cluster_min_split_size=embed.get("min_split_size", cls.cluster_min_split_size),
         )
         config.validate()
         return config
@@ -286,6 +306,45 @@ def running_mean(mean: list[float], size: int, vec: list[float]) -> list[float]:
     return [(m * size + v) / (size + 1) for m, v in zip(mean, vec)]
 
 
+def mean_vector(vectors: list[list[float]]) -> list[float]:
+    """Element-wise mean (centroid) of a non-empty list of vectors."""
+    n = len(vectors)
+    return [sum(col) / n for col in zip(*vectors)]
+
+
+def cohesion(vectors: list[list[float]]) -> float:
+    """Mean cosine of each member to the centroid; 1.0 for a singleton."""
+    if len(vectors) < 2:
+        return 1.0
+    centroid = mean_vector(vectors)
+    return sum(cosine(v, centroid) for v in vectors) / len(vectors)
+
+
+def two_means(vectors: list[list[float]]) -> list[int]:
+    """Split vectors into two groups (labels 0/1) via a few k=2 assignment passes.
+
+    Seeds are the mutually least-similar pair, so a dispersed cluster cleaves
+    along its widest axis. Returns a label per input vector.
+    """
+    n = len(vectors)
+    a, b, worst = 0, 1, 2.0
+    for i in range(n):
+        for j in range(i + 1, n):
+            s = cosine(vectors[i], vectors[j])
+            if s < worst:
+                worst, a, b = s, i, j
+    ca, cb = vectors[a][:], vectors[b][:]
+    labels = [0] * n
+    for _ in range(4):
+        labels = [0 if cosine(v, ca) >= cosine(v, cb) else 1 for v in vectors]
+        group_a = [vectors[i] for i in range(n) if labels[i] == 0]
+        group_b = [vectors[i] for i in range(n) if labels[i] == 1]
+        if not group_a or not group_b:
+            break
+        ca, cb = mean_vector(group_a), mean_vector(group_b)
+    return labels
+
+
 def embed_text(text: str, base_url: str, model: str, timeout: int = 120) -> list[float]:
     """Embed one string via an Ollama-compatible /api/embed endpoint."""
     request = urllib.request.Request(
@@ -336,11 +395,29 @@ class StateDB:
         CREATE TABLE IF NOT EXISTS cluster_members (
             url TEXT PRIMARY KEY,
             cluster_id INTEGER NOT NULL,
-            assigned_at TEXT NOT NULL
+            assigned_at TEXT NOT NULL,
+            embedding TEXT
         );
         """)
         self._ensure_rss_columns()
+        self._ensure_cluster_member_columns()
         self.db.commit()
+
+    def _ensure_cluster_member_columns(self) -> None:
+        """Add the per-point embedding column; discard pre-embedding S1 map data.
+
+        S1 clusters are disposable observation data (no pages attached), so on the
+        one-time upgrade we clear the map and let it rebuild with embeddings that
+        S2 consolidation needs. Fresh databases already have the column and skip this.
+        """
+        existing = {
+            str(row[1])
+            for row in self.db.execute("PRAGMA table_info(cluster_members)").fetchall()
+        }
+        if "embedding" not in existing:
+            self.db.execute("ALTER TABLE cluster_members ADD COLUMN embedding TEXT")
+            self.db.execute("DELETE FROM cluster_members")
+            self.db.execute("DELETE FROM clusters")
 
     def _ensure_rss_columns(self) -> None:
         """Upgrade the original RSS candidate schema without losing queued items."""
@@ -401,7 +478,8 @@ class StateDB:
                 (json.dumps(merged), size + 1, timestamp, cid),
             )
             self.db.execute(
-                "INSERT OR REPLACE INTO cluster_members VALUES (?, ?, ?)", (url, cid, timestamp)
+                "INSERT OR REPLACE INTO cluster_members VALUES (?, ?, ?, ?)",
+                (url, cid, timestamp, json.dumps(list(vec))),
             )
             self.db.commit()
             return cid, False
@@ -411,7 +489,8 @@ class StateDB:
         )
         cid = int(cursor.lastrowid or 0)
         self.db.execute(
-            "INSERT OR REPLACE INTO cluster_members VALUES (?, ?, ?)", (url, cid, timestamp)
+            "INSERT OR REPLACE INTO cluster_members VALUES (?, ?, ?, ?)",
+            (url, cid, timestamp, json.dumps(list(vec))),
         )
         self.db.commit()
         return cid, True
@@ -432,6 +511,85 @@ class StateDB:
             "SELECT cluster_id, size, page_path FROM clusters ORDER BY size DESC, cluster_id ASC"
         ).fetchall()
         return [{"cluster_id": r[0], "size": r[1], "page_path": r[2]} for r in rows]
+
+    def consolidate(
+        self, merge_threshold: float, split_cohesion: float, min_split_size: int
+    ) -> dict[str, int]:
+        """Refine the map: split dispersed clusters, merge near-duplicate clusters.
+
+        Corrects the order-dependence of streaming attach. Operates on stored
+        member embeddings in memory, preserving cluster_id (and any linked page)
+        for the cluster that keeps the majority; split-off and merged-away groups
+        move. A cluster whose members predate embedding storage is skipped.
+        """
+        page_of = {
+            cid: pp for cid, pp in self.db.execute("SELECT cluster_id, page_path FROM clusters")
+        }
+        groups: dict[int, list[tuple[str, list[float]]]] = {cid: [] for cid in page_of}
+        for url, cid, emb in self.db.execute(
+            "SELECT url, cluster_id, embedding FROM cluster_members"
+        ):
+            if emb is None:
+                return {"splits": 0, "merges": 0, "skipped": 1}
+            groups.setdefault(cid, []).append((url, json.loads(emb)))
+        groups = {cid: mem for cid, mem in groups.items() if mem}
+        next_id = (max(groups) if groups else 0) + 1
+
+        splits = 0
+        for cid in list(groups):
+            members = groups[cid]
+            if len(members) >= min_split_size and cohesion([v for _, v in members]) < split_cohesion:
+                labels = two_means([v for _, v in members])
+                keep = [members[i] for i in range(len(members)) if labels[i] == 0]
+                move = [members[i] for i in range(len(members)) if labels[i] == 1]
+                if keep and move:
+                    groups[cid] = keep
+                    groups[next_id] = move
+                    page_of[next_id] = None
+                    next_id += 1
+                    splits += 1
+
+        merges = 0
+        changed = True
+        while changed:
+            changed = False
+            ids = list(groups)
+            for i in range(len(ids)):
+                for j in range(i + 1, len(ids)):
+                    a, b = ids[i], ids[j]
+                    if a not in groups or b not in groups:
+                        continue
+                    ca = mean_vector([v for _, v in groups[a]])
+                    cb = mean_vector([v for _, v in groups[b]])
+                    if cosine(ca, cb) >= merge_threshold:
+                        a_wins = bool(page_of.get(a)) or len(groups[a]) >= len(groups[b])
+                        keep_id, drop_id = (a, b) if a_wins else (b, a)
+                        groups[keep_id] += groups[drop_id]
+                        del groups[drop_id]
+                        page_of.pop(drop_id, None)
+                        merges += 1
+                        changed = True
+                        break
+                if changed:
+                    break
+
+        timestamp = now()
+        self.db.execute("DELETE FROM clusters")
+        self.db.execute("DELETE FROM cluster_members")
+        for cid, members in groups.items():
+            centroid = mean_vector([v for _, v in members])
+            self.db.execute(
+                "INSERT INTO clusters (cluster_id, centroid, size, updated_at, page_path) "
+                "VALUES (?, ?, ?, ?, ?)",
+                (cid, json.dumps(centroid), len(members), timestamp, page_of.get(cid)),
+            )
+            for url, vec in members:
+                self.db.execute(
+                    "INSERT OR REPLACE INTO cluster_members VALUES (?, ?, ?, ?)",
+                    (url, cid, timestamp, json.dumps(vec)),
+                )
+        self.db.commit()
+        return {"splits": splits, "merges": merges, "skipped": 0}
 
     def enqueue_task(self, task_type: str, target_page: str, priority: float = 0.5) -> None:
         self.db.execute(
@@ -1255,7 +1413,17 @@ def update_world_map(
         _, is_new = db.assign_point(url, vec, config.cluster_attach_threshold)
         assigned += 1
         new_clusters += 1 if is_new else 0
-    return {"assigned": assigned, "new_clusters": new_clusters}
+    stats = db.consolidate(
+        config.cluster_merge_threshold,
+        config.cluster_split_cohesion,
+        config.cluster_min_split_size,
+    )
+    return {
+        "assigned": assigned,
+        "new_clusters": new_clusters,
+        "splits": stats["splits"],
+        "merges": stats["merges"],
+    }
 
 
 def run_once(config: Config) -> dict[str, Any]:
