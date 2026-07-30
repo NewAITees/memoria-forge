@@ -16,6 +16,7 @@ from src.wiki_agent import (
     Vault,
     choose_candidate,
     commit_and_push,
+    cosine,
     create_client,
     find_similar_page,
     normalize_new_page_target,
@@ -24,9 +25,11 @@ from src.wiki_agent import (
     resolve_target_for_duplicates,
     review_is_blocking,
     run_once,
+    running_mean,
     safe_new_page_target,
     strip_markdown_fence,
     unescape_literal_newlines,
+    update_world_map,
     validate_action,
 )
 from src.rss_collector import RSSCollector, RSSEntry, load_rss_sources
@@ -940,3 +943,45 @@ def test_run_once_rss_drives_page_creation(
     assert created.exists()
     # The RSS candidate was consumed by the run.
     assert db.next_rss_candidate() is None
+
+
+def test_cosine_and_running_mean() -> None:
+    assert cosine([1.0, 0.0], [1.0, 0.0]) == pytest.approx(1.0)
+    assert cosine([1.0, 0.0], [0.0, 1.0]) == pytest.approx(0.0)
+    assert cosine([0.0, 0.0], [1.0, 1.0]) == 0.0  # zero magnitude is safe, not a crash
+    assert running_mean([2.0], 1, [4.0]) == [3.0]
+    assert running_mean([0.0, 0.0], 3, [4.0, 8.0]) == [1.0, 2.0]
+
+
+def test_assign_point_seeds_attaches_and_grows(tmp_path: Path) -> None:
+    db = StateDB(tmp_path / "s.sqlite3")
+    c1, new1 = db.assign_point("a", [1.0, 0.0, 0.0], 0.72)
+    assert new1 is True
+    c2, new2 = db.assign_point("b", [0.9, 0.1, 0.0], 0.72)  # near a
+    assert new2 is False and c2 == c1
+    c3, new3 = db.assign_point("c", [0.0, 1.0, 0.0], 0.72)  # far
+    assert new3 is True and c3 != c1
+    summary = db.cluster_summary()
+    assert [s["size"] for s in summary] == [2, 1]
+
+
+def test_update_world_map_assigns_then_is_idempotent(tmp_path: Path) -> None:
+    db = StateDB(tmp_path / "s.sqlite3")
+    for url, title in [("u1", "space one"), ("u2", "space two"), ("u3", "food item")]:
+        db.db.execute(
+            "INSERT INTO rss_candidates (url, title, snippet, status) VALUES (?, ?, ?, ?)",
+            (url, title, "", "new"),
+        )
+    db.db.commit()
+    vectors = {
+        "space one": [1.0, 0.0, 0.0],
+        "space two": [0.92, 0.08, 0.0],
+        "food item": [0.0, 1.0, 0.0],
+    }
+    config = Config(vault_path=tmp_path / "v", embed_prompt="")
+    first = update_world_map(db, config, embed_fn=lambda text: vectors[text])
+    assert first == {"assigned": 3, "new_clusters": 2}
+    assert [s["size"] for s in db.cluster_summary()] == [2, 1]
+    # A second pass re-embeds nothing: every candidate is already on the map.
+    second = update_world_map(db, config, embed_fn=lambda text: vectors[text])
+    assert second == {"assigned": 0, "new_clusters": 0}

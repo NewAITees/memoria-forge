@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 import os
 import re
 import sqlite3
@@ -14,7 +15,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any, Generator, cast
+from typing import Any, Callable, Generator, cast
 
 from src.rss_collector import RSSCollector, RSSEntry, load_rss_sources
 from src.research import DDGSearchClient
@@ -127,6 +128,12 @@ class Config:
     rss_enabled: bool = False
     rss_sources_file: Path = Path("config/rss_sources.txt")
     rss_max_entries_per_feed: int = 10
+    embed_model: str = "embeddinggemma"
+    embed_url: str = "http://localhost:11434"
+    # EmbeddingGemma is prompt-conditioned: the clustering prefix materially
+    # tightens the geometry (without it, streaming attach yields all singletons).
+    embed_prompt: str = "task: clustering | query: "
+    cluster_attach_threshold: float = 0.76
 
     ALLOWED_MODES = ("manual", "autonomous_safe")
     ALLOWED_PROVIDERS = ("ollama", "lmstudio")
@@ -166,6 +173,11 @@ class Config:
             raise ValueError(
                 f"timeout_seconds must be a positive integer or null, got {self.timeout_seconds!r}"
             )
+        if not 0.0 < self.cluster_attach_threshold <= 1.0:
+            raise ValueError(
+                "cluster_attach_threshold must be in (0, 1], "
+                f"got {self.cluster_attach_threshold!r}"
+            )
 
     @classmethod
     def load(cls, path: Path) -> Config:
@@ -174,6 +186,7 @@ class Config:
         agent = raw.get("agent", {})
         git = raw.get("git", {})
         rss = raw.get("rss", {})
+        embed = raw.get("embed", {})
         vault_path = Path(raw["vault_path"])
         if not vault_path.is_absolute():
             vault_path = (path.parent / vault_path).resolve()
@@ -200,6 +213,10 @@ class Config:
             rss_enabled=rss.get("enabled", False),
             rss_sources_file=rss_sources_file,
             rss_max_entries_per_feed=rss.get("max_entries_per_feed", 10),
+            embed_model=embed.get("model", cls.embed_model),
+            embed_url=embed.get("base_url", ollama.get("base_url", cls.embed_url)),
+            embed_prompt=embed.get("prompt", cls.embed_prompt),
+            cluster_attach_threshold=embed.get("attach_threshold", cls.cluster_attach_threshold),
         )
         config.validate()
         return config
@@ -254,6 +271,33 @@ class Vault:
         return destination
 
 
+def cosine(a: list[float], b: list[float]) -> float:
+    """Cosine similarity of two vectors; 0.0 if either has zero magnitude."""
+    dot = sum(x * y for x, y in zip(a, b))
+    na = math.sqrt(sum(x * x for x in a))
+    nb = math.sqrt(sum(x * x for x in b))
+    if na == 0.0 or nb == 0.0:
+        return 0.0
+    return dot / (na * nb)
+
+
+def running_mean(mean: list[float], size: int, vec: list[float]) -> list[float]:
+    """Incrementally fold `vec` into a mean vector of `size` prior members."""
+    return [(m * size + v) / (size + 1) for m, v in zip(mean, vec)]
+
+
+def embed_text(text: str, base_url: str, model: str, timeout: int = 120) -> list[float]:
+    """Embed one string via an Ollama-compatible /api/embed endpoint."""
+    request = urllib.request.Request(
+        base_url.rstrip("/") + "/api/embed",
+        data=json.dumps({"model": model, "input": text}).encode(),
+        headers={"Content-Type": "application/json"},
+    )
+    with urllib.request.urlopen(request, timeout=timeout) as response:
+        body: dict[str, Any] = json.loads(response.read())
+    return cast(list[float], body["embeddings"][0])
+
+
 class StateDB:
     def __init__(self, path: Path) -> None:
         self.db = sqlite3.connect(path)
@@ -281,6 +325,18 @@ class StateDB:
             published_at TEXT,
             fetched_at TEXT,
             status TEXT
+        );
+        CREATE TABLE IF NOT EXISTS clusters (
+            cluster_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            centroid TEXT NOT NULL,
+            size INTEGER NOT NULL,
+            updated_at TEXT NOT NULL,
+            page_path TEXT
+        );
+        CREATE TABLE IF NOT EXISTS cluster_members (
+            url TEXT PRIMARY KEY,
+            cluster_id INTEGER NOT NULL,
+            assigned_at TEXT NOT NULL
         );
         """)
         self._ensure_rss_columns()
@@ -319,6 +375,63 @@ class StateDB:
                 ),
             )
         self.db.commit()
+
+    def assign_point(
+        self, url: str, vec: list[float], threshold: float
+    ) -> tuple[int, bool]:
+        """Attach an embedding to its nearest persistent cluster, or seed a new one.
+
+        Returns (cluster_id, is_new). Idempotent per url via cluster_members' PK:
+        re-assigning the same url overwrites its membership row.
+        """
+        rows = self.db.execute("SELECT cluster_id, centroid, size FROM clusters").fetchall()
+        best: tuple[int, list[float], int] | None = None
+        best_sim = -1.0
+        for cid, centroid_json, size in rows:
+            centroid = json.loads(centroid_json)
+            sim = cosine(vec, centroid)
+            if sim > best_sim:
+                best_sim, best = sim, (cid, centroid, size)
+        timestamp = now()
+        if best is not None and best_sim >= threshold:
+            cid, centroid, size = best
+            merged = running_mean(centroid, size, vec)
+            self.db.execute(
+                "UPDATE clusters SET centroid = ?, size = ?, updated_at = ? WHERE cluster_id = ?",
+                (json.dumps(merged), size + 1, timestamp, cid),
+            )
+            self.db.execute(
+                "INSERT OR REPLACE INTO cluster_members VALUES (?, ?, ?)", (url, cid, timestamp)
+            )
+            self.db.commit()
+            return cid, False
+        cursor = self.db.execute(
+            "INSERT INTO clusters (centroid, size, updated_at) VALUES (?, ?, ?)",
+            (json.dumps(list(vec)), 1, timestamp),
+        )
+        cid = int(cursor.lastrowid or 0)
+        self.db.execute(
+            "INSERT OR REPLACE INTO cluster_members VALUES (?, ?, ?)", (url, cid, timestamp)
+        )
+        self.db.commit()
+        return cid, True
+
+    def unassigned_rss(self) -> list[tuple[str, str, str]]:
+        """RSS candidates not yet placed on the map, as (url, title, snippet)."""
+        return [
+            (row[0], row[1] or "", row[2] or "")
+            for row in self.db.execute(
+                "SELECT url, title, snippet FROM rss_candidates "
+                "WHERE url NOT IN (SELECT url FROM cluster_members)"
+            ).fetchall()
+        ]
+
+    def cluster_summary(self) -> list[dict[str, Any]]:
+        """Persistent clusters newest/largest first: id, size, linked page (if any)."""
+        rows = self.db.execute(
+            "SELECT cluster_id, size, page_path FROM clusters ORDER BY size DESC, cluster_id ASC"
+        ).fetchall()
+        return [{"cluster_id": r[0], "size": r[1], "page_path": r[2]} for r in rows]
 
     def enqueue_task(self, task_type: str, target_page: str, priority: float = 0.5) -> None:
         self.db.execute(
@@ -1115,12 +1228,48 @@ def plan_rss_action(vault: Vault, db: StateDB, config: Config) -> dict[str, Any]
     }
 
 
+def update_world_map(
+    db: StateDB,
+    config: Config,
+    embed_fn: "Callable[[str], list[float]] | None" = None,
+) -> dict[str, int]:
+    """Embed not-yet-placed RSS candidates and attach them to persistent clusters.
+
+    S1 of the geometry engine: observation only. It never writes to the vault or
+    influences page generation; it just grows the world map so thresholds can be
+    tuned on real data. Callers should guard invocation so a missing embed model
+    or unreachable endpoint can never fail a run.
+    """
+    if embed_fn is None:
+
+        def embed_fn(text: str) -> list[float]:
+            return embed_text(text, config.embed_url, config.embed_model)
+
+    assigned = 0
+    new_clusters = 0
+    for url, title, snippet in db.unassigned_rss():
+        text = " ".join(part for part in (title, snippet) if part).strip()
+        if not text:
+            continue
+        vec = embed_fn(config.embed_prompt + text)
+        _, is_new = db.assign_point(url, vec, config.cluster_attach_threshold)
+        assigned += 1
+        new_clusters += 1 if is_new else 0
+    return {"assigned": assigned, "new_clusters": new_clusters}
+
+
 def run_once(config: Config) -> dict[str, Any]:
     vault = Vault(config.vault_path)
     db = StateDB(vault.root / ".agent-state.sqlite3")
     db.sync_pages(vault)
     if (vault.root / "STOP_AGENT").exists():
         return {"result": "stopped"}
+    # Geometry engine S1: grow the world map (observation only). Guarded so a
+    # missing embed model or offline endpoint never breaks Wiki generation.
+    try:
+        update_world_map(db, config)
+    except Exception as exc:  # noqa: BLE001 - map growth must never fail a run
+        logger.warning("world map update skipped: %s", exc)
     wiki_snapshot = vault.snapshot()
     stale = db.stale_pages(config.stale_days)
     client = (
