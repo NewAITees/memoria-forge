@@ -114,6 +114,35 @@ def test_process_lock_prevents_concurrent_runs(tmp_path: Path) -> None:
     assert not lock_path.exists()
 
 
+def test_process_lock_reclaims_dead_pid(tmp_path: Path, monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    """A lock left by a crashed run (pid gone) is reclaimed, not blocked forever."""
+    lock_path = tmp_path / ".agent-run.lock"
+    lock_path.write_text("999999")
+    monkeypatch.setattr("src.wiki_agent._pid_alive", lambda pid: False)
+    with process_lock(lock_path) as acquired:
+        assert acquired
+    assert not lock_path.exists()
+
+
+def test_process_lock_respects_live_pid(tmp_path: Path, monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    """A lock owned by a live pid is preserved and the run is skipped."""
+    lock_path = tmp_path / ".agent-run.lock"
+    lock_path.write_text("4321")
+    monkeypatch.setattr("src.wiki_agent._pid_alive", lambda pid: True)
+    with process_lock(lock_path) as acquired:
+        assert not acquired
+    assert lock_path.exists()
+
+
+def test_process_lock_keeps_unparseable_lock(tmp_path: Path) -> None:
+    """An empty/garbage lock (owner unknown) is left in place, run skipped."""
+    lock_path = tmp_path / ".agent-run.lock"
+    lock_path.write_text("")
+    with process_lock(lock_path) as acquired:
+        assert not acquired
+    assert lock_path.exists()
+
+
 def test_scheduled_lock_path_is_outside_vault(tmp_path: Path) -> None:
     config = Config(tmp_path / "vault")
     lock_path = scheduled_lock_path(config)

@@ -27,21 +27,83 @@ def now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _pid_alive(pid: int) -> bool:
+    """Best-effort check whether `pid` is a currently running process.
+
+    On any uncertainty we return True so we never steal a lock from a live run.
+    """
+    if pid <= 0:
+        return False
+    if os.name == "nt":
+        try:
+            completed = subprocess.run(
+                ["tasklist", "/FI", f"PID eq {pid}", "/NH"],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        except OSError:
+            return True
+        return str(pid) in completed.stdout
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    except OSError:
+        return True
+    return True
+
+
+def _reclaim_stale_lock(path: Path) -> bool:
+    """Remove a lock file whose owning pid is gone. Return True if reclaimed.
+
+    Conservative: an empty or non-numeric lock (owner pid unknown) is left in
+    place for a human to inspect rather than risking stealing a live lock.
+    """
+    try:
+        content = path.read_text().strip()
+    except OSError:
+        return False
+    try:
+        pid = int(content)
+    except ValueError:
+        return False
+    if _pid_alive(pid):
+        return False
+    try:
+        path.unlink(missing_ok=True)
+    except OSError:
+        return False
+    return True
+
+
 @contextmanager
 def process_lock(path: Path) -> Generator[bool, None, None]:
-    """Acquire an exclusive lock file; yield False when another run owns it."""
+    """Acquire an exclusive lock file; yield False when a *live* run owns it.
+
+    A lock left behind by a crashed run (its pid no longer exists) is reclaimed
+    so scheduled runs are not blocked forever by a stale file.
+    """
     path.parent.mkdir(parents=True, exist_ok=True)
-    try:
-        descriptor = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
-    except FileExistsError:
-        yield False
+    for _ in range(2):
+        try:
+            descriptor = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+        except FileExistsError:
+            if _reclaim_stale_lock(path):
+                continue
+            yield False
+            return
+        try:
+            os.write(descriptor, str(os.getpid()).encode())
+            yield True
+        finally:
+            os.close(descriptor)
+            path.unlink(missing_ok=True)
         return
-    try:
-        os.write(descriptor, str(os.getpid()).encode())
-        yield True
-    finally:
-        os.close(descriptor)
-        path.unlink(missing_ok=True)
+    # Even after reclaiming, another run raced us to the lock: treat as owned.
+    yield False
 
 
 @dataclass(frozen=True)
