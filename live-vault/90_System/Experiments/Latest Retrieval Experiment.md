@@ -1,11 +1,11 @@
 ---
 title: 最新のリトリバル実験
-created: 2026-07-30
-updated: 2026-07-30
+created: 2026-07-31
+updated: 2026-07-31
 ---
 
 # 概要
-リトリバル実験は情報検索システムの性能評価に重要な手法であり、AI検索との関連性を明確化し、実験の信頼性向上を図るため、最新の検索実験結果と統合しました。
+リトリバル実験は情報検索システムの性能評価において重要な手法であり、AI検索との関連性を明確化し、信頼性の高い知識を提供することを目的としています。
 
 ## 背景
 - リトリバル実験は情報検索システムの評価において主要な手法。
@@ -13,7 +13,7 @@ updated: 2026-07-30
 - AI検索はロングテール評価や情報需要の変化を追跡する点でも関連性がある。
 - 教育分野ではリトリバル実験が学習効果の向上に寄与している。
 
-## 実装手順
+## 実験の詳細
 1. **実験設計**: タスクや条件に基づき、目的を明確にする。
 2. **パラメータ設定**: 精度、速度、コストなどのパラメータを設定。
 3. **データ準備**: 検索対象となるドキュメントやクエリを準備。
@@ -44,7 +44,7 @@ updated: 2026-07-30
 - [Retrieval Practice: A Tool for Teaching the Control-of-Variables ...](https://www.tandfonline.com/doi/full/10.1080/00220973.2024.2392684)
 - [Retrieval Practice: A Powerful Strategy for Learning](https://www.retrievalpractice.org/retrievalpractice)
 
-# 最新のリトリバル実験
+# 最新のリトリバル実験結果
 
 - [AI stress test reveals retrieval challenges across ... - MSN](https://www.msn.com/en-us/news/other/ai-stress-test-reveals-retrieval-challenges-across-leading-ai-platforms/ar-AA26bNaV)
 - [Combining Generative Tasks and Retrieval Tasks - APA PsycNet](https://psycnet.apa.org/fulltext/2026-08573-001.pdf)
