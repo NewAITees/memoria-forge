@@ -1,16 +1,16 @@
 ---
 type: knowledge
 status: draft
-created: 2026-07-30
-updated: 2026-07-30
+created: 2026-07-31
+updated: 2026-07-31
 confidence: medium
 ---
 
 +++
 type: knowledge
 status: draft
-created: 2026-07-30
-updated: 2026-07-30
+created: 2026-07-31
+updated: 2026-07-31
 confidence: medium
 sources:
 - title: "自分だけのAI知識ベースLLM Wikiを簡単作成！難易度別で解説"
@@ -43,3 +43,4 @@ sources:
 - モデル再訓練時のリソース管理手順の具体的な改善案が不足している。
 - AIとWiki構築の関連性が明確でない。
 - リソース管理の実際の運用例や実証データが不足している。
+- [「コードを書くより、知識を編む」元Tesla AI責任者が公開した、AIにW...](https://llm-news-sage.vercel.app/article/810cfece-1490-467a-be1a-74b15e7ce373)
