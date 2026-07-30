@@ -1,7 +1,15 @@
 ---
+type: knowledge
+status: draft
+created: 2026-07-30
+updated: 2026-07-30
+confidence: medium
+---
+
++++
 title: "ローファイ"によるAIへの抵抗
-created: 2026-07-28
-updated: 2026-07-28
+created: 2026-07-30
+updated: 2026-07-30
 ---
 
 ## 概要
@@ -58,7 +66,6 @@ AIとジェネレーティブ技術の進展により、ローファイ風のビ
 - [GoogleのAIプロジェクト「Magenta」による無料ローファイ・ヒップホップ自動生成アプリを使ってみよう! | block.fm](https://block.fm/news/lofiplayer)
 
 # “ローファイ”によるAIへの抵抗
-
 
 ## 出典
 
