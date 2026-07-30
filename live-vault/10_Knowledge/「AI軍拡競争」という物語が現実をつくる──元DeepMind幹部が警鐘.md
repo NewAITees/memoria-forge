@@ -1,7 +1,7 @@
 ---
 title: 「AI軍拡競争」という物語が現実をつくる──元DeepMind幹部が警鐘
-created: 2026-07-29
-updated: 2026-07-29
+created: 2026-07-30
+updated: 2026-07-30
 ---
 
 # 概要
@@ -39,3 +39,4 @@ Harding氏は、中小国が米中間の二極化に巻き込まれることを�
 ## 未解決点
 
 - 追加調査が必要です。
+- [NYT:「相互自動破壊」―激化する世界のAI軍拡競争｜t.maeda](https://note.com/guaran/n/nd3ee7be3251d)
