@@ -877,15 +877,28 @@ def unescape_literal_newlines(text: str) -> str:
     )
 
 
+# A page write must return exactly {"content": "<markdown>"}. Passing this as a
+# schema-constrained format (Ollama structured outputs) stops the model drifting
+# to other keys on large prompts, which surfaced as "writer returned no content".
+WRITE_RESPONSE_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "properties": {"content": {"type": "string"}},
+    "required": ["content"],
+}
+
+
 class Ollama:
     def __init__(self, base_url: str, model: str, timeout: int | None = 300) -> None:
         self.base_url, self.model, self.timeout = base_url.rstrip("/"), model, timeout
 
-    def chat(self, system: str, prompt: str) -> dict[str, Any]:
+    def chat(
+        self, system: str, prompt: str, response_schema: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         payload = {
             "model": self.model,
             "stream": False,
-            "format": "json",
+            # "json" only guarantees valid JSON; a schema also pins the keys.
+            "format": response_schema if response_schema is not None else "json",
             # Disable qwen3 hidden reasoning for bounded JSON agent operations.
             "think": False,
             # Keep the model resident across the several LLM calls in one run
@@ -1024,6 +1037,7 @@ class Ollama:
                 },
                 ensure_ascii=False,
             ),
+            response_schema=WRITE_RESPONSE_SCHEMA,
         )
         content = result.get("content")
         if not isinstance(content, str) or not content.strip():
@@ -1061,7 +1075,9 @@ class LMStudio(Ollama):
     transport and structured-output contract differ here.
     """
 
-    def chat(self, system: str, prompt: str) -> dict[str, Any]:
+    def chat(
+        self, system: str, prompt: str, response_schema: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         payload = {
             "model": self.model,
             "stream": False,
@@ -1070,8 +1086,10 @@ class LMStudio(Ollama):
                 "type": "json_schema",
                 "json_schema": {
                     "name": "wiki_agent_response",
-                    "strict": False,
-                    "schema": {"type": "object", "additionalProperties": True},
+                    "strict": response_schema is not None,
+                    "schema": response_schema
+                    if response_schema is not None
+                    else {"type": "object", "additionalProperties": True},
                 },
             },
             "messages": [
@@ -1935,21 +1953,31 @@ def run_once(config: Config) -> dict[str, Any]:
         if config.mode == "autonomous_safe":
             client = create_client(config)
             feedback = ""
+            accepted = False
             for _attempt in range(2):
-                generated = client.write(
-                    target.stem,
-                    action["reason"],
-                    unique_sources,
-                    existing,
-                    feedback,
-                    research_context,
-                )
+                try:
+                    generated = client.write(
+                        target.stem,
+                        action["reason"],
+                        unique_sources,
+                        existing,
+                        feedback,
+                        research_context,
+                    )
+                except ValueError as writer_error:
+                    # A single empty/off-schema generation must not crash the run:
+                    # nudge and retry within the attempt budget (schema already pins
+                    # the shape; this covers an empty content string slipping through).
+                    review = {"approved": False, "issues": [str(writer_error)]}
+                    feedback = "前回はcontentが空でした。完全なMarkdown本文をcontentに入れて返してください。"
+                    continue
                 content = normalize_page(target, generated, unique_sources)
                 review = client.review(content, research_context)
                 if not review_is_blocking(review):
+                    accepted = True
                     break
                 feedback = json.dumps(review.get("issues", []), ensure_ascii=False)
-            else:
+            if not accepted:
                 run_id = now()
                 error = json.dumps(review, ensure_ascii=False)
                 db.db.execute(
@@ -1966,7 +1994,7 @@ def run_once(config: Config) -> dict[str, Any]:
                 )
                 db.db.commit()
                 db.record_reflection(
-                    run_id, error, f"{action['action']}で生成したページがReviewerに拒否された。"
+                    run_id, error, f"{action['action']}で本文生成に失敗（空返答またはReviewer拒否）。"
                 )
                 return {"result": "review_rejected", "action": action, "review": review}
         else:

@@ -37,6 +37,7 @@ from src.wiki_agent import (
     unescape_literal_newlines,
     update_world_map,
     validate_action,
+    WRITE_RESPONSE_SCHEMA,
 )
 from src.rss_collector import RSSCollector, RSSEntry, load_rss_sources
 from run_agent import run_once_with_timeout, scheduled_lock_path
@@ -1155,3 +1156,84 @@ def test_build_cluster_context_uses_existing_research_without_network(tmp_path: 
     assert "syn1" in context and "body" in context
     assert len(sources) == 1 and sources[0].url == "http://r1"
     assert new_searches == 0  # nothing new researched, so no searches counted this run
+
+
+def test_write_passes_content_schema_to_chat() -> None:
+    captured: dict[str, object] = {}
+
+    class Probe(Ollama):
+        def chat(
+            self, system: str, prompt: str, response_schema: object = None
+        ) -> dict[str, object]:
+            captured["schema"] = response_schema
+            return {"content": "# ok\n\nbody"}
+
+    out = Probe("http://x", "m").write("題", "理由", [])
+    assert captured["schema"] == WRITE_RESPONSE_SCHEMA  # keys are pinned, not free-form json
+    assert "# ok" in out
+
+
+class _EmptyThenValidWriter:
+    """Autonomous client whose writer returns empty content the first N calls."""
+
+    def __init__(self, empty_times: int) -> None:
+        self.empty_times = empty_times
+        self.calls = 0
+
+    def plan(self, snapshot: object, stale: object = None) -> dict[str, object]:
+        # No target -> run_once falls back to the deterministic improve candidate.
+        return {"action": "improve_page", "reason": "更新する"}
+
+    def write(
+        self,
+        title: str,
+        reason: str,
+        sources: object,
+        existing: str = "",
+        feedback: str = "",
+        research_context: str = "",
+    ) -> str:
+        self.calls += 1
+        if self.calls <= self.empty_times:
+            raise ValueError("writer returned no content")
+        return f"---\ntype: knowledge\nstatus: draft\n---\n\n# {title}\n\n## 概要\n\n{reason}\n"
+
+    def review(self, content: str, research_context: str = "") -> dict[str, object]:
+        return {"approved": True, "issues": []}
+
+
+def test_run_once_recovers_when_writer_is_empty_once(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import src.wiki_agent as wiki_agent
+
+    vault = Vault(tmp_path / "vault")
+    vault.write("10_Knowledge/seed.md", "# seed\n\nbody")
+    config = Config(tmp_path / "vault", mode="autonomous_safe")
+    fake = _EmptyThenValidWriter(empty_times=1)
+    monkeypatch.setattr(wiki_agent, "create_client", lambda _config: fake)
+    monkeypatch.setattr(Researcher, "search", lambda self, query, count=3: [])
+
+    result = run_once(config)
+
+    assert result["result"] == "success"  # a single empty generation is retried, not fatal
+    assert fake.calls == 2
+
+
+def test_run_once_reports_review_rejected_when_writer_stays_empty(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import src.wiki_agent as wiki_agent
+
+    vault = Vault(tmp_path / "vault")
+    vault.write("10_Knowledge/seed.md", "# seed\n\nbody")
+    config = Config(tmp_path / "vault", mode="autonomous_safe")
+    fake = _EmptyThenValidWriter(empty_times=2)
+    monkeypatch.setattr(wiki_agent, "create_client", lambda _config: fake)
+    monkeypatch.setattr(Researcher, "search", lambda self, query, count=3: [])
+
+    result = run_once(config)
+
+    # The whole run no longer crashes on persistent empty output; it records cleanly.
+    assert result["result"] == "review_rejected"
+    assert fake.calls == 2
