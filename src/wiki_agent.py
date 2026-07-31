@@ -139,6 +139,12 @@ class Config:
     cluster_merge_threshold: float = 0.86
     cluster_split_cohesion: float = 0.70
     cluster_min_split_size: int = 6
+    # S3: when true, the geometry engine (cluster density) drives action
+    # selection instead of the RSS 1:1 / deterministic planner. Default off so
+    # existing runs are byte-for-byte unchanged; flip to migrate, flip back to
+    # roll back. A cluster needs at least this many points before it earns a page.
+    geometry_planner: bool = False
+    cluster_page_min_size: int = 4
 
     ALLOWED_MODES = ("manual", "autonomous_safe")
     ALLOWED_PROVIDERS = ("ollama", "lmstudio")
@@ -195,6 +201,10 @@ class Config:
             raise ValueError(
                 f"cluster_min_split_size must be an integer >= 2, got {self.cluster_min_split_size!r}"
             )
+        if not isinstance(self.cluster_page_min_size, int) or self.cluster_page_min_size < 1:
+            raise ValueError(
+                f"cluster_page_min_size must be an integer >= 1, got {self.cluster_page_min_size!r}"
+            )
 
     @classmethod
     def load(cls, path: Path) -> Config:
@@ -237,6 +247,8 @@ class Config:
             cluster_merge_threshold=embed.get("merge_threshold", cls.cluster_merge_threshold),
             cluster_split_cohesion=embed.get("split_cohesion", cls.cluster_split_cohesion),
             cluster_min_split_size=embed.get("min_split_size", cls.cluster_min_split_size),
+            geometry_planner=agent.get("geometry_planner", cls.geometry_planner),
+            cluster_page_min_size=embed.get("page_min_size", cls.cluster_page_min_size),
         )
         config.validate()
         return config
@@ -511,6 +523,21 @@ class StateDB:
             "SELECT cluster_id, size, page_path FROM clusters ORDER BY size DESC, cluster_id ASC"
         ).fetchall()
         return [{"cluster_id": r[0], "size": r[1], "page_path": r[2]} for r in rows]
+
+    def cluster_representative_title(self, cluster_id: int) -> tuple[str, str] | None:
+        """The founding member's (url, title) for a cluster, or None if untitled.
+
+        The earliest-assigned member seeded the centroid, so it is a stable, cheap
+        stand-in for the cluster's topic until Tier1 concept extraction (S4) exists.
+        """
+        row = self.db.execute(
+            "SELECT m.url, r.title FROM cluster_members m "
+            "JOIN rss_candidates r ON r.url = m.url "
+            "WHERE m.cluster_id = ? AND r.title IS NOT NULL AND TRIM(r.title) != '' "
+            "ORDER BY m.assigned_at ASC, m.url ASC LIMIT 1",
+            (cluster_id,),
+        ).fetchone()
+        return (row[0], row[1]) if row else None
 
     def consolidate(
         self, merge_threshold: float, split_cohesion: float, min_split_size: int
@@ -1426,6 +1453,77 @@ def update_world_map(
     }
 
 
+def geometry_menu(vault: Vault, db: StateDB, config: Config) -> list[dict[str, Any]]:
+    """Turn the persistent cluster map into a ranked menu of concrete actions (S3).
+
+    The geometry decides *what to work on*; the existing Researcher/Writer/Reviewer
+    pipeline still does the work (page synthesis stays untouched until S4). Rules:
+      - a cluster already linked to a live page -> improve_page (new knowledge landed);
+      - a page-less cluster at/above the density threshold -> create_page, seeded by
+        the founding member's title (deduped against existing pages like the RSS route);
+      - a sparse page-less cluster -> watch (frontier), emitted as no action.
+    Ranked by cluster size so the densest, most-supported topic is picked first.
+    """
+    menu: list[dict[str, Any]] = []
+    for cluster in db.cluster_summary():
+        cid = cluster["cluster_id"]
+        size = cluster["size"]
+        page_path = cluster["page_path"]
+        if page_path and (vault.root / page_path).exists():
+            menu.append(
+                {
+                    "action": "improve_page",
+                    "target": page_path,
+                    "reason": f"クラスタ#{cid}（{size}点）に新しい知識が集積。対応ページを改善する。",
+                    "search_queries": [],
+                    "cluster_id": cid,
+                    "score": size,
+                }
+            )
+            continue
+        if page_path:
+            # Linked page was deleted out from under us; fall through to re-create.
+            pass
+        elif size < config.cluster_page_min_size:
+            continue  # frontier: watch, do not act yet
+        rep = db.cluster_representative_title(cid)
+        if rep is None:
+            continue
+        title = rep[1]
+        duplicate = find_similar_page(vault, title)
+        if duplicate is not None:
+            menu.append(
+                {
+                    "action": "improve_page",
+                    "target": str(duplicate.relative_to(vault.root)),
+                    "reason": f"クラスタ#{cid}（{size}点）の代表話題「{title}」は既存ページと重複。統合改善する。",
+                    "search_queries": [title],
+                    "cluster_id": cid,
+                    "score": size,
+                }
+            )
+            continue
+        target = safe_new_page_target(Path(title[:80]))
+        menu.append(
+            {
+                "action": "create_page",
+                "target": str(target),
+                "reason": f"密度クラスタ#{cid}（{size}点）が閾値超え・未ページ化。代表話題「{title}」で記事化する。",
+                "search_queries": [title],
+                "cluster_id": cid,
+                "score": size,
+            }
+        )
+    menu.sort(key=lambda m: m["score"], reverse=True)
+    return menu
+
+
+def plan_geometry_action(vault: Vault, db: StateDB, config: Config) -> dict[str, Any] | None:
+    """Pick the top geometry-menu action, or None when the map offers nothing to do."""
+    menu = geometry_menu(vault, db, config)
+    return menu[0] if menu else None
+
+
 def run_once(config: Config) -> dict[str, Any]:
     vault = Vault(config.vault_path)
     db = StateDB(vault.root / ".agent-state.sqlite3")
@@ -1460,39 +1558,47 @@ def run_once(config: Config) -> dict[str, Any]:
             "task_id": pending_task["task_id"],
         }
     else:
-        rss_action = plan_rss_action(vault, db, config)
-        if rss_action is None:
-            action = choose_candidate(
-                vault, db, config.stale_days, config.improve_cooldown_hours
-            )
-            if client is not None:
-                candidate = action
-                action = client.plan(wiki_snapshot, stale)
-                if action.get("action") == "expand_knowledge":
-                    expansion = client.expand(wiki_snapshot, config.max_new_pages)
-                    action = {
-                        "action": "expand_knowledge",
-                        "reason": action.get("reason", "Expand missing knowledge."),
-                        "pages": expansion.get("pages", []),
-                    }
-                elif action.get("action") == "create_structure":
-                    structure = client.structure(wiki_snapshot)
-                    action = {
-                        "action": "create_structure",
-                        "reason": action.get("reason", "Improve the Wiki structure."),
-                        "pages": structure.get("pages", []),
-                    }
-                elif not action.get("target"):
-                    # improve_page/create_page/add_sources/add_links need a target.
-                    # The Planner often returns only a prose reason without one; fall
-                    # back to the deterministic candidate (which always carries a valid
-                    # target) so the run does real work instead of ending plan_rejected.
-                    action = {
-                        **candidate,
-                        "reason": action.get("reason", candidate.get("reason", "")),
-                    }
+        # S3: the geometry engine picks the target first when enabled; it falls
+        # through to the RSS / deterministic planner when the map offers nothing.
+        geo_action = (
+            plan_geometry_action(vault, db, config) if config.geometry_planner else None
+        )
+        if geo_action is not None:
+            action = geo_action
         else:
-            action = rss_action
+            rss_action = plan_rss_action(vault, db, config)
+            if rss_action is None:
+                action = choose_candidate(
+                    vault, db, config.stale_days, config.improve_cooldown_hours
+                )
+                if client is not None:
+                    candidate = action
+                    action = client.plan(wiki_snapshot, stale)
+                    if action.get("action") == "expand_knowledge":
+                        expansion = client.expand(wiki_snapshot, config.max_new_pages)
+                        action = {
+                            "action": "expand_knowledge",
+                            "reason": action.get("reason", "Expand missing knowledge."),
+                            "pages": expansion.get("pages", []),
+                        }
+                    elif action.get("action") == "create_structure":
+                        structure = client.structure(wiki_snapshot)
+                        action = {
+                            "action": "create_structure",
+                            "reason": action.get("reason", "Improve the Wiki structure."),
+                            "pages": structure.get("pages", []),
+                        }
+                    elif not action.get("target"):
+                        # improve_page/create_page/add_sources/add_links need a target.
+                        # The Planner often returns only a prose reason without one; fall
+                        # back to the deterministic candidate (which always carries a valid
+                        # target) so the run does real work instead of ending plan_rejected.
+                        action = {
+                            **candidate,
+                            "reason": action.get("reason", candidate.get("reason", "")),
+                        }
+            else:
+                action = rss_action
     try:
         validate_action(action, config)
     except ValueError as first_error:

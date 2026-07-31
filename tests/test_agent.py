@@ -20,6 +20,8 @@ from src.wiki_agent import (
     cosine,
     create_client,
     find_similar_page,
+    geometry_menu,
+    plan_geometry_action,
     normalize_new_page_target,
     plan_rss_action,
     process_lock,
@@ -1019,3 +1021,67 @@ def test_consolidate_splits_a_dispersed_cluster(tmp_path: Path) -> None:
     stats = db.consolidate(merge_threshold=0.99, split_cohesion=0.9, min_split_size=6)
     assert stats["splits"] == 1
     assert sorted(s["size"] for s in db.cluster_summary()) == [3, 3]
+
+
+def _seed_rss(db: StateDB, rows: list[tuple[str, str]]) -> None:
+    for url, title in rows:
+        db.db.execute(
+            "INSERT INTO rss_candidates (url, title, snippet, status) VALUES (?, ?, ?, ?)",
+            (url, title, "", "new"),
+        )
+    db.db.commit()
+
+
+def test_cluster_representative_title_is_founding_member(tmp_path: Path) -> None:
+    db = StateDB(tmp_path / "s.sqlite3")
+    _seed_rss(db, [("u1", "量子コンピュータ"), ("u2", "量子誤り訂正")])
+    cid, _ = db.assign_point("u1", [1.0, 0.0], 0.7)
+    db.assign_point("u2", [0.99, 0.01], 0.7)  # attaches to the same cluster
+    assert db.cluster_representative_title(cid) == ("u1", "量子コンピュータ")
+    assert db.cluster_representative_title(999) is None
+
+
+def test_geometry_menu_creates_for_dense_unpaged_and_skips_frontier(tmp_path: Path) -> None:
+    vault = Vault(tmp_path / "v")
+    db = StateDB(vault.root / ".agent-state.sqlite3")
+    config = Config(vault_path=vault.root, cluster_page_min_size=2)
+    _seed_rss(db, [("a1", "AI規制"), ("a2", "AI倫理"), ("b1", "EV電池")])
+    db.assign_point("a1", [1.0, 0.0], 0.7)  # dense cluster (>= K): create
+    db.assign_point("a2", [0.99, 0.01], 0.7)
+    db.assign_point("b1", [0.0, 1.0], 0.7)  # lone point (< K): frontier, skipped
+    menu = geometry_menu(vault, db, config)
+    assert len(menu) == 1
+    assert menu[0]["action"] == "create_page"
+    assert menu[0]["search_queries"] == ["AI規制"]
+    assert menu[0]["cluster_id"] is not None
+
+
+def test_geometry_menu_improves_paged_cluster(tmp_path: Path) -> None:
+    vault = Vault(tmp_path / "v")
+    db = StateDB(vault.root / ".agent-state.sqlite3")
+    config = Config(vault_path=vault.root, cluster_page_min_size=2)
+    _seed_rss(db, [("p1", "話題")])
+    cid, _ = db.assign_point("p1", [1.0, 0.0], 0.7)  # size 1, but paged -> improve
+    page = vault.root / "10_Knowledge" / "既存.md"
+    page.parent.mkdir(parents=True, exist_ok=True)
+    page.write_text("x", encoding="utf-8")
+    db.db.execute(
+        "UPDATE clusters SET page_path = ? WHERE cluster_id = ?", ("10_Knowledge/既存.md", cid)
+    )
+    db.db.commit()
+    menu = geometry_menu(vault, db, config)
+    assert len(menu) == 1
+    assert menu[0]["action"] == "improve_page"
+    assert menu[0]["target"] == "10_Knowledge/既存.md"
+
+
+def test_plan_geometry_action_none_when_map_empty(tmp_path: Path) -> None:
+    vault = Vault(tmp_path / "v")
+    db = StateDB(vault.root / ".agent-state.sqlite3")
+    assert plan_geometry_action(vault, db, Config(vault_path=vault.root)) is None
+
+
+def test_geometry_planner_defaults_off_and_validates(tmp_path: Path) -> None:
+    config = Config(vault_path=tmp_path / "v")
+    assert config.geometry_planner is False
+    config.validate()
