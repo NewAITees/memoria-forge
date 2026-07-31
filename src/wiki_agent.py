@@ -539,6 +539,48 @@ class StateDB:
         ).fetchone()
         return (row[0], row[1]) if row else None
 
+    def cluster_member_urls(self, cluster_id: int) -> list[str]:
+        """Member urls of a cluster, oldest first (founding member leads)."""
+        return [
+            row[0]
+            for row in self.db.execute(
+                "SELECT url FROM cluster_members WHERE cluster_id = ? "
+                "ORDER BY assigned_at ASC, url ASC",
+                (cluster_id,),
+            ).fetchall()
+        ]
+
+    def cluster_research(self, cluster_id: int) -> list[dict[str, Any]]:
+        """Existing deep_research for a cluster's members, oldest member first.
+
+        Only members already researched appear; the caller decides whether to
+        research the rest on demand. Each item is {url, synthesis, results}.
+        """
+        rows = self.db.execute(
+            "SELECT m.url, d.synthesis, d.results FROM cluster_members m "
+            "JOIN deep_research d ON d.rss_url = m.url "
+            "WHERE m.cluster_id = ? ORDER BY m.assigned_at ASC, m.url ASC",
+            (cluster_id,),
+        ).fetchall()
+        return [
+            {"url": r[0], "synthesis": r[1] or "", "results": json.loads(r[2]) if r[2] else []}
+            for r in rows
+        ]
+
+    def rss_title_snippet(self, url: str) -> tuple[str, str]:
+        """(title, snippet) for an RSS candidate url, or empty strings if unknown."""
+        row = self.db.execute(
+            "SELECT title, snippet FROM rss_candidates WHERE url = ?", (url,)
+        ).fetchone()
+        return (row[0] or "", row[1] or "") if row else ("", "")
+
+    def link_cluster_page(self, cluster_id: int, page_path: str) -> None:
+        """Bind a cluster to the page it produced so later points improve it (identity loop)."""
+        self.db.execute(
+            "UPDATE clusters SET page_path = ? WHERE cluster_id = ?", (page_path, cluster_id)
+        )
+        self.db.commit()
+
     def consolidate(
         self, merge_threshold: float, split_cohesion: float, min_split_size: int
     ) -> dict[str, int]:
@@ -1363,7 +1405,7 @@ def review_is_blocking(review: dict[str, Any]) -> bool:
 
 
 def plan_rss_action(vault: Vault, db: StateDB, config: Config) -> dict[str, Any] | None:
-    """Ingest configured feeds and turn the freshest unused candidate into an action.
+    """Turn the freshest unused RSS candidate into an action (ingestion is separate).
 
     This is the entry point of the news-driven (経路A) flow: RSS discovers a topic,
     and the returned create_page/improve_page action -- seeded with the article
@@ -1374,10 +1416,8 @@ def plan_rss_action(vault: Vault, db: StateDB, config: Config) -> dict[str, Any]
     """
     if not config.rss_enabled:
         return None
-    feeds = load_rss_sources(config.rss_sources_file)
-    if feeds:
-        entries = RSSCollector().collect_multiple(feeds, config.rss_max_entries_per_feed)
-        db.ingest_rss_candidates(entries)
+    # Ingestion now happens once per run in run_once (see ingest_rss); here we only
+    # consume the freshest pending candidate.
     candidate = db.next_rss_candidate()
     if candidate is None:
         return None
@@ -1524,12 +1564,98 @@ def plan_geometry_action(vault: Vault, db: StateDB, config: Config) -> dict[str,
     return menu[0] if menu else None
 
 
+def build_cluster_context(
+    db: StateDB,
+    client: Any,
+    cluster_id: int,
+    config: Config,
+    max_new_research: int = 3,
+) -> tuple[str, list[SearchResult], int]:
+    """Assemble a page's research material from a whole cluster (S4: page=cluster).
+
+    Uses every member's existing deep_research, and researches up to
+    `max_new_research` not-yet-researched members on demand (bounded cost) so an
+    unworked cluster still yields a real, multi-source page instead of one article.
+    Returns (research_context, unique sources, count of new searches performed).
+    """
+    research = db.cluster_research(cluster_id)
+    researched = {item["url"] for item in research}
+    query_count = 0
+    new_done = 0
+    for url in db.cluster_member_urls(cluster_id):
+        if new_done >= max_new_research:
+            break
+        if url in researched:
+            continue
+        title, snippet = db.rss_title_snippet(url)
+        if not title:
+            continue
+        deep = research_article(
+            client,
+            title=title,
+            snippet=snippet,
+            max_queries=min(config.max_searches, 3),
+            max_pages=config.max_pages_fetched,
+        )
+        db.save_deep_research(url, deep)
+        research.append(
+            {
+                "url": url,
+                "synthesis": str(deep.get("synthesis", "")),
+                "results": deep.get("results", []),
+            }
+        )
+        query_count += len(deep.get("queries", []))
+        new_done += 1
+
+    context_parts: list[str] = []
+    sources: list[SearchResult] = []
+    for item in research:
+        if item["synthesis"]:
+            context_parts.append("## 統合調査結果\n" + str(item["synthesis"]))
+        for result in item["results"]:
+            context_parts.append(
+                f"## 根拠\nタイトル: {result.get('title', '')}\nURL: {result.get('url', '')}\n"
+                f"抜粋:\n{result.get('page_content', '')[:2500]}"
+            )
+            sources.append(
+                SearchResult(
+                    title=str(result.get("title", "")),
+                    url=str(result.get("url", "")),
+                    snippet=str(result.get("snippet", "")),
+                )
+            )
+    unique = list({source.url: source for source in sources}.values())[: config.max_pages_fetched]
+    return "\n\n".join(context_parts), unique, query_count
+
+
+def ingest_rss(db: StateDB, config: Config) -> int:
+    """Fetch configured feeds into rss_candidates. Returns how many were newly added.
+
+    Decoupled from plan_rss_action so the world map keeps growing regardless of
+    which planner (geometry or RSS-1:1) selects the run's action.
+    """
+    if not config.rss_enabled:
+        return 0
+    feeds = load_rss_sources(config.rss_sources_file)
+    if not feeds:
+        return 0
+    entries = RSSCollector().collect_multiple(feeds, config.rss_max_entries_per_feed)
+    return db.ingest_rss_candidates(entries)
+
+
 def run_once(config: Config) -> dict[str, Any]:
     vault = Vault(config.vault_path)
     db = StateDB(vault.root / ".agent-state.sqlite3")
     db.sync_pages(vault)
     if (vault.root / "STOP_AGENT").exists():
         return {"result": "stopped"}
+    # RSS ingestion runs once per run, before mapping, so the world map grows no
+    # matter which planner selects the action. Guarded: a feed error must not fail a run.
+    try:
+        ingest_rss(db, config)
+    except Exception as exc:  # noqa: BLE001 - ingestion must never fail a run
+        logger.warning("rss ingest skipped: %s", exc)
     # Geometry engine S1: grow the world map (observation only). Guarded so a
     # missing embed model or offline endpoint never breaks Wiki generation.
     try:
@@ -1558,47 +1684,48 @@ def run_once(config: Config) -> dict[str, Any]:
             "task_id": pending_task["task_id"],
         }
     else:
-        # S3: the geometry engine picks the target first when enabled; it falls
-        # through to the RSS / deterministic planner when the map offers nothing.
+        # Planner selection. When geometry is on it picks first, and the legacy
+        # RSS 1:1 route is disabled (S4): a page-less run falls through to improving
+        # existing pages, never to article-per-page creation. When off, behavior is
+        # unchanged: RSS 1:1 then the deterministic candidate.
         geo_action = (
             plan_geometry_action(vault, db, config) if config.geometry_planner else None
         )
+        rss_action = None if config.geometry_planner else plan_rss_action(vault, db, config)
         if geo_action is not None:
             action = geo_action
+        elif rss_action is not None:
+            action = rss_action
         else:
-            rss_action = plan_rss_action(vault, db, config)
-            if rss_action is None:
-                action = choose_candidate(
-                    vault, db, config.stale_days, config.improve_cooldown_hours
-                )
-                if client is not None:
-                    candidate = action
-                    action = client.plan(wiki_snapshot, stale)
-                    if action.get("action") == "expand_knowledge":
-                        expansion = client.expand(wiki_snapshot, config.max_new_pages)
-                        action = {
-                            "action": "expand_knowledge",
-                            "reason": action.get("reason", "Expand missing knowledge."),
-                            "pages": expansion.get("pages", []),
-                        }
-                    elif action.get("action") == "create_structure":
-                        structure = client.structure(wiki_snapshot)
-                        action = {
-                            "action": "create_structure",
-                            "reason": action.get("reason", "Improve the Wiki structure."),
-                            "pages": structure.get("pages", []),
-                        }
-                    elif not action.get("target"):
-                        # improve_page/create_page/add_sources/add_links need a target.
-                        # The Planner often returns only a prose reason without one; fall
-                        # back to the deterministic candidate (which always carries a valid
-                        # target) so the run does real work instead of ending plan_rejected.
-                        action = {
-                            **candidate,
-                            "reason": action.get("reason", candidate.get("reason", "")),
-                        }
-            else:
-                action = rss_action
+            action = choose_candidate(
+                vault, db, config.stale_days, config.improve_cooldown_hours
+            )
+            if client is not None:
+                candidate = action
+                action = client.plan(wiki_snapshot, stale)
+                if action.get("action") == "expand_knowledge":
+                    expansion = client.expand(wiki_snapshot, config.max_new_pages)
+                    action = {
+                        "action": "expand_knowledge",
+                        "reason": action.get("reason", "Expand missing knowledge."),
+                        "pages": expansion.get("pages", []),
+                    }
+                elif action.get("action") == "create_structure":
+                    structure = client.structure(wiki_snapshot)
+                    action = {
+                        "action": "create_structure",
+                        "reason": action.get("reason", "Improve the Wiki structure."),
+                        "pages": structure.get("pages", []),
+                    }
+                elif not action.get("target"):
+                    # improve_page/create_page/add_sources/add_links need a target.
+                    # The Planner often returns only a prose reason without one; fall
+                    # back to the deterministic candidate (which always carries a valid
+                    # target) so the run does real work instead of ending plan_rejected.
+                    action = {
+                        **candidate,
+                        "reason": action.get("reason", candidate.get("reason", "")),
+                    }
     try:
         validate_action(action, config)
     except ValueError as first_error:
@@ -1741,7 +1868,22 @@ def run_once(config: Config) -> dict[str, Any]:
     researcher = Researcher(config.max_searches)
     sources: list[SearchResult] = []
     research_context = ""
-    if action.get("rss_url") and client is not None and callable(getattr(client, "chat", None)):
+    cluster_id = action.get("cluster_id")
+    if (
+        cluster_id is not None
+        and client is not None
+        and callable(getattr(client, "chat", None))
+    ):
+        # S4: page = cluster. Build the material from every member's research
+        # (whole theme) instead of a single article.
+        research_context, sources, researcher.count = build_cluster_context(
+            db, client, int(cluster_id), config
+        )
+    elif (
+        action.get("rss_url")
+        and client is not None
+        and callable(getattr(client, "chat", None))
+    ):
         deep = research_article(
             client,
             title=target.stem,
@@ -1834,6 +1976,11 @@ def run_once(config: Config) -> dict[str, Any]:
                 else existing + "\n\n## 調査更新\n\n" + render_page(target, action, unique_sources)
             )
         vault.write(target, content)
+        if cluster_id is not None:
+            # Close the identity loop: this cluster now owns this page, so future
+            # points landing here improve it instead of spawning a duplicate.
+            page_rel = target.relative_to(vault.root) if target.is_absolute() else target
+            db.link_cluster_page(int(cluster_id), str(page_rel))
     after = {path.relative_to(vault.root) for path in vault.pages()}
     changed = len(before.symmetric_difference(after))
     if changed > config.max_files_changed:

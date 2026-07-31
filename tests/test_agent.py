@@ -17,10 +17,12 @@ from src.wiki_agent import (
     choose_candidate,
     cohesion,
     commit_and_push,
+    build_cluster_context,
     cosine,
     create_client,
     find_similar_page,
     geometry_menu,
+    ingest_rss,
     plan_geometry_action,
     normalize_new_page_target,
     plan_rss_action,
@@ -1085,3 +1087,71 @@ def test_geometry_planner_defaults_off_and_validates(tmp_path: Path) -> None:
     config = Config(vault_path=tmp_path / "v")
     assert config.geometry_planner is False
     config.validate()
+
+
+def test_ingest_rss_returns_zero_when_disabled(tmp_path: Path) -> None:
+    db = StateDB(tmp_path / "s.sqlite3")
+    config = Config(vault_path=tmp_path / "v", rss_enabled=False)
+    assert ingest_rss(db, config) == 0
+
+
+def test_link_cluster_page_flips_menu_from_create_to_improve(tmp_path: Path) -> None:
+    vault = Vault(tmp_path / "v")
+    db = StateDB(vault.root / ".agent-state.sqlite3")
+    config = Config(vault_path=vault.root, cluster_page_min_size=2)
+    _seed_rss(db, [("a1", "AI規制"), ("a2", "AI倫理")])
+    cid, _ = db.assign_point("a1", [1.0, 0.0], 0.7)
+    db.assign_point("a2", [0.99, 0.01], 0.7)
+    assert geometry_menu(vault, db, config)[0]["action"] == "create_page"
+    # A page is produced for the cluster; the identity loop should now bind them.
+    page = vault.root / "10_Knowledge" / "AI.md"
+    page.parent.mkdir(parents=True, exist_ok=True)
+    page.write_text("x", encoding="utf-8")
+    db.link_cluster_page(cid, "10_Knowledge/AI.md")
+    top = geometry_menu(vault, db, config)[0]
+    assert top["action"] == "improve_page"
+    assert top["target"] == "10_Knowledge/AI.md"
+
+
+def test_cluster_research_aggregates_member_deep_research(tmp_path: Path) -> None:
+    db = StateDB(tmp_path / "s.sqlite3")
+    _seed_rss(db, [("u1", "t1"), ("u2", "t2")])
+    cid, _ = db.assign_point("u1", [1.0, 0.0], 0.7)
+    db.assign_point("u2", [0.99, 0.01], 0.7)
+    db.save_deep_research(
+        "u1",
+        {
+            "queries": ["q1"],
+            "results": [{"title": "R1", "url": "http://r1", "snippet": "s", "page_content": "body1"}],
+            "synthesis": "syn1",
+        },
+    )
+    assert db.cluster_member_urls(cid) == ["u1", "u2"]
+    research = db.cluster_research(cid)  # only u1 has been researched
+    assert len(research) == 1
+    assert research[0]["url"] == "u1" and research[0]["synthesis"] == "syn1"
+    assert research[0]["results"][0]["title"] == "R1"
+
+
+def test_build_cluster_context_uses_existing_research_without_network(tmp_path: Path) -> None:
+    db = StateDB(tmp_path / "s.sqlite3")
+    _seed_rss(db, [("u1", "t1")])
+    cid, _ = db.assign_point("u1", [1.0, 0.0], 0.7)
+    db.save_deep_research(
+        "u1",
+        {
+            "queries": ["q1", "q2"],
+            "results": [{"title": "R1", "url": "http://r1", "snippet": "snip", "page_content": "body"}],
+            "synthesis": "syn1",
+        },
+    )
+    config = Config(vault_path=tmp_path / "v")
+
+    class FakeClient:
+        def chat(self, system: str, prompt: str) -> dict[str, object]:
+            raise AssertionError("no member should need on-demand research here")
+
+    context, sources, new_searches = build_cluster_context(db, FakeClient(), cid, config)
+    assert "syn1" in context and "body" in context
+    assert len(sources) == 1 and sources[0].url == "http://r1"
+    assert new_searches == 0  # nothing new researched, so no searches counted this run
