@@ -1,7 +1,7 @@
 ---
 title: 「AI軍拡競争」という物語が現実をつくる──元DeepMind幹部が警鐘
-created: 2026-07-30
-updated: 2026-07-30
+created: 2026-07-31
+updated: 2026-07-31
 ---
 
 # 概要
@@ -16,10 +16,8 @@ Harding氏は、中小国が米中間の二極化に巻き込まれることを�
 
 ## 出典
 - [WIRED - This Former DeepMind Exec Thinks the AI Arms Race Could End in Disaster](https://www.wired.com/story/verity-harding-ai-arms-race-dangers-anthology/)
-- [NDTV - AI Arms Race Could End In Disaster, Warns Former DeepMind Executive](https://www.ndtv.com/feature/ai-arms-race-could-end-in-disaster-warns-former-deepmind-executive-11752493)
-- [IndiaVision - This Former DeepMind Exec Thinks the AI Arms Race Could End in Disaster](https://www.indiavision.com/business/this-former-deepmind-exec-thinks-the-ai-arms-race-could-end-in-disaster/604722/)
-- [DeepSeekの節約革命がAI軍拡競争をどのように再構築しているか](https://jp.linkedin.com/pulse/how-deepseeks-frugal-revolution-reshaping-ai-arms-race-ade-87ize?tl=ja)
-- [誰も悪くない崩壊：AI軍拡競争の果てに待つ、2026... | note（ノート）](https://note.com/keen_peony8959/n/nb15ff6264ccf)
+- [rkernel - 自分で研究し論文を書くＡＩを開発 作成論文、専門家から評価](https://rkernel.wordpress.com/2026/07/28/自分で研究し論文を書くａｉを開発-作成論文、専/)
+- [読書メーター - 『THE COMING WAVE AIを封じ込めよ DeepMind創業者の警告』｜感想・レビュー・試し読み](https://bookmeter.com/b/4296118757)
 
 ## 未解決の点
 - AI軍拡競争が実際にどのような形で進行するかは未確認。
@@ -33,10 +31,8 @@ Harding氏は、中小国が米中間の二極化に巻き込まれることを�
 ## 補足
 この記事は、AI開発における国際協力の重要性を強調し、競争が現実を歪める可能性を示唆している。ただし、すべての情報は現時点での調査に基づくものであり、最終的な結論は今後の展開に依存する。
 - [「AI軍拡競争」という物語が現実をつくる元DeepMind... | WIRED.jp](https://wired.jp/article/verity-harding-ai-arms-race-dangers-anthology/)
-- [自分で研究し論文を書くＡＩを開発 作成論文、専門家から評価 | rkernel](https://rkernel.wordpress.com/2026/07/28/自分で研究し論文を書くａｉを開発-作成論文、専/)
 - [This Former DeepMind Exec Thinks the AI Arms Race Could End in Disaster](https://www.onenewspage.com/n/World/1ztgfv31up/This-Former-DeepMind-Exec-Thinks-the-AI-Arms.htm)
 
 ## 未解決点
-
 - 追加調査が必要です。
 - [NYT:「相互自動破壊」―激化する世界のAI軍拡競争｜t.maeda](https://note.com/guaran/n/nd3ee7be3251d)
