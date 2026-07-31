@@ -113,6 +113,10 @@ class Config:
     provider: str = "ollama"
     ollama_url: str = "http://localhost:11434"
     model: str = "qwen3:8b"
+    # S5: the Reviewer runs on a different model than the Writer to break the
+    # self-review echo (the project's core instability). Empty means "same as the
+    # writer" (legacy behavior); production sets a distinct model.
+    review_model: str = ""
     mode: str = "manual"
     max_searches: int = 8
     max_pages_fetched: int = 12
@@ -225,6 +229,7 @@ class Config:
             provider=ollama.get("provider", cls.provider),
             ollama_url=ollama.get("base_url", cls.ollama_url),
             model=ollama.get("model", cls.model),
+            review_model=ollama.get("review_model", cls.review_model),
             mode=agent.get("mode", cls.mode),
             max_searches=agent.get("max_searches", 8),
             max_pages_fetched=agent.get("max_pages_fetched", 12),
@@ -886,6 +891,27 @@ WRITE_RESPONSE_SCHEMA: dict[str, Any] = {
     "required": ["content"],
 }
 
+# A review must return {"approved": bool, "issues": [{"type","description"}]}.
+# Pinning the shape keeps the (separate, smaller) reviewer model from drifting.
+REVIEW_RESPONSE_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "properties": {
+        "approved": {"type": "boolean"},
+        "issues": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "type": {"type": "string"},
+                    "description": {"type": "string"},
+                },
+                "required": ["type", "description"],
+            },
+        },
+    },
+    "required": ["approved", "issues"],
+}
+
 
 class Ollama:
     def __init__(self, base_url: str, model: str, timeout: int | None = 300) -> None:
@@ -1063,6 +1089,7 @@ class Ollama:
                 },
                 ensure_ascii=False,
             ),
+            response_schema=REVIEW_RESPONSE_SCHEMA,
         )
         return result
 
@@ -1117,6 +1144,18 @@ def create_client(config: Config) -> Ollama:
     if config.provider == "lmstudio":
         return LMStudio(config.ollama_url, config.model, config.timeout_seconds)
     return Ollama(config.ollama_url, config.model, config.timeout_seconds)
+
+
+def create_reviewer_client(config: Config) -> Ollama:
+    """Client for the Reviewer, on review_model when set (else the writer model).
+
+    Separating the reviewer from the writer breaks the single-model self-review
+    that was the project's core instability (S5).
+    """
+    model = config.review_model or config.model
+    if config.provider == "lmstudio":
+        return LMStudio(config.ollama_url, model, config.timeout_seconds)
+    return Ollama(config.ollama_url, model, config.timeout_seconds)
 
 
 class Git:
@@ -1780,6 +1819,7 @@ def run_once(config: Config) -> dict[str, Any]:
         action = {**action, "action": "improve_page"}
     if action["action"] in {"create_structure", "expand_knowledge"}:
         client = create_client(config)
+        reviewer = create_reviewer_client(config)
         researcher = Researcher(config.max_searches)
         staged: list[tuple[Path, str]] = []
         proposals = action.get("pages", [])
@@ -1839,7 +1879,7 @@ def run_once(config: Config) -> dict[str, Any]:
                 content += "\n\n## 関連ページ\n\n" + "\n".join(
                     f"- [[{str(link)}]]" for link in related
                 )
-            structure_review = client.review(content)
+            structure_review = reviewer.review(content)
             if review_is_blocking(structure_review):
                 run_id = now()
                 error = json.dumps(structure_review, ensure_ascii=False)
@@ -1952,6 +1992,7 @@ def run_once(config: Config) -> dict[str, Any]:
         existing = vault.read(target) if target_exists else ""
         if config.mode == "autonomous_safe":
             client = create_client(config)
+            reviewer = create_reviewer_client(config)
             feedback = ""
             accepted = False
             for _attempt in range(2):
@@ -1972,7 +2013,7 @@ def run_once(config: Config) -> dict[str, Any]:
                     feedback = "前回はcontentが空でした。完全なMarkdown本文をcontentに入れて返してください。"
                     continue
                 content = normalize_page(target, generated, unique_sources)
-                review = client.review(content, research_context)
+                review = reviewer.review(content, research_context)
                 if not review_is_blocking(review):
                     accepted = True
                     break

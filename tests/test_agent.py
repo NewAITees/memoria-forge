@@ -20,6 +20,7 @@ from src.wiki_agent import (
     build_cluster_context,
     cosine,
     create_client,
+    create_reviewer_client,
     find_similar_page,
     geometry_menu,
     ingest_rss,
@@ -37,6 +38,7 @@ from src.wiki_agent import (
     unescape_literal_newlines,
     update_world_map,
     validate_action,
+    REVIEW_RESPONSE_SCHEMA,
     WRITE_RESPONSE_SCHEMA,
 )
 from src.rss_collector import RSSCollector, RSSEntry, load_rss_sources
@@ -265,7 +267,9 @@ def test_review_prompt_includes_today(monkeypatch: pytest.MonkeyPatch) -> None:
 
     captured: dict[str, str] = {}
 
-    def fake_chat(self: Ollama, system: str, prompt: str) -> dict[str, object]:
+    def fake_chat(
+        self: Ollama, system: str, prompt: str, response_schema: object = None
+    ) -> dict[str, object]:
         captured["prompt"] = prompt
         return {"approved": True, "issues": []}
 
@@ -391,6 +395,7 @@ def test_run_once_does_not_crash_on_vault_escaping_llm_target(
 
     fake = _FakeClient([{"target": "../../etc/passwd", "reason": "r", "search_queries": []}])
     monkeypatch.setattr(wiki_agent, "create_client", lambda _config: fake)
+    monkeypatch.setattr(wiki_agent, "create_reviewer_client", lambda _config: fake)
     monkeypatch.setattr(Researcher, "search", lambda self, query, count=3: [])
 
     result = run_once(config)
@@ -416,6 +421,7 @@ def test_run_once_salvages_poisoned_queue_target(
 
     fake = _FakeClient([])
     monkeypatch.setattr(wiki_agent, "create_client", lambda _config: fake)
+    monkeypatch.setattr(wiki_agent, "create_reviewer_client", lambda _config: fake)
     monkeypatch.setattr(Researcher, "search", lambda self, query, count=3: [])
 
     result = run_once(config)
@@ -444,6 +450,7 @@ def test_run_once_falls_back_when_planner_omits_target(
 
     fake = TargetlessPlanner([])
     monkeypatch.setattr(wiki_agent, "create_client", lambda _config: fake)
+    monkeypatch.setattr(wiki_agent, "create_reviewer_client", lambda _config: fake)
     monkeypatch.setattr(Researcher, "search", lambda self, query, count=3: [])
 
     result = run_once(config)
@@ -470,6 +477,7 @@ def test_run_once_normalizes_deferred_queue_targets(
         ]
     )
     monkeypatch.setattr(wiki_agent, "create_client", lambda _config: fake)
+    monkeypatch.setattr(wiki_agent, "create_reviewer_client", lambda _config: fake)
     monkeypatch.setattr(Researcher, "search", lambda self, query, count=3: [])
 
     run_once(config)
@@ -940,6 +948,7 @@ def test_run_once_rss_drives_page_creation(
 
     fake = _FakeClient([])
     monkeypatch.setattr(wiki_agent, "create_client", lambda _config: fake)
+    monkeypatch.setattr(wiki_agent, "create_reviewer_client", lambda _config: fake)
     monkeypatch.setattr(Researcher, "search", lambda self, query, count=3: [])
 
     result = run_once(config)
@@ -1212,6 +1221,7 @@ def test_run_once_recovers_when_writer_is_empty_once(
     config = Config(tmp_path / "vault", mode="autonomous_safe")
     fake = _EmptyThenValidWriter(empty_times=1)
     monkeypatch.setattr(wiki_agent, "create_client", lambda _config: fake)
+    monkeypatch.setattr(wiki_agent, "create_reviewer_client", lambda _config: fake)
     monkeypatch.setattr(Researcher, "search", lambda self, query, count=3: [])
 
     result = run_once(config)
@@ -1230,6 +1240,7 @@ def test_run_once_reports_review_rejected_when_writer_stays_empty(
     config = Config(tmp_path / "vault", mode="autonomous_safe")
     fake = _EmptyThenValidWriter(empty_times=2)
     monkeypatch.setattr(wiki_agent, "create_client", lambda _config: fake)
+    monkeypatch.setattr(wiki_agent, "create_reviewer_client", lambda _config: fake)
     monkeypatch.setattr(Researcher, "search", lambda self, query, count=3: [])
 
     result = run_once(config)
@@ -1237,3 +1248,67 @@ def test_run_once_reports_review_rejected_when_writer_stays_empty(
     # The whole run no longer crashes on persistent empty output; it records cleanly.
     assert result["result"] == "review_rejected"
     assert fake.calls == 2
+
+
+def test_create_reviewer_client_uses_review_model_when_set(tmp_path: Path) -> None:
+    base = Config(tmp_path / "v", model="qwen3:8b")
+    assert create_reviewer_client(base).model == "qwen3:8b"  # empty -> writer model
+    separated = Config(tmp_path / "v", model="qwen3:8b", review_model="gemma3:4b")
+    assert create_reviewer_client(separated).model == "gemma3:4b"
+
+
+def test_review_passes_review_schema_to_chat() -> None:
+    captured: dict[str, object] = {}
+
+    class Probe(Ollama):
+        def chat(
+            self, system: str, prompt: str, response_schema: object = None
+        ) -> dict[str, object]:
+            captured["schema"] = response_schema
+            return {"approved": True, "issues": []}
+
+    Probe("http://x", "m").review("# page")
+    assert captured["schema"] == REVIEW_RESPONSE_SCHEMA
+
+
+def test_run_once_reviews_with_separate_reviewer_client(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import src.wiki_agent as wiki_agent
+
+    vault = Vault(tmp_path / "vault")
+    vault.write("10_Knowledge/seed.md", "# seed\n\nbody")
+    config = Config(tmp_path / "vault", mode="autonomous_safe", review_model="gemma3:4b")
+
+    class Writer:
+        def __init__(self) -> None:
+            self.reviews = 0
+
+        def plan(self, snapshot: object, stale: object = None) -> dict[str, object]:
+            return {"action": "improve_page", "reason": "更新する"}
+
+        def write(self, *args: object, **kwargs: object) -> str:
+            return "---\ntype: knowledge\nstatus: draft\n---\n\n# T\n\n## 概要\n\n本文\n"
+
+        def review(self, content: str, research_context: str = "") -> dict[str, object]:
+            self.reviews += 1
+            return {"approved": True, "issues": []}
+
+    class Reviewer:
+        def __init__(self) -> None:
+            self.reviews = 0
+
+        def review(self, content: str, research_context: str = "") -> dict[str, object]:
+            self.reviews += 1
+            return {"approved": True, "issues": []}
+
+    writer, reviewer = Writer(), Reviewer()
+    monkeypatch.setattr(wiki_agent, "create_client", lambda _config: writer)
+    monkeypatch.setattr(wiki_agent, "create_reviewer_client", lambda _config: reviewer)
+    monkeypatch.setattr(Researcher, "search", lambda self, query, count=3: [])
+
+    result = run_once(config)
+
+    assert result["result"] == "success"
+    # The page was judged by the separate reviewer, never the writer itself.
+    assert reviewer.reviews == 1 and writer.reviews == 0
