@@ -1,8 +1,8 @@
 ---
 type: knowledge
 status: draft
-created: 2026-08-01
-updated: 2026-08-01
+created: 2026-08-02
+updated: 2026-08-02
 confidence: medium
 ---
 
