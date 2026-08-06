@@ -1,15 +1,15 @@
 ---
 type: knowledge
 status: draft
-created: 2026-07-30
-updated: 2026-07-30
+created: 2026-08-07
+updated: 2026-08-07
 confidence: medium
 ---
 
 +++
 title: "ローファイ"によるAIへの抵抗
-created: 2026-07-30
-updated: 2026-07-30
+created: 2026-08-07
+updated: 2026-08-07
 ---
 
 ## 概要
@@ -27,19 +27,15 @@ updated: 2026-07-30
 
 ## ソース
 
-- [ハイファイと ローファイ プロト作成はAIでどう変わるか｜yummyAI](https://note.com/just_snipe6244/n/nbe3f18f497ce)
-- [GoogleのAIプロジェクト「Magenta」による無料ローファイ・ヒップホップ自動生成アプリを使ってみよう! | block.fm](https://block.fm/news/lofiplayer)
-- [ローファイ（Lo-fi）徹底解説：起源・音作り・文化的影響と制作ガイド | EverPlay（エバープレイ）](https://everplay.jp/column/43432)
+- [ローファイ、サヴォアフェール、あるいは「人間らしさ」の証明：『WIR...』](https://open.spotify.com/episode/7KyRoE2oJZygewmzkm4ssD)
+- [WIRED.jp on X: "“ローファイ”によるAIへの抵抗" / X](https://x.com/wired_jp/status/2079690552585687205)
+- [“ローファイ”によるAIへの抵抗 - WIRED.jp](https://wired.jp/article/sz-a-lo-fi-rebellion-against-ai/)
 
 ## 解決されていない点
 
 - ローファイとAIの協働の具体的なモデルは未解決
 - 人間の創造性とAIの機能性の境界が明確でない
 - ローファイが持つ文化的・社会的意味合いが十分に理解されていない
-
-## ハイファイ移行における課題
-
-ハイファイ移行のたびに、データ整形やアセット作成に追われ、実装チームとの同期が止まりがちである。特に複雑なサービスでは、ローファイ段階での仮説が早々に陳腐化し、結局ハイファイを作り直すという手戻りが発生する。
 
 ## AIによるローファイとハイファイの融合
 
@@ -66,6 +62,7 @@ AIとジェネレーティブ技術の進展により、ローファイ風のビ
 - [GoogleのAIプロジェクト「Magenta」による無料ローファイ・ヒップホップ自動生成アプリを使ってみよう! | block.fm](https://block.fm/news/lofiplayer)
 
 # “ローファイ”によるAIへの抵抗
+
 
 ## 出典
 
