@@ -1,15 +1,15 @@
 ---
 type: knowledge
 status: draft
-created: 2026-07-31
-updated: 2026-07-31
+created: 2026-08-06
+updated: 2026-08-06
 confidence: medium
 ---
 
 +++
 title: Zettelkasten AI Integration
-created: 2026-07-31
-updated: 2026-07-31
+created: 2026-08-06
+updated: 2026-08-06
 +++
 
 # Zettelkasten AI Integration
@@ -48,3 +48,4 @@ AI検索は、Zettelkastenのノートを効率的に検索・リトリーブす
 
 ## 説明
 このガイドは、ZettelkastenメソッドをAI技術で拡張するための実装手順と、AI検索とリトリバル実験の関係性、実験結果の解釈、未解決点の整理を行います。AIを活用することで、ノート作成やリンク生成、情報拡張が効率化され、知識構築のプロセスが改善されます。ただし、大規模なノートセットにおけるパフォーマンスや重複排除アルゴリズムの実装は未解決の点として残されています。
+- [GitHub - Zettelgarden/Zettelgarden: Intelligent zettelkasten where AI agents help you capture, process, and recall knowledge seamlessly · GitHub](https://github.com/Zettelgarden/Zettelgarden)
