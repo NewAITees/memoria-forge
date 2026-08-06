@@ -1105,22 +1105,56 @@ def test_ingest_rss_returns_zero_when_disabled(tmp_path: Path) -> None:
     assert ingest_rss(db, config) == 0
 
 
-def test_link_cluster_page_flips_menu_from_create_to_improve(tmp_path: Path) -> None:
+def test_link_cluster_page_converges_then_improves_only_after_growth(tmp_path: Path) -> None:
     vault = Vault(tmp_path / "v")
     db = StateDB(vault.root / ".agent-state.sqlite3")
     config = Config(vault_path=vault.root, cluster_page_min_size=2)
-    _seed_rss(db, [("a1", "AI規制"), ("a2", "AI倫理")])
+    _seed_rss(db, [("a1", "AI規制"), ("a2", "AI倫理"), ("a3", "AI著作権")])
     cid, _ = db.assign_point("a1", [1.0, 0.0], 0.7)
     db.assign_point("a2", [0.99, 0.01], 0.7)
     assert geometry_menu(vault, db, config)[0]["action"] == "create_page"
-    # A page is produced for the cluster; the identity loop should now bind them.
+    # A page is produced for the cluster; the identity loop binds them at size 2.
     page = vault.root / "10_Knowledge" / "AI.md"
     page.parent.mkdir(parents=True, exist_ok=True)
     page.write_text("x", encoding="utf-8")
     db.link_cluster_page(cid, "10_Knowledge/AI.md")
+    # Converged: no growth since the page was written -> nothing to do.
+    assert geometry_menu(vault, db, config) == []
+    # A new point lands in the cluster -> now (and only now) it is worth improving.
+    db.assign_point("a3", [0.98, 0.02], 0.7)
     top = geometry_menu(vault, db, config)[0]
     assert top["action"] == "improve_page"
     assert top["target"] == "10_Knowledge/AI.md"
+
+
+def test_geometry_menu_prioritizes_frontier_create_over_grown_improve(tmp_path: Path) -> None:
+    vault = Vault(tmp_path / "v")
+    db = StateDB(vault.root / ".agent-state.sqlite3")
+    config = Config(vault_path=vault.root, cluster_page_min_size=2)
+    _seed_rss(db, [("a1", "AI"), ("a2", "AI2"), ("a3", "AI3"), ("b1", "宇宙"), ("b2", "宇宙2")])
+    # Paged cluster A that has since grown (an improve candidate).
+    cid_a, _ = db.assign_point("a1", [1.0, 0.0], 0.7)
+    db.assign_point("a2", [0.99, 0.01], 0.7)
+    page = vault.root / "10_Knowledge" / "AI.md"
+    page.parent.mkdir(parents=True, exist_ok=True)
+    page.write_text("x", encoding="utf-8")
+    db.link_cluster_page(cid_a, "10_Knowledge/AI.md")  # paged_size = 2
+    db.assign_point("a3", [0.98, 0.02], 0.7)  # grows to 3 -> improve candidate
+    # Unpaged dense cluster B (a create candidate) must be picked first.
+    db.assign_point("b1", [0.0, 1.0], 0.7)
+    db.assign_point("b2", [0.01, 0.99], 0.7)
+    top = geometry_menu(vault, db, config)[0]
+    assert top["action"] == "create_page" and top["cluster_id"] == cid_a + 1
+
+
+def test_link_cluster_page_records_paged_size(tmp_path: Path) -> None:
+    db = StateDB(tmp_path / "s.sqlite3")
+    _seed_rss(db, [("a1", "x"), ("a2", "y")])
+    cid, _ = db.assign_point("a1", [1.0, 0.0], 0.7)
+    db.assign_point("a2", [0.99, 0.01], 0.7)  # size 2
+    db.link_cluster_page(cid, "10_Knowledge/x.md")
+    row = db.cluster_summary()[0]
+    assert row["page_path"] == "10_Knowledge/x.md" and row["paged_size"] == 2
 
 
 def test_cluster_research_aggregates_member_deep_research(tmp_path: Path) -> None:

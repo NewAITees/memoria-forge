@@ -418,7 +418,24 @@ class StateDB:
         """)
         self._ensure_rss_columns()
         self._ensure_cluster_member_columns()
+        self._ensure_cluster_convergence_column()
         self.db.commit()
+
+    def _ensure_cluster_convergence_column(self) -> None:
+        """Add clusters.paged_size (cluster size when its page was last generated).
+
+        A paged cluster is re-improved only once it grows past this, so the agent
+        converges instead of re-writing one page forever. Existing paged clusters
+        are marked converged at their current size on upgrade.
+        """
+        existing = {
+            str(row[1]) for row in self.db.execute("PRAGMA table_info(clusters)").fetchall()
+        }
+        if "paged_size" not in existing:
+            self.db.execute("ALTER TABLE clusters ADD COLUMN paged_size INTEGER")
+            self.db.execute(
+                "UPDATE clusters SET paged_size = size WHERE page_path IS NOT NULL"
+            )
 
     def _ensure_cluster_member_columns(self) -> None:
         """Add the per-point embedding column; discard pre-embedding S1 map data.
@@ -525,9 +542,13 @@ class StateDB:
     def cluster_summary(self) -> list[dict[str, Any]]:
         """Persistent clusters newest/largest first: id, size, linked page (if any)."""
         rows = self.db.execute(
-            "SELECT cluster_id, size, page_path FROM clusters ORDER BY size DESC, cluster_id ASC"
+            "SELECT cluster_id, size, page_path, paged_size FROM clusters "
+            "ORDER BY size DESC, cluster_id ASC"
         ).fetchall()
-        return [{"cluster_id": r[0], "size": r[1], "page_path": r[2]} for r in rows]
+        return [
+            {"cluster_id": r[0], "size": r[1], "page_path": r[2], "paged_size": r[3]}
+            for r in rows
+        ]
 
     def cluster_representative_title(self, cluster_id: int) -> tuple[str, str] | None:
         """The founding member's (url, title) for a cluster, or None if untitled.
@@ -580,9 +601,15 @@ class StateDB:
         return (row[0] or "", row[1] or "") if row else ("", "")
 
     def link_cluster_page(self, cluster_id: int, page_path: str) -> None:
-        """Bind a cluster to the page it produced so later points improve it (identity loop)."""
+        """Bind a cluster to its page and mark it paged at the current size.
+
+        Recording paged_size is the convergence signal: the cluster is only
+        re-improved once it grows beyond this, so the agent stops re-writing the
+        same page every run and moves on to unpaged frontier clusters.
+        """
         self.db.execute(
-            "UPDATE clusters SET page_path = ? WHERE cluster_id = ?", (page_path, cluster_id)
+            "UPDATE clusters SET page_path = ?, paged_size = size WHERE cluster_id = ?",
+            (page_path, cluster_id),
         )
         self.db.commit()
 
@@ -1551,15 +1578,18 @@ def update_world_map(
 
 
 def geometry_menu(vault: Vault, db: StateDB, config: Config) -> list[dict[str, Any]]:
-    """Turn the persistent cluster map into a ranked menu of concrete actions (S3).
+    """Turn the persistent cluster map into a ranked menu of concrete actions.
 
     The geometry decides *what to work on*; the existing Researcher/Writer/Reviewer
-    pipeline still does the work (page synthesis stays untouched until S4). Rules:
-      - a cluster already linked to a live page -> improve_page (new knowledge landed);
+    pipeline still does the work. Rules:
+      - a paged cluster is re-improved ONLY once it grew past the size at which its
+        page was last written (paged_size) -- otherwise it has converged and is
+        skipped, so the agent stops re-writing one page forever;
       - a page-less cluster at/above the density threshold -> create_page, seeded by
         the founding member's title (deduped against existing pages like the RSS route);
       - a sparse page-less cluster -> watch (frontier), emitted as no action.
-    Ranked by cluster size so the densest, most-supported topic is picked first.
+    Ranked create-before-improve (grow the frontier before polishing), then by a
+    per-action score, so an unpaged dense cluster is never starved by a large paged one.
     """
     menu: list[dict[str, Any]] = []
     for cluster in db.cluster_summary():
@@ -1567,14 +1597,18 @@ def geometry_menu(vault: Vault, db: StateDB, config: Config) -> list[dict[str, A
         size = cluster["size"]
         page_path = cluster["page_path"]
         if page_path and (vault.root / page_path).exists():
+            growth = size - (cluster["paged_size"] or 0)
+            if growth <= 0:
+                continue  # converged: no new knowledge since the page was last written
             menu.append(
                 {
                     "action": "improve_page",
                     "target": page_path,
-                    "reason": f"クラスタ#{cid}（{size}点）に新しい知識が集積。対応ページを改善する。",
+                    "reason": f"クラスタ#{cid}に新たに{growth}点の知識が集積（計{size}点）。対応ページを改善する。",
                     "search_queries": [],
                     "cluster_id": cid,
-                    "score": size,
+                    "is_create": False,
+                    "score": growth,
                 }
             )
             continue
@@ -1596,6 +1630,7 @@ def geometry_menu(vault: Vault, db: StateDB, config: Config) -> list[dict[str, A
                     "reason": f"クラスタ#{cid}（{size}点）の代表話題「{title}」は既存ページと重複。統合改善する。",
                     "search_queries": [title],
                     "cluster_id": cid,
+                    "is_create": True,
                     "score": size,
                 }
             )
@@ -1608,10 +1643,12 @@ def geometry_menu(vault: Vault, db: StateDB, config: Config) -> list[dict[str, A
                 "reason": f"密度クラスタ#{cid}（{size}点）が閾値超え・未ページ化。代表話題「{title}」で記事化する。",
                 "search_queries": [title],
                 "cluster_id": cid,
+                "is_create": True,
                 "score": size,
             }
         )
-    menu.sort(key=lambda m: m["score"], reverse=True)
+    # Frontier (create/dedup-into-existing) first, then most-grown improves.
+    menu.sort(key=lambda m: (m["is_create"], m["score"]), reverse=True)
     return menu
 
 
