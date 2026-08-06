@@ -1,15 +1,15 @@
 ---
 type: knowledge
 status: draft
-created: 2026-07-30
-updated: 2026-07-30
+created: 2026-08-07
+updated: 2026-08-07
 confidence: medium
 ---
 
 # リトリバル実験実装ガイド
 
 ## 概要
-このドキュメントは、リトリバル実験の実装手順とベストプラクティスを明確化し、AI検索とリトリバル実験の関連性を強調した知識ドキュメントです。信頼性を高めるためのメカニズムや、実験設計のベストプラクティスについて整理しています。
+このドキュメントでは、リトリバル実験の実装手順とベストプラクティスを整理し、AI検索とリトリバル実験の関連性を強調します。信頼性を高めるためのメカニズムや実験設計のベストプラクティスについて説明します。
 
 ## 説明
 ### 実装手順
@@ -30,20 +30,14 @@ confidence: medium
 - 評価指標として、MAP（Mean Average Precision）やNDCG（Normalized Discounted Cumulative Gain）などを使用します。
 
 ## 出典
-- [1] YouTube: 「3.RetrievingExperiments」（https://www.youtube.com/watch?v=bwhcEi3fryM）
+- [1] OER Commons: 「Information Retrieval Experiments」（https://oercommons.org/courseware/lesson/123324/student/）
 - [2] Bondarenko, A. (2022). Axiomatic Retrieval Experimentation with ir_axioms.（https://downloads.webis.de/publications/papers/bondarenko_2022d.pdf）
 - [3] ResearchGate: 「Axiomatic Retrieval Experimentation with ir_axioms」（https://www.researchgate.net/publication/361826991_Axiomatic_Retrieval_Experimentation_with_ir_axioms）
-- [4] OER Commons: 「Information Retrieval Experiments」（https://oercommons.org/courseware/lesson/123324/student/）
-- [5] Medium: 「Embeddings in Practice: A Research & Implementation Guide」（https://medium.com/@adnanmasood/embeddings-in-practice-a-research-implementation-guide-9dbf20961590）
+- [4] Medium: 「Embeddings in Practice: A Research & Implementation Guide」（https://medium.com/@adnanmasood/embeddings-in-practice-a-research-implementation-guide-9dbf20961590）
 
 ## 未解決点
 - AI検索とリトリバル実験の関連性をさらに明確化する必要があります。
 - リトリバル実験における評価指標の選定基準が不十分です。
 - モデルの再訓練時のリソース管理のベストプラクティスが明確ではありません。
-
-## 信頼性の高い知識ドキュメントとしての改善点
-- AI検索とリトリバル実験の関連性を明確にし、信頼性を高める。
-- 出典の整合性を整理し、読みやすさを向上させた。
-- [Retrieval practice - Structural Learning](https://www.structural-learning.com/post/retrieval-practice-a-teachers-guide)
-- [Full article: Retrieval Practice: A Tool for Teaching the ...](https://www.tandfonline.com/doi/full/10.1080/00220973.2024.2392684)
-- [Retrieval Practice: A Powerful Strategy for Learning](https://www.retrievalpractice.org/retrievalpractice)
+- [How to Use Retrieval Practice to Improve Learning](http://psychnet.wustl.edu/memory/wp-content/uploads/2018/04/RetrievalPracticeGuide.pdf)
+- [Retrieval Practice: The Most Powerful Learning Strategy You're Not Using | Cult of Pedagogy](https://www.cultofpedagogy.com/retrieval-practice/)
