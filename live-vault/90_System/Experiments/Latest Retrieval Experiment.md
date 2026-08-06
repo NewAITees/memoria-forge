@@ -1,11 +1,11 @@
 ---
 title: 最新のリトリバル実験
-created: 2026-07-31
-updated: 2026-07-31
+created: 2026-08-06
+updated: 2026-08-06
 ---
 
 # 概要
-リトリバル実験は情報検索システムの性能評価において重要な手法であり、AI検索との関連性を明確化し、信頼性の高い知識を提供することを目的としています。
+リトリバル実験は、情報検索システムの性能評価において重要な手法であり、AI検索との関連性を明確にし、信頼性の高い知識を提供することを目的としています。
 
 ## 背景
 - リトリバル実験は情報検索システムの評価において主要な手法。
@@ -27,12 +27,12 @@ updated: 2026-07-31
 - AI検索はリトリバル実験の効率化や精度向上に寄与する可能性がある。
 
 ## 出典
-1. [Effects of retrieval practice on retention and application of complex educational concepts - ScienceDirect](https://www.sciencedirect.com/science/article/pii/S0959475225001434)
-   - 2025年9月20日、実験結果を示した研究。
-2. [Information Retrieval Experiments | OER Commons](https://oercommons.org/courseware/lesson/123324/student/)
-   - いくつかのIR実験の概要を提供。
-3. [The Information Retrieval Experiment Platform | Proceedings of the 46th International ACM SIGIR Conference](https://dl.acm.org/doi/10.1145/3539618.3591888)
-   - リトリバル実験の標準化と再現性に関する研究。
+1. [Retrieval practice prevents stress-induced inference errors - eLife](https://elifesciences.org/reviewed-preprints/110350)
+   - 2026年3月13日、ストレスが記憶推論に与える影響とリトリバル実験の効果を検証。
+2. [GitHub - kusp-dev/retrieval-weight-experiment](https://github.com/kusp-dev/retrieval-weight-experiment)
+   - 2026年3月14日、リトリバル重みのオンライン学習と評価方法。
+3. [Retrieval Practice: A Tool for Teaching the Control-of-Variables ...](https://www.tandfonline.com/doi/full/10.1080/00220973.2024.2392684)
+   - 2024年12月10日、学習効果の向上に関する教育実験。
 
 ## 未解決点
 - 実験の詳細な設定や結果の解釈方法については追加調査が必要。
