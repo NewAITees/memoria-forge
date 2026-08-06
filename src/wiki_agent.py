@@ -433,9 +433,12 @@ class StateDB:
         }
         if "paged_size" not in existing:
             self.db.execute("ALTER TABLE clusters ADD COLUMN paged_size INTEGER")
-            self.db.execute(
-                "UPDATE clusters SET paged_size = size WHERE page_path IS NOT NULL"
-            )
+        # Heal any paged cluster missing its convergence size (new column, or rows
+        # written before consolidate learned to preserve paged_size): treat it as
+        # converged at its current size. A no-op once every paged cluster is tracked.
+        self.db.execute(
+            "UPDATE clusters SET paged_size = size WHERE page_path IS NOT NULL AND paged_size IS NULL"
+        )
 
     def _ensure_cluster_member_columns(self) -> None:
         """Add the per-point embedding column; discard pre-embedding S1 map data.
@@ -623,9 +626,13 @@ class StateDB:
         for the cluster that keeps the majority; split-off and merged-away groups
         move. A cluster whose members predate embedding storage is skipped.
         """
-        page_of = {
-            cid: pp for cid, pp in self.db.execute("SELECT cluster_id, page_path FROM clusters")
-        }
+        page_of = {}
+        paged_size_of = {}
+        for cid, pp, ps in self.db.execute(
+            "SELECT cluster_id, page_path, paged_size FROM clusters"
+        ):
+            page_of[cid] = pp
+            paged_size_of[cid] = ps
         groups: dict[int, list[tuple[str, list[float]]]] = {cid: [] for cid in page_of}
         for url, cid, emb in self.db.execute(
             "SELECT url, cluster_id, embedding FROM cluster_members"
@@ -647,6 +654,7 @@ class StateDB:
                     groups[cid] = keep
                     groups[next_id] = move
                     page_of[next_id] = None
+                    paged_size_of[next_id] = None
                     next_id += 1
                     splits += 1
 
@@ -668,6 +676,7 @@ class StateDB:
                         groups[keep_id] += groups[drop_id]
                         del groups[drop_id]
                         page_of.pop(drop_id, None)
+                        paged_size_of.pop(drop_id, None)
                         merges += 1
                         changed = True
                         break
@@ -680,9 +689,16 @@ class StateDB:
         for cid, members in groups.items():
             centroid = mean_vector([v for _, v in members])
             self.db.execute(
-                "INSERT INTO clusters (cluster_id, centroid, size, updated_at, page_path) "
-                "VALUES (?, ?, ?, ?, ?)",
-                (cid, json.dumps(centroid), len(members), timestamp, page_of.get(cid)),
+                "INSERT INTO clusters (cluster_id, centroid, size, updated_at, page_path, paged_size) "
+                "VALUES (?, ?, ?, ?, ?, ?)",
+                (
+                    cid,
+                    json.dumps(centroid),
+                    len(members),
+                    timestamp,
+                    page_of.get(cid),
+                    paged_size_of.get(cid),
+                ),
             )
             for url, vec in members:
                 self.db.execute(

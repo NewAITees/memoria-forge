@@ -1035,6 +1035,21 @@ def test_consolidate_splits_a_dispersed_cluster(tmp_path: Path) -> None:
     assert sorted(s["size"] for s in db.cluster_summary()) == [3, 3]
 
 
+def test_consolidate_preserves_paged_size(tmp_path: Path) -> None:
+    # Regression: consolidate rewrites the clusters table every run; it must carry
+    # paged_size through, or the convergence signal is wiped and a paged cluster is
+    # re-improved forever.
+    db = StateDB(tmp_path / "s.sqlite3")
+    _seed_rss(db, [("a1", "x"), ("a2", "y")])
+    cid, _ = db.assign_point("a1", [1.0, 0.0], 0.7)
+    db.assign_point("a2", [0.99, 0.01], 0.7)
+    db.link_cluster_page(cid, "10_Knowledge/x.md")  # paged_size = 2
+    db.consolidate(merge_threshold=0.99, split_cohesion=0.0, min_split_size=100)  # no-op
+    row = db.cluster_summary()[0]
+    assert row["page_path"] == "10_Knowledge/x.md"
+    assert row["paged_size"] == 2
+
+
 def _seed_rss(db: StateDB, rows: list[tuple[str, str]]) -> None:
     for url, title in rows:
         db.db.execute(
