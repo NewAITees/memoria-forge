@@ -1,14 +1,14 @@
 ---
 title: 眼底から「視野」を読み解き、緑内障の見逃しに挑む：DeepEyeVision
-created: 2026-07-31
-updated: 2026-07-31
+created: 2026-08-07
+updated: 2026-08-07
 ---
 
 ## 概要
 DeepEyeVisionは自治医科大学と筑波大学が設立した医療スタートアップで、AIを活用した眼底画像解析技術を開発し、緑内障の早期発見を支援する企業。高齢化社会に対応する診断支援を目指している。
 
 ## 製品と技術
-DeepEyeVision for RetinaStationは2026年1月に販売開始。眼底カメラと併用し、健常な眼のデータベースから外れた箇所を色で示すことで、専門医でなくても異常を判別しやすくなる。AI-COは近赤外線でOCT撮影した100〜200枚の網膜断面像を3Dデータとして読み込み、視野分布に相当する濃淡画像を生成し、医師が実際の視野検査結果と見比べることができる。
+DeepEyeVision for RetinaStationは2026年1月に販売開始。眼底カメラと併用し、健常な眼のデータベースから外れた箇所を色で示すことで、専門医でなくても異常を判別しやすくなる。AI-COは近赤外線でOCT撮影した10、200枚の網膜断面像を3Dデータとして読み込み、視野分布に相当する濃淡画像を生成し、医師が実際の視野検査結果と見比べることができる。
 
 ## 用途と目的
 緑内障の視野検査の負担を軽減し、早期発見を支援する。数秒の撮影で検査を容易にし、医療従事者の負担を軽減することを目的としている。
@@ -45,3 +45,4 @@ AI-COは視野分布に相当する濃淡画像を生成するが、医師との
 
 - [ganka-doc.com/glaucoma/glaucoma-after-surgery-burry](https://ganka-doc.com/glaucoma/glaucoma-after-surgery-burry/)
 - [moriwaki-ganka.com](https://www.moriwaki-ganka.com/)
+- [緑内障／青底翳の症状・原因・対処法 Doctors Me(ドクターズミー)](https://doctors-me.com/disease/2456)
