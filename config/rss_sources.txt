@@ -1,8 +1,34 @@
 # RSSフィードURL（1行1件）。空行と # 始まりの行は無視されます。
 # 経路A（RSS起点）で新着話題を発見する入口です。ここで見つけた記事タイトルを
-# 種にウェブ検索で裏取りし、Wikiページ（＝レポート）を生成します。
-# 例:
-# https://www.itmedia.co.jp/rss/2.0/aiplus.xml
-# https://gigazine.net/news/rss_2.0/
+# 種に密度クラスタを作り、テーマ単位でWikiページ（＝レポート）を生成します。
 
+# 既存
 https://wired.jp/feed/rss
+# 鉱石・地質
+https://www.mining-technology.com/feed/
+https://phys.org/rss-feed/earth-news/geology-news/
+# 半導体
+https://semiengineering.com/feed/
+# プログラミング
+https://news.ycombinator.com/rss
+https://dev.to/feed
+# 科学
+https://www.sciencedaily.com/rss/all.xml
+https://www.quantamagazine.org/feed/
+# 数学
+https://www.quantamagazine.org/mathematics/feed/
+http://export.arxiv.org/rss/math.HO
+# 統計
+http://export.arxiv.org/rss/stat.ML
+https://www.kdnuggets.com/feed
+# サイバーセキュリティ
+https://krebsonsecurity.com/feed/
+https://feeds.feedburner.com/TheHackersNews
+# 心理学（ビッグファイブ含む）
+https://www.sciencedaily.com/rss/mind_brain/psychology.xml
+# ライフサイエンス
+https://www.sciencedaily.com/rss/plants_animals.xml
+https://www.statnews.com/feed/
+# LLM
+http://export.arxiv.org/rss/cs.CL
+https://huggingface.co/blog/feed.xml
