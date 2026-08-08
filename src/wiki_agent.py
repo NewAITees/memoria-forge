@@ -9,6 +9,7 @@ import os
 import re
 import sqlite3
 import subprocess
+import tempfile
 import urllib.parse
 import urllib.request
 from contextlib import contextmanager
@@ -26,6 +27,26 @@ logger = logging.getLogger(__name__)
 
 def now() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+def _loads_llm_content(content: str, source: str) -> dict[str, Any]:
+    """Parse an LLM JSON reply, dumping the raw text on failure for diagnosis.
+
+    A truncated reply (e.g. the model hit a generation-length cap) yields a
+    JSONDecodeError whose raw content is otherwise lost; save it and surface the
+    path so the failure can be inspected on the next run.
+    """
+    try:
+        return cast(dict[str, Any], json.loads(content))
+    except json.JSONDecodeError as error:
+        dump_dir = Path(tempfile.gettempdir()) / "wiki-agent-json-failures"
+        dump_dir.mkdir(parents=True, exist_ok=True)
+        stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S_%f")
+        dump_path = dump_dir / f"{source}-{stamp}.txt"
+        dump_path.write_text(content, encoding="utf-8")
+        raise ValueError(
+            f"{source}: failed to parse LLM JSON ({error}); raw content saved to {dump_path}"
+        ) from error
 
 
 def _pid_alive(pid: int) -> bool:
@@ -973,6 +994,9 @@ class Ollama:
             # Keep the model resident across the several LLM calls in one run
             # (plan -> write -> review) so it is not cold-reloaded each call.
             "keep_alive": "10m",
+            # Never cap generation length: a finite num_predict truncates the
+            # JSON reply mid-string and breaks json.loads on longer pages.
+            "options": {"num_predict": -1},
             "messages": [
                 {"role": "system", "content": system},
                 {"role": "user", "content": prompt},
@@ -985,7 +1009,7 @@ class Ollama:
         )
         with urllib.request.urlopen(request, timeout=self.timeout) as response:
             body: dict[str, Any] = json.loads(response.read())
-        return cast(dict[str, Any], json.loads(body["message"]["content"]))
+        return _loads_llm_content(body["message"]["content"], "ollama")
 
     def plan(
         self, wiki_snapshot: list[dict[str, Any]], stale_pages: list[str] | None = None
@@ -1180,7 +1204,7 @@ class LMStudio(Ollama):
         message = choices[0].get("message")
         if not isinstance(message, dict) or not isinstance(message.get("content"), str):
             raise ValueError("LM Studio returned no message content")
-        return cast(dict[str, Any], json.loads(message["content"]))
+        return _loads_llm_content(message["content"], "lmstudio")
 
 
 def create_client(config: Config) -> Ollama:
