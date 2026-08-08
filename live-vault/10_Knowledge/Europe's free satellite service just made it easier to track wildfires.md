@@ -1,0 +1,41 @@
+---
+type: knowledge
+status: draft
+created: 2026-08-09
+updated: 2026-08-09
+confidence: medium
+---
+
+title: 欧州の無料衛星サービスが火災の追跡をより簡単にする
+created: 2026-08-09
+updated: 2026-08-09
+
+overview:
+欧州の無料でオープンな衛星画像サービスが、火災の追跡をより簡単にする機能を追加しました。この更新により、ユーザーはリアルタイムで火災の状況を確認でき、災害対応や環境モニタリングに役立てることができます。
+
+details:
+Copernicus Browserは、欧州宇宙機関（ESA）のSentinel衛星による高解像度の衛星画像を提供します。このサービスは、火災の検出とモニタリングに特化した視覚化レイヤーを新たに導入しました。このレイヤーは、Sentinel-2衛星の多波長画像を組み合わせて、現在の火災、焼け跡、火災の強度などを表示します。
+
+この機能は、JavaScriptによるスクリプトで実装されており、リモートセンシング専門家Pierre Markuseによって作成されました。このスクリプトは、赤色波長、近赤外線波長、短波長赤外線波長を組み合わせることで、火災の状態を明確に表示します。ESAのSimon Proudは、このスクリプトをCopernicus Browserのデフォルト機能として統合するよう求めました。
+
+sources:
+- Ars Technica: https://arstechnica.com/gadgets/2026/08/europes-free-satellite-service-just-made-it-easier-to-track-wildfires/
+- Tech Labs: https://tech-labs.co/2026/08/08/europe-copernicus-wildfire-tracking-satellite-data-visualization/
+- Hacker News: https://news.ycombinator.com/item?id=49220313
+- Tech News Tube: https://technewstube.com/ars-technica/1856750/europes-free-satellite-service-made-easier-to-track/
+- Live Wildfire Map: https://currentwildfires.com/
+
+unresolved_points:
+- 火災視覚化機能の具体的な使用方法や、ユーザーのフィードバックは不明。
+- 観測データの更新頻度や精度についての詳細は未確認。
+- 火災情報の実際の応用ケースや効果は今後の調査が必要。
+
+# Europe's free satellite service just made it easier to track wildfires
+
+
+## 出典
+
+
+## 未解決点
+
+- 追加調査が必要です。
