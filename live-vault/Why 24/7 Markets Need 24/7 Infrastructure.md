@@ -1,0 +1,57 @@
+---
+title: 7 基盤インフラ
+created: 2026-08-10
+updated: 2026-08-10
+---
+
+# 7 基盤インフラ
+
+## 概要
+24/7市場が24/7インフラストラクチャを必要とする理由についての記事を掲載。金融市場の連続性とインフラの対応に関する論点を整理。
+
+## 詳細
+
+### 24/7市場とインフラの連続性
+- 伝統的な金融市場は終了時間があるが、暗号通貨市場は24時間稼働。
+- 価格変動、流動性変化、ポジションの保持、ファインディングレートの更新が連続して行われる。
+- 人間の監視では対応が困難なため、ソフトウェアによる自動化が求められる。
+- 連続的な監視と対応がインフラストラクチャの設計に影響を与える。
+
+### 24/7インフラストラクチャの必要性
+- 金融戦略の自動化と、連続的な監視がインフラとしての課題。
+- イベント駆動型のアーキテクチャが効果的。
+- システムの信頼性と故障時の対応が重要。
+- リスク層の制約により、自動化の制限が必要。
+
+### 基盤監視の重要性
+- 24/7インフラストラクチャ監視により、ネットワークの故障検出が可能。
+- モニタリングにより、保守コスト削減や投資効率向上が実現。
+- 基盤監視はサービス提供者にとって不可欠。
+
+### 24/7インフラストラクチャの実現
+- クラウドワークステーションとセキュアなリモートインフラの提供。
+- ゼロトラストアクセスと自動化されたパッチング・モニタリング。
+- サイズに応じたGPU対応仮想デスクトップの提供。
+
+## ソース
+- [Why 24/7 Markets Need 24/7 Infrastructure - DEV Community](https://dev.to/axionaeu/why-247-markets-need-247-infrastructure-18ek)
+- [24/7 Trading Is Moving Beyond Crypto - LinkedIn](https://www.linkedin.com/pulse/247-trading-moving-beyond-crypto-market-ready-robert-kallay-56s3c)
+- [Why Should You Monitor Your Infrastructure? - Made4it](https://made4it.com.br/en/blog/why-should-you-monitor-your-infrastructure-lucas-kazama/)
+- [Managed Cloud Workstations & Secure Remote Infrastructure - Workstation Hub](https://www.workstation-hub.com/)
+
+## 未解決の点
+- 24/7インフラストラクチャの設計における具体的な課題。
+- 連続的な市場でのリスク管理の最適化。
+- 金融市場と予測市場におけるマイクロ構造の違い。
+
+## 参考文献
+- [A Microstructure Perspective on Prediction Markets - SSRN](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6325658)
+- [Understanding Market Microstructure in Prediction Markets - Medium](https://benjamincup.medium.com/understanding-market-microstructure-in-prediction-markets-a-deep-dive-into-polymarket-clob-v2-b62e607de575)
+
+## 出典
+
+- [XAU/USD Real-Time 1 Minute Chart (Educational) - Live GOLDMarket...](https://www.youtube.com/watch?v=3H4IVQejlDE)
+
+## 未解決点
+
+- 追加調査が必要です。
