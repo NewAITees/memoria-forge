@@ -1,0 +1,24 @@
+---
+type: knowledge
+status: draft
+created: 2026-08-18
+updated: 2026-08-18
+confidence: medium
+---
+
+GitHubは、ソフトウェア開発のためのプラットフォームであり、Gitをベースにした分散型バージョン管理を提供します。開発者はソースコードを保存、管理、共有できるようにし、アクセス制御、バグ追跡、タスク管理、継続的インテグレーション（CI）、ウィキ機能などを提供しています。GitHubはRuby on RailsとErlangで構築され、2018年からマイクロソフト傘下のGitHub, Inc.によって運営されています。2023年現在、1億を超える開発者と4億2000万以上のリポジトリを擁しています。また、GitHubはGistというPastebinスタイルのサービスも運営しており、開発者同士の協力やコードの共有を促進しています。一方、GitHubはSNS機能を備えており、feedsやfollowersを通じて開発者のネットワークを構築することも可能です。さらに、GitHubは教育目的のためのGitHub Educationを提供し、教育機関向けに無料のバンドルを提供しています。
+
+# I found code in my repo I'd never seen. All 82 tests passed
+
+
+## 出典
+
+- [I found code in my repo I'd never seen. All 82 tests passed ...](https://dev.to/achiya-automation/i-found-code-in-my-repo-id-never-seen-all-82-tests-passed-i-quarantined-it-for-three-days-anyway-33go)
+- [Beware “quick fix” repo tests hiding malware Over the past ...](https://www.linkedin.com/posts/volodymyr-zahanych-308ba51b9_beware-quick-fix-repo-tests-hiding-malware-activity-7391759370189045760-VDEr)
+- [Found this at work. Someone padded a repo with ... - Reddit](https://www.reddit.com/r/programminghorror/comments/11dzkgm/found_this_at_work_someone_padded_a_repo_with/)
+- [This AI Tool Found Bugs in My Repo I Didn’t Know Existed](https://medium.com/coding-nexus/this-ai-tool-found-bugs-in-my-repo-i-didnt-know-existed-41a63d07f089)
+- [The Case of the Passing Tests: A 10-Day Investigation | The ...](https://forge-quality.dev/articles/case-of-passing-tests-investigation)
+
+## 未解決点
+
+- 追加調査が必要です。
