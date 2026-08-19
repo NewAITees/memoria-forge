@@ -1304,6 +1304,27 @@ def test_write_passes_content_schema_to_chat() -> None:
     assert "# ok" in out
 
 
+def test_write_instructs_the_model_to_answer_in_japanese() -> None:
+    """English titles and English research context were dragging pages into English."""
+    captured: dict[str, str] = {}
+
+    class Probe(Ollama):
+        def chat(
+            self, system: str, prompt: str, response_schema: object = None
+        ) -> dict[str, object]:
+            captured["system"] = system
+            captured["prompt"] = prompt
+            return {"content": "# ok\n\nbody"}
+
+    Probe("http://x", "m").write("Block Scope in JavaScript", "reason", [])
+    system = captured["system"]
+    assert "WRITE IN JAPANESE" in system
+    # The required headings are pinned so normalize_page never adds duplicates.
+    for heading in ("## 概要", "## 詳細", "## 出典", "## 未解決点"):
+        assert heading in system
+    assert '"output_language": "ja"' in captured["prompt"]
+
+
 class _EmptyThenValidWriter:
     """Autonomous client whose writer returns empty content the first N calls."""
 
