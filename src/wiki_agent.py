@@ -1474,9 +1474,49 @@ def render_page(target: Path, action: dict[str, Any], sources: list[SearchResult
     )
 
 
+_FENCE_LINE = re.compile(r"^-{3,}\s*$")
+# Headings that mean the same section as the required Japanese one. A page whose
+# writer drifted into English already has these, and appending the Japanese
+# heading anyway left empty duplicate sections at the bottom of real pages.
+_SECTION_ALIASES: dict[str, tuple[str, ...]] = {
+    "## 出典": ("## sources", "## references", "## 参考文献", "## 参照"),
+    "## 未解決点": ("## unresolved points", "## unresolved", "## open questions", "## 課題"),
+}
+
+
+def _has_section(page: str, heading: str) -> bool:
+    """True when the page already carries this section under any known heading."""
+    lowered = page.casefold()
+    return any(
+        alias.casefold() in lowered for alias in (heading, *_SECTION_ALIASES.get(heading, ()))
+    )
+
+
+def _normalize_frontmatter(page: str) -> str:
+    """Repair the writer's frontmatter fences so Obsidian can parse the page.
+
+    Writers return `----` (four dashes) or omit the closing fence, both of which
+    make the whole block render as body text. The opening and closing fences are
+    rewritten to exactly `---`, and a missing closing fence is inserted where the
+    block visibly ends (first blank line or first Markdown heading).
+    """
+    lines = page.split("\n")
+    if not lines or not _FENCE_LINE.match(lines[0]):
+        return page
+    lines[0] = "---"
+    for index in range(1, len(lines)):
+        if _FENCE_LINE.match(lines[index]):
+            lines[index] = "---"
+            return "\n".join(lines)
+        if not lines[index].strip() or lines[index].startswith("#"):
+            lines.insert(index, "---")
+            return "\n".join(lines)
+    return "\n".join(lines) + "\n---"
+
+
 def normalize_page(target: Path, content: str, sources: list[SearchResult]) -> str:
     """Ensure required structural fields exist before asking the LLM reviewer."""
-    page = content.strip()
+    page = _normalize_frontmatter(content.strip())
     if not page.startswith("---"):
         page = (
             "---\n"
@@ -1486,12 +1526,12 @@ def normalize_page(target: Path, content: str, sources: list[SearchResult]) -> s
         )
     if not re.search(r"^#\s+", page, re.MULTILINE):
         page = page + f"\n\n# {target.stem}\n"
-    if "## 出典" not in page:
+    if not _has_section(page, "## 出典"):
         page += "\n\n## 出典\n"
     for source in sources:
         if source.url not in page:
             page += f"\n- [{source.title}]({source.url})"
-    if "## 未解決点" not in page:
+    if not _has_section(page, "## 未解決点"):
         page += "\n\n## 未解決点\n\n- 追加調査が必要です。"
     return page + "\n"
 

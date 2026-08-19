@@ -28,6 +28,7 @@ from src.wiki_agent import (
     normalize_new_page_target,
     plan_rss_action,
     process_lock,
+    normalize_page,
     page_target_from_title,
     resolve_target_for_duplicates,
     review_is_blocking,
@@ -377,6 +378,47 @@ def test_safe_new_page_target_files_bare_title_under_knowledge_dir() -> None:
 )
 def test_page_target_from_title_flattens_separators(title: str, expected: str) -> None:
     assert page_target_from_title(title) == Path(expected)
+
+
+def test_normalize_page_repairs_four_dash_frontmatter() -> None:
+    content = "----\ntitle: 量子誤り訂正\n----\n\n# 量子誤り訂正\n\n## 概要\n本文。\n"
+    page = normalize_page(Path("10_Knowledge/量子誤り訂正.md"), content, [])
+    assert page.startswith("---\ntitle: 量子誤り訂正\n---\n")
+    assert "----" not in page
+
+
+def test_normalize_page_inserts_missing_closing_fence() -> None:
+    content = "---\ntitle: 量子誤り訂正\ncreated: 2026-08-19\n# 量子誤り訂正\n\n## 概要\n本文。\n"
+    page = normalize_page(Path("10_Knowledge/量子誤り訂正.md"), content, [])
+    lines = page.split("\n")
+    assert lines[0] == "---"
+    # The block is closed before the body heading, so the metadata parses.
+    assert lines[3] == "---"
+    assert lines[4] == "# 量子誤り訂正"
+
+
+def test_normalize_page_leaves_valid_frontmatter_alone() -> None:
+    content = "---\ntitle: 量子誤り訂正\n---\n\n# 量子誤り訂正\n\n## 出典\n\n## 未解決点\n- なし\n"
+    page = normalize_page(Path("10_Knowledge/量子誤り訂正.md"), content, [])
+    assert page.startswith("---\ntitle: 量子誤り訂正\n---\n\n# 量子誤り訂正\n")
+
+
+def test_normalize_page_does_not_duplicate_english_sections() -> None:
+    """A page written in English already has these sections under English headings."""
+    content = (
+        "---\ntitle: Block Scope\n---\n\n# Block Scope\n\n## Overview\nBody.\n\n"
+        "## Sources\n- [W3](https://example.com/a)\n\n## Unresolved Points\n- More study.\n"
+    )
+    page = normalize_page(Path("10_Knowledge/Block Scope.md"), content, [])
+    assert "## 出典" not in page
+    assert "## 未解決点" not in page
+
+
+def test_normalize_page_still_adds_missing_sections() -> None:
+    content = "---\ntitle: 量子誤り訂正\n---\n\n# 量子誤り訂正\n\n## 概要\n本文。\n"
+    page = normalize_page(Path("10_Knowledge/量子誤り訂正.md"), content, [])
+    assert "## 出典" in page
+    assert "## 未解決点" in page
 
 
 def test_page_target_from_title_keeps_pages_inside_the_vault(tmp_path: Path) -> None:
