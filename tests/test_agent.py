@@ -28,6 +28,7 @@ from src.wiki_agent import (
     normalize_new_page_target,
     plan_rss_action,
     process_lock,
+    page_target_from_title,
     resolve_target_for_duplicates,
     review_is_blocking,
     run_once,
@@ -355,6 +356,36 @@ def test_safe_new_page_target_files_bare_title_under_knowledge_dir() -> None:
     assert safe_new_page_target(Path("破滅的忘却")) == Path("10_Knowledge/破滅的忘却.md")
     # A title that already carries a directory keeps it.
     assert safe_new_page_target(Path("20_Concepts/RAG")) == Path("20_Concepts/RAG.md")
+
+
+@pytest.mark.parametrize(
+    ("title", "expected"),
+    [
+        # A slash inside a title is part of the title, not a directory separator.
+        ("Everything Was Working. AWS Wanted $1,665/Month More", "10_Knowledge/Everything Was Working. AWS Wanted $1,665-Month More.md"),
+        ("Why 24/7 monitoring matters", "10_Knowledge/Why 24-7 monitoring matters.md"),
+        ("バックスラッシュ\\混じり", "10_Knowledge/バックスラッシュ-混じり.md"),
+        ("A//B", "10_Knowledge/A-B.md"),
+        ("量子コンピュータの現在地", "10_Knowledge/量子コンピュータの現在地.md"),
+        # A dot inside a title is not a file extension: the topic must survive.
+        # `?` is illegal on Windows and is dropped, but the topic itself survives.
+        ("Did T. Rex really hunt in packs?", "10_Knowledge/Did T. Rex really hunt in packs.md"),
+        ("OAuth 2.0 の認可フロー", "10_Knowledge/OAuth 2.0 の認可フロー.md"),
+        # An already-correct extension is not doubled.
+        ("量子誤り訂正.md", "10_Knowledge/量子誤り訂正.md"),
+    ],
+)
+def test_page_target_from_title_flattens_separators(title: str, expected: str) -> None:
+    assert page_target_from_title(title) == Path(expected)
+
+
+def test_page_target_from_title_keeps_pages_inside_the_vault(tmp_path: Path) -> None:
+    vault = Vault(tmp_path / "vault")
+    target = page_target_from_title("../../escape/attempt")
+    resolved = vault.safe(target)
+    assert vault.root in resolved.parents
+    # The whole title collapses into a single file name, so no stray folder appears.
+    assert target.parent == Path("10_Knowledge")
 
 
 class _FakeClient:

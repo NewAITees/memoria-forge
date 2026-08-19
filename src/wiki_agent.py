@@ -1382,6 +1382,7 @@ def normalize_new_page_target(target: Path) -> Path:
 
 DEFAULT_KNOWLEDGE_DIR = "10_Knowledge"
 _ILLEGAL_PATH_CHARS = re.compile(r'[<>:"|?*\x00-\x1f]')
+_TITLE_PATH_SEPARATORS = re.compile(r"[/\\]+")
 
 
 def safe_new_page_target(target: Path) -> Path:
@@ -1409,6 +1410,28 @@ def safe_new_page_target(target: Path) -> Path:
     if len(relative.parts) == 1:
         relative = Path(DEFAULT_KNOWLEDGE_DIR) / relative
     return normalize_new_page_target(relative)
+
+
+def page_target_from_title(title: str) -> Path:
+    """Build a safe vault-relative page path from a plain *topic title*.
+
+    A title is not a path: "AWS Wanted $1,665/Month More" must become one page,
+    not a two-level `$1,665/Month More.md` path (which silently created stray
+    folders in the vault root). Callers holding a bare title -- an RSS candidate
+    or a cluster theme -- use this, while `safe_new_page_target` stays for
+    LLM-proposed targets whose directory component is intended.
+
+    It also refuses to read a title's punctuation as a file extension: `Path`
+    turns "Did T. Rex hunt?" into stem "Did T" plus suffix ".md", truncating the
+    topic away. Here the whole title is the stem and ".md" is appended.
+    """
+    flattened = _TITLE_PATH_SEPARATORS.sub("-", title)
+    cleaned = _ILLEGAL_PATH_CHARS.sub("", flattened).strip(" .")[:80].strip(" .")
+    if not cleaned:
+        cleaned = "untitled"
+    if not cleaned.casefold().endswith(".md"):
+        cleaned = f"{cleaned}.md"
+    return Path(DEFAULT_KNOWLEDGE_DIR) / cleaned
 
 
 def resolve_target_for_duplicates(vault: Vault, target: Path) -> Path:
@@ -1563,7 +1586,7 @@ def plan_rss_action(vault: Vault, db: StateDB, config: Config) -> dict[str, Any]
             "rss_author": candidate.get("author", ""),
             "rss_snippet": candidate.get("snippet", ""),
         }
-    target = safe_new_page_target(Path(title[:80]))
+    target = page_target_from_title(title)
     return {
         "action": "create_page",
         "target": str(target),
@@ -1675,7 +1698,7 @@ def geometry_menu(vault: Vault, db: StateDB, config: Config) -> list[dict[str, A
                 }
             )
             continue
-        target = safe_new_page_target(Path(title[:80]))
+        target = page_target_from_title(title)
         menu.append(
             {
                 "action": "create_page",
