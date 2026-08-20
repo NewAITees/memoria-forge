@@ -1,3 +1,5 @@
+import json
+import math
 import os
 import subprocess
 import tempfile
@@ -25,6 +27,9 @@ from src.wiki_agent import (
     find_similar_page,
     geometry_menu,
     ingest_rss,
+    internal_similarity,
+    mean_vector,
+    member_similarity,
     plan_geometry_action,
     normalize_new_page_target,
     plan_rss_action,
@@ -1169,21 +1174,98 @@ def test_consolidate_merges_near_duplicate_clusters(tmp_path: Path) -> None:
     db.assign_point("a", [1.0, 0.0], 0.99)
     db.assign_point("b", [0.9, 0.436], 0.99)
     assert len(db.cluster_summary()) == 2
-    stats = db.consolidate(merge_threshold=0.86, split_cohesion=0.0, min_split_size=100)
+    stats = db.consolidate(merge_threshold=0.86, split_min_similarity=0.0, min_split_size=100)
     assert stats["merges"] == 1
     assert [s["size"] for s in db.cluster_summary()] == [2]
 
 
+def _force_one_cluster(db: StateDB, vectors: list[list[float]]) -> None:
+    """Put every vector in a single cluster, bypassing attach.
+
+    Attach deliberately refuses to build a blob like this (a point must be as
+    typical of a cluster as its members are of each other), so consolidate's own
+    tests construct the starting state directly instead of through assign_point.
+    """
+    centroid = mean_vector(vectors)
+    db.db.execute(
+        "INSERT INTO clusters (cluster_id, centroid, size, updated_at) VALUES (1, ?, ?, ?)",
+        (json.dumps(centroid), len(vectors), "2026-08-19T00:00:00+00:00"),
+    )
+    for index, vector in enumerate(vectors):
+        db.db.execute(
+            "INSERT INTO cluster_members VALUES (?, 1, ?, ?)",
+            (f"x{index}", "2026-08-19T00:00:00+00:00", json.dumps(vector)),
+        )
+    db.db.commit()
+
+
 def test_consolidate_splits_a_dispersed_cluster(tmp_path: Path) -> None:
     db = StateDB(tmp_path / "s.sqlite3")
-    blob = [[1.0, 0.0, 0.0], [0.95, 0.05, 0.0], [0.9, 0.1, 0.0],
-            [0.0, 1.0, 0.0], [0.05, 0.95, 0.0], [0.1, 0.9, 0.0]]
-    for i, v in enumerate(blob):  # attach threshold 0.0 forces one cluster
-        db.assign_point(f"x{i}", v, 0.0)
+    _force_one_cluster(db, [[1.0, 0.0, 0.0], [0.95, 0.05, 0.0], [0.9, 0.1, 0.0],
+                            [0.0, 1.0, 0.0], [0.05, 0.95, 0.0], [0.1, 0.9, 0.0]])
     assert len(db.cluster_summary()) == 1
-    stats = db.consolidate(merge_threshold=0.99, split_cohesion=0.9, min_split_size=6)
+    stats = db.consolidate(merge_threshold=0.99, split_min_similarity=0.9, min_split_size=6)
     assert stats["splits"] == 1
     assert sorted(s["size"] for s in db.cluster_summary()) == [3, 3]
+
+
+def test_consolidate_splits_a_blob_all_the_way_down(tmp_path: Path) -> None:
+    """Regression: one pass only halved a blob, so mega-clusters never dissolved."""
+    db = StateDB(tmp_path / "s.sqlite3")
+    # Four well-separated topics of three points each, sharing one cluster.
+    axes = [
+        [1.0, 0.0, 0.0, 0.0],
+        [0.0, 1.0, 0.0, 0.0],
+        [0.0, 0.0, 1.0, 0.0],
+        [0.0, 0.0, 0.0, 1.0],
+    ]
+    blob = []
+    for axis, base in enumerate(axes):
+        for offset in (0.0, 0.03, 0.06):
+            vector = list(base)
+            vector[(axis + 1) % 4] = offset
+            blob.append(vector)
+    _force_one_cluster(db, blob)
+    assert len(db.cluster_summary()) == 1
+
+    stats = db.consolidate(merge_threshold=0.99, split_min_similarity=0.9, min_split_size=3)
+
+    # Halving once would leave sizes [6, 6]; splitting to convergence recovers the
+    # four real topics.
+    assert stats["splits"] >= 3
+    assert sorted(s["size"] for s in db.cluster_summary()) == [3, 3, 3, 3]
+
+
+def test_consolidate_reaches_a_fixed_point_on_random_data(tmp_path: Path) -> None:
+    """Postcondition, not implementation: nothing may still be split or merged.
+
+    The merge phase caches each cluster's best partner and only refreshes rows that
+    a merge touched. A stale row silently changes which pairs merge, so assert the
+    result directly instead of trusting the invalidation logic.
+    """
+    import random
+
+    random.seed(7)
+    db = StateDB(tmp_path / "s.sqlite3")
+    # Six loose blobs around random directions, deliberately overlapping.
+    for blob in range(6):
+        axis = [random.gauss(0, 1) for _ in range(8)]
+        norm = math.sqrt(sum(x * x for x in axis))
+        axis = [x / norm for x in axis]
+        for point in range(12):
+            noisy = [x + random.gauss(0, 0.35) for x in axis]
+            scale = math.sqrt(sum(x * x for x in noisy))
+            db.assign_point(f"b{blob}p{point}", [x / scale for x in noisy], 0.6)
+
+    db.consolidate(merge_threshold=0.60, split_min_similarity=0.70, min_split_size=6)
+    second = db.consolidate(merge_threshold=0.60, split_min_similarity=0.70, min_split_size=6)
+    assert second == {"splits": 0, "merges": 0, "skipped": 0}
+
+    rows = db.db.execute("SELECT cluster_id, centroid, size FROM clusters").fetchall()
+    for _cid, centroid_json, size in rows:
+        centroid = json.loads(centroid_json)
+        if size >= 6:
+            assert internal_similarity(centroid, size) >= 0.70  # nothing left to split
 
 
 def test_consolidate_preserves_paged_size(tmp_path: Path) -> None:
@@ -1195,7 +1277,7 @@ def test_consolidate_preserves_paged_size(tmp_path: Path) -> None:
     cid, _ = db.assign_point("a1", [1.0, 0.0], 0.7)
     db.assign_point("a2", [0.99, 0.01], 0.7)
     db.link_cluster_page(cid, "10_Knowledge/x.md")  # paged_size = 2
-    db.consolidate(merge_threshold=0.99, split_cohesion=0.0, min_split_size=100)  # no-op
+    db.consolidate(merge_threshold=0.99, split_min_similarity=0.0, min_split_size=100)  # no-op
     row = db.cluster_summary()[0]
     assert row["page_path"] == "10_Knowledge/x.md"
     assert row["paged_size"] == 2
@@ -1287,7 +1369,9 @@ def test_link_cluster_page_converges_then_improves_only_after_growth(tmp_path: P
     # Converged: no growth since the page was written -> nothing to do.
     assert geometry_menu(vault, db, config) == []
     # A new point lands in the cluster -> now (and only now) it is worth improving.
-    db.assign_point("a3", [0.98, 0.02], 0.7)
+    # It has to be as typical of the cluster as its members are of each other,
+    # which is what attach now requires of any joiner.
+    db.assign_point("a3", [0.999, 0.001], 0.7)
     top = geometry_menu(vault, db, config)[0]
     assert top["action"] == "improve_page"
     assert top["target"] == "10_Knowledge/AI.md"
@@ -1305,12 +1389,50 @@ def test_geometry_menu_prioritizes_frontier_create_over_grown_improve(tmp_path: 
     page.parent.mkdir(parents=True, exist_ok=True)
     page.write_text("x", encoding="utf-8")
     db.link_cluster_page(cid_a, "10_Knowledge/AI.md")  # paged_size = 2
-    db.assign_point("a3", [0.98, 0.02], 0.7)  # grows to 3 -> improve candidate
+    db.assign_point("a3", [0.999, 0.001], 0.7)  # grows to 3 -> improve candidate
     # Unpaged dense cluster B (a create candidate) must be picked first.
     db.assign_point("b1", [0.0, 1.0], 0.7)
     db.assign_point("b2", [0.01, 0.99], 0.7)
     top = geometry_menu(vault, db, config)[0]
     assert top["action"] == "create_page" and top["cluster_id"] == cid_a + 1
+
+
+def test_internal_similarity_recovers_mean_pairwise_similarity() -> None:
+    """The stored centroid's length encodes the members' similarity to each other."""
+    members = [[1.0, 0.0], [0.6, 0.8]]  # cosine between them is 0.6
+    assert internal_similarity(mean_vector(members), 2) == pytest.approx(0.6)
+    # A cluster of one has no pairs and so imposes no bar of its own.
+    assert internal_similarity([1.0, 0.0], 1) == 0.0
+
+
+def test_member_similarity_is_the_mean_similarity_to_members() -> None:
+    members = [[1.0, 0.0], [0.0, 1.0]]
+    point = [1.0, 0.0]
+    # 1.0 against the first member, 0.0 against the second -> 0.5.
+    assert member_similarity(point, mean_vector(members)) == pytest.approx(0.5)
+
+
+def test_assign_point_refuses_to_dilute_a_tight_cluster(tmp_path: Path) -> None:
+    """Regression: a fixed bar on cos(point, centroid) made big clusters easier to
+    join, which produced two 600-point attractors and 771 singletons on the live map.
+    """
+    db = StateDB(tmp_path / "s.sqlite3")
+    tight_a, _ = db.assign_point("a1", [1.0, 0.0], 0.5)
+    db.assign_point("a2", [0.999, 0.001], 0.5)  # cluster is now very tight
+    # This point clears the 0.5 base easily but is far looser than the members are
+    # to each other, so it seeds its own cluster instead of diluting theirs.
+    outsider, is_new = db.assign_point("b1", [0.8, 0.6], 0.5)
+    assert is_new and outsider != tight_a
+    assert db.cluster_member_urls(tight_a) == ["a1", "a2"]
+
+
+def test_assign_point_still_grows_a_cluster_with_a_typical_point(tmp_path: Path) -> None:
+    db = StateDB(tmp_path / "s.sqlite3")
+    cid, _ = db.assign_point("a1", [1.0, 0.0], 0.5)
+    db.assign_point("a2", [0.8, 0.6], 0.5)  # members sit at 0.8 to each other
+    # As typical of the pair as they are of each other -> it joins.
+    joined, is_new = db.assign_point("a3", [0.95, 0.31], 0.5)
+    assert joined == cid and not is_new
 
 
 def test_link_cluster_page_records_paged_size(tmp_path: Path) -> None:

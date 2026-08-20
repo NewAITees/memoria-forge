@@ -4,7 +4,7 @@
   "agent": {"mode": "manual", "max_run_minutes": 50, "max_searches": 8, "max_pages_fetched": 12, "max_files_changed": 5, "max_new_pages": 2, "max_retries": 2, "stale_days": 30, "improve_cooldown_hours": 24, "geometry_planner": false},
   "git": {"enabled": true, "auto_commit": false, "auto_push": false},
   "rss": {"enabled": false, "sources_file": "./config/rss_sources.txt", "max_entries_per_feed": 10},
-  "embed": {"model": "embeddinggemma", "base_url": "http://localhost:11434", "prompt": "task: clustering | query: ", "attach_threshold": 0.76, "merge_threshold": 0.86, "split_cohesion": 0.70, "min_split_size": 6, "page_min_size": 4},
+  "embed": {"model": "embeddinggemma", "base_url": "http://localhost:11434", "prompt": "task: clustering | query: ", "attach_threshold": 0.60, "merge_threshold": 0.60, "split_min_similarity": 0.70, "min_split_size": 6, "page_min_size": 4},
   "web": {"max_results_per_query": 5, "blocked_domains": [], "allowed_schemes": ["https"]},
   "memory": {"max_related_pages": 8, "max_failure_notes": 3}
 }

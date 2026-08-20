@@ -189,11 +189,14 @@ class Config:
     # EmbeddingGemma is prompt-conditioned: the clustering prefix materially
     # tightens the geometry (without it, streaming attach yields all singletons).
     embed_prompt: str = "task: clustering | query: "
-    cluster_attach_threshold: float = 0.76
-    # S2 consolidation: merge clusters whose centroids are this close; split a
-    # cluster larger than min_split whose members cohere less than split_cohesion.
-    cluster_merge_threshold: float = 0.86
-    cluster_split_cohesion: float = 0.70
+    # Attach, merge and split all judge the same quantity: the mean similarity
+    # between individual members. Background similarity between unrelated points
+    # on a real map is ~0.48, so these floors sit meaningfully above it. Each
+    # floor is only a lower bound -- a cluster's own internal similarity raises
+    # its bar further, which is what stops large clusters swallowing the map.
+    cluster_attach_threshold: float = 0.60
+    cluster_merge_threshold: float = 0.60
+    cluster_split_min_similarity: float = 0.70
     cluster_min_split_size: int = 6
     # S3: when true, the geometry engine (cluster density) drives action
     # selection instead of the RSS 1:1 / deterministic planner. Default off so
@@ -249,9 +252,10 @@ class Config:
             raise ValueError(
                 f"cluster_merge_threshold must be in (0, 1], got {self.cluster_merge_threshold!r}"
             )
-        if not 0.0 < self.cluster_split_cohesion <= 1.0:
+        if not 0.0 < self.cluster_split_min_similarity <= 1.0:
             raise ValueError(
-                f"cluster_split_cohesion must be in (0, 1], got {self.cluster_split_cohesion!r}"
+                "cluster_split_min_similarity must be in (0, 1], "
+                f"got {self.cluster_split_min_similarity!r}"
             )
         if not isinstance(self.cluster_min_split_size, int) or self.cluster_min_split_size < 2:
             raise ValueError(
@@ -302,7 +306,9 @@ class Config:
             embed_prompt=embed.get("prompt", cls.embed_prompt),
             cluster_attach_threshold=embed.get("attach_threshold", cls.cluster_attach_threshold),
             cluster_merge_threshold=embed.get("merge_threshold", cls.cluster_merge_threshold),
-            cluster_split_cohesion=embed.get("split_cohesion", cls.cluster_split_cohesion),
+            cluster_split_min_similarity=embed.get(
+                "split_min_similarity", cls.cluster_split_min_similarity
+            ),
             cluster_min_split_size=embed.get("min_split_size", cls.cluster_min_split_size),
             geometry_planner=agent.get("geometry_planner", cls.geometry_planner),
             cluster_page_min_size=embed.get("page_min_size", cls.cluster_page_min_size),
@@ -387,6 +393,36 @@ def cohesion(vectors: list[list[float]]) -> float:
         return 1.0
     centroid = mean_vector(vectors)
     return sum(cosine(v, centroid) for v in vectors) / len(vectors)
+
+
+def internal_similarity(centroid: list[float], size: int) -> float:
+    """Mean pairwise similarity among a cluster's members, from its stored centroid.
+
+    For unit-length members the centroid's own norm is the cluster's cohesion, and
+    cohesion^2 = (1 + (n-1)*s) / n, so the members' mean pairwise similarity `s`
+    follows exactly -- no pairwise scan needed. Reporting `s` rather than cohesion
+    matters because cohesion collapses toward sqrt(s): on the live map every
+    cluster scored 0.80-0.92 whatever its real spread, which is why a 0.70
+    threshold could never fire.
+
+    A cluster of one has no pairs, so there is nothing to be as typical as: it
+    returns 0.0, meaning "imposes no bar of its own", and the caller's base
+    threshold governs.
+    """
+    if size < 2:
+        return 0.0
+    norm = math.sqrt(sum(x * x for x in centroid))
+    return (size * norm * norm - 1.0) / (size - 1)
+
+
+def member_similarity(vector: list[float], centroid: list[float]) -> float:
+    """Mean similarity of `vector` to a cluster's members, via its centroid.
+
+    p . c is the mean of p . v_i by definition of the centroid, so this is exact
+    for unit-length members and costs one dot product instead of a scan over the
+    whole cluster.
+    """
+    return sum(x * y for x, y in zip(vector, centroid))
 
 
 def two_means(vectors: list[list[float]]) -> list[int]:
@@ -549,17 +585,27 @@ class StateDB:
 
         Returns (cluster_id, is_new). Idempotent per url via cluster_members' PK:
         re-assigning the same url overwrites its membership row.
+
+        A point joins only when it is as typical of the cluster as the members
+        already are of each other: its mean similarity to the members must clear
+        both `threshold` and the cluster's own internal similarity. Comparing
+        cos(point, centroid) to a fixed threshold instead -- as this did before --
+        made large clusters *easier* to join, because a big centroid sits near the
+        corpus mean and its length divides the requirement away. That is a
+        rich-get-richer rule, and it produced exactly two 600-point attractors
+        surrounded by 771 singletons on the live map.
         """
         rows = self.db.execute("SELECT cluster_id, centroid, size FROM clusters").fetchall()
         best: tuple[int, list[float], int] | None = None
         best_sim = -1.0
         for cid, centroid_json, size in rows:
             centroid = json.loads(centroid_json)
-            sim = cosine(vec, centroid)
-            if sim > best_sim:
+            sim = member_similarity(vec, centroid)
+            bar = max(threshold, internal_similarity(centroid, size))
+            if sim >= bar and sim > best_sim:
                 best_sim, best = sim, (cid, centroid, size)
         timestamp = now()
-        if best is not None and best_sim >= threshold:
+        if best is not None:
             cid, centroid, size = best
             merged = running_mean(centroid, size, vec)
             self.db.execute(
@@ -669,7 +715,7 @@ class StateDB:
         self.db.commit()
 
     def consolidate(
-        self, merge_threshold: float, split_cohesion: float, min_split_size: int
+        self, merge_threshold: float, split_min_similarity: float, min_split_size: int
     ) -> dict[str, int]:
         """Refine the map: split dispersed clusters, merge near-duplicate clusters.
 
@@ -695,45 +741,134 @@ class StateDB:
         groups = {cid: mem for cid, mem in groups.items() if mem}
         next_id = (max(groups) if groups else 0) + 1
 
+        # Split to convergence, not once per run: a single pass only ever halves a
+        # blob, so a 617-point cluster stayed a blob for hundreds of runs and
+        # swallowed every new point instead of letting real topics form. Both
+        # halves go back on the worklist. This terminates because every split
+        # strictly shrinks both parts and stops below min_split_size.
         splits = 0
-        for cid in list(groups):
+        pending = list(groups)
+        while pending:
+            cid = pending.pop()
             members = groups[cid]
-            if len(members) >= min_split_size and cohesion([v for _, v in members]) < split_cohesion:
-                labels = two_means([v for _, v in members])
-                keep = [members[i] for i in range(len(members)) if labels[i] == 0]
-                move = [members[i] for i in range(len(members)) if labels[i] == 1]
-                if keep and move:
-                    groups[cid] = keep
-                    groups[next_id] = move
-                    page_of[next_id] = None
-                    paged_size_of[next_id] = None
-                    next_id += 1
-                    splits += 1
+            vectors = [v for _, v in members]
+            # Judge spread by the members' mean pairwise similarity, not cohesion:
+            # cohesion collapses toward sqrt(s), so its observed range (0.80-0.92
+            # on the live map) sits entirely above any sane threshold.
+            spread = internal_similarity(mean_vector(vectors), len(vectors))
+            if len(members) < min_split_size or spread >= split_min_similarity:
+                continue
+            labels = two_means([v for _, v in members])
+            keep = [members[i] for i in range(len(members)) if labels[i] == 0]
+            move = [members[i] for i in range(len(members)) if labels[i] == 1]
+            if not (keep and move):
+                continue  # degenerate split: leave the cluster alone
+            groups[cid] = keep
+            groups[next_id] = move
+            page_of[next_id] = None
+            paged_size_of[next_id] = None
+            pending.extend((cid, next_id))
+            next_id += 1
+            splits += 1
 
+        # Centroids are cached and updated on merge. Recomputing both means inside
+        # the comparison made a sweep cost O(n^2 * members * dim), which the extra
+        # clusters produced by full splitting would have made painful.
+        # Merge reciprocal nearest neighbours only, and never into something looser
+        # than either input. Greedy "merge any admissible pair" chains instead: each
+        # sweep absorbed whatever still cleared the bar, so one cluster grew to 405
+        # points sitting exactly at the threshold and holding no topic at all
+        # ("difficulty curves in games" next to "beware management consultants").
+        # Requiring both sides to prefer each other removes the chain, and the
+        # union bar (>= the split bar) keeps merge the inverse of split, so the map
+        # still reaches a fixed point instead of oscillating.
+        merge_bar = max(merge_threshold, split_min_similarity)
         merges = 0
-        changed = True
-        while changed:
-            changed = False
-            ids = list(groups)
-            for i in range(len(ids)):
-                for j in range(i + 1, len(ids)):
-                    a, b = ids[i], ids[j]
-                    if a not in groups or b not in groups:
-                        continue
-                    ca = mean_vector([v for _, v in groups[a]])
-                    cb = mean_vector([v for _, v in groups[b]])
-                    if cosine(ca, cb) >= merge_threshold:
-                        a_wins = bool(page_of.get(a)) or len(groups[a]) >= len(groups[b])
-                        keep_id, drop_id = (a, b) if a_wins else (b, a)
-                        groups[keep_id] += groups[drop_id]
-                        del groups[drop_id]
-                        page_of.pop(drop_id, None)
-                        paged_size_of.pop(drop_id, None)
-                        merges += 1
-                        changed = True
-                        break
-                if changed:
-                    break
+        centroids = {cid: mean_vector([v for _, v in mem]) for cid, mem in groups.items()}
+        internal = {cid: internal_similarity(centroids[cid], len(mem)) for cid, mem in groups.items()}
+        # |union|^2 expands from the two centroid norms and one dot product, so a
+        # pair costs a single dot instead of building a fresh 768-float union
+        # vector. Materialising the union made one sweep over 645 clusters take
+        # tens of seconds.
+        norm_sq = {cid: member_similarity(centroids[cid], centroids[cid]) for cid in groups}
+
+        def pair_score(a: int, b: int) -> float:
+            size_a, size_b = len(groups[a]), len(groups[b])
+            total = size_a + size_b
+            cross = member_similarity(centroids[a], centroids[b])
+            union_norm_sq = (
+                size_a * size_a * norm_sq[a]
+                + 2 * size_a * size_b * cross
+                + size_b * size_b * norm_sq[b]
+            ) / (total * total)
+            score = (total * union_norm_sq - 1.0) / (total - 1)
+            if score < merge_bar or score < min(internal[a], internal[b]):
+                return -1.0
+            return score
+
+        def best_partner(cid: int, candidates: dict[int, Any]) -> tuple[float, int] | None:
+            found: tuple[float, int] | None = None
+            for other in candidates:
+                if other == cid:
+                    continue
+                score = pair_score(cid, other)
+                if score >= 0.0 and (found is None or score > found[0]):
+                    found = (score, other)
+            return found
+
+        # Each cluster remembers its best merge partner. A pair's score cannot change
+        # unless one of its two clusters changes, so after a merge only the rows that
+        # touched a changed cluster are recomputed. Rescanning every pair each sweep
+        # cost 58 sweeps x 200k pairs to perform 267 merges -- nine minutes of
+        # recomputing identical numbers.
+        best: dict[int, tuple[float, int] | None] = {
+            cid: best_partner(cid, groups) for cid in groups
+        }
+        while True:
+            pairs = [
+                (cid, entry[1])
+                for cid, entry in best.items()
+                if entry is not None and cid < entry[1] and (best.get(entry[1]) or (0.0, -1))[1] == cid
+            ]
+            if not pairs:
+                break
+            kept: list[int] = []
+            merged_away: set[int] = set()
+            for a, b in pairs:
+                a_wins = bool(page_of.get(a)) or len(groups[a]) >= len(groups[b])
+                keep_id, drop_id = (a, b) if a_wins else (b, a)
+                groups[keep_id] += groups[drop_id]
+                del groups[drop_id]
+                page_of.pop(drop_id, None)
+                paged_size_of.pop(drop_id, None)
+                del centroids[drop_id]
+                del norm_sq[drop_id]
+                del internal[drop_id]
+                del best[drop_id]
+                centroids[keep_id] = mean_vector([v for _, v in groups[keep_id]])
+                norm_sq[keep_id] = member_similarity(centroids[keep_id], centroids[keep_id])
+                internal[keep_id] = internal_similarity(centroids[keep_id], len(groups[keep_id]))
+                kept.append(keep_id)
+                merged_away.add(drop_id)
+                merges += 1
+            changed_ids = merged_away | set(kept)
+            for cid in groups:
+                entry = best[cid]
+                # A row is stale when its own cluster changed, when its partner was
+                # merged away, or when its partner merely *grew*: absorbing points
+                # can lower that pair's score, and the real best partner may now be
+                # someone else. Only checking for a vanished partner left stale high
+                # scores in place and silently changed which pairs merged.
+                if cid in kept or (entry is not None and entry[1] in changed_ids):
+                    best[cid] = best_partner(cid, groups)
+                else:
+                    # Every other pair still holds; only the changed clusters can
+                    # offer this one a better partner than it already has.
+                    for keep_id in kept:
+                        score = pair_score(cid, keep_id)
+                        current = best[cid]
+                        if score >= 0.0 and (current is None or score > current[0]):
+                            best[cid] = (score, keep_id)
 
         timestamp = now()
         self.db.execute("DELETE FROM clusters")
@@ -1840,7 +1975,7 @@ def update_world_map(
         new_clusters += 1 if is_new else 0
     stats = db.consolidate(
         config.cluster_merge_threshold,
-        config.cluster_split_cohesion,
+        config.cluster_split_min_similarity,
         config.cluster_min_split_size,
     )
     return {
