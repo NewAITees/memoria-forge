@@ -37,4 +37,3 @@ Google は OAuth 2.0 を認証と認可に利用し、Google Cloud Console で�
 
 ## 未解決点
 
-- 追加調査が必要です。
