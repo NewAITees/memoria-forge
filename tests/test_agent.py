@@ -12,6 +12,7 @@ from src.wiki_agent import (
     LMStudio,
     Ollama,
     Researcher,
+    SearchResult,
     StateDB,
     Vault,
     choose_candidate,
@@ -40,8 +41,8 @@ from src.wiki_agent import (
     unescape_literal_newlines,
     update_world_map,
     validate_action,
+    validate_page_content,
     REVIEW_RESPONSE_SCHEMA,
-    WRITE_RESPONSE_SCHEMA,
 )
 from src.rss_collector import RSSCollector, RSSEntry, load_rss_sources
 from run_agent import run_once_with_timeout, scheduled_lock_path
@@ -414,11 +415,52 @@ def test_normalize_page_does_not_duplicate_english_sections() -> None:
     assert "## 未解決点" not in page
 
 
-def test_normalize_page_still_adds_missing_sections() -> None:
+def test_normalize_page_does_not_fill_missing_sections() -> None:
     content = "---\ntitle: 量子誤り訂正\n---\n\n# 量子誤り訂正\n\n## 概要\n本文。\n"
     page = normalize_page(Path("10_Knowledge/量子誤り訂正.md"), content, [])
-    assert "## 出典" in page
-    assert "## 未解決点" in page
+    assert "## 出典" not in page
+    assert "## 未解決点" not in page
+
+
+def test_validate_page_content_rejects_generic_unresolved_placeholder() -> None:
+    content = _substantive_page("量子誤り訂正", "基本原理と実装条件を整理します")
+    content = content.replace(
+        "- 適用範囲ごとの有効性は未確定であり、条件を揃えた比較データによる確認が必要です。",
+        "- 追加調査が必要です。",
+    )
+    with pytest.raises(ValueError, match="定型文"):
+        validate_page_content(content)
+
+
+def test_validate_page_content_accepts_substantive_page() -> None:
+    page = _substantive_page("量子誤り訂正", "基本原理と実装条件を整理します")
+    validate_page_content(page)
+
+
+def test_validate_page_content_accepts_numbered_headings() -> None:
+    """The report prompt lists the structure as a numbered outline, so the model
+    numbers its headings; that must not be read as a missing section."""
+    page = _substantive_page("量子誤り訂正", "基本原理と実装条件を整理します")
+    for index, name in enumerate(
+        (
+            "結論",
+            "テーマ概要",
+            "共通して確認できる点",
+            "記事ごとの差分・視点の違い",
+            "深掘り調査で得られた知見",
+            "不確実な点・追加確認が必要な点",
+            "元記事一覧",
+        )
+    ):
+        page = page.replace(f"## {name}\n", f"## {index}. {name}\n")
+    validate_page_content(page)
+
+
+def test_validate_page_content_rejects_url_not_supplied_by_research() -> None:
+    page = _substantive_page("量子誤り訂正", "基本原理と実装条件を整理します")
+    supplied = [SearchResult("資料A", "https://example.com/reference-a", "根拠")]
+    with pytest.raises(ValueError, match="調査で取得していないURL"):
+        validate_page_content(page, supplied)
 
 
 def test_page_target_from_title_keeps_pages_inside_the_vault(tmp_path: Path) -> None:
@@ -428,6 +470,40 @@ def test_page_target_from_title_keeps_pages_inside_the_vault(tmp_path: Path) -> 
     assert vault.root in resolved.parents
     # The whole title collapses into a single file name, so no stray folder appears.
     assert target.parent == Path("10_Knowledge")
+
+
+def _substantive_page(
+    title: str, reason: str, sources: list[SearchResult] | None = None
+) -> str:
+    """A page in the ported report structure, long enough to clear the gate."""
+    citations = sources or _research_sources()
+    first, second = citations[:2]
+    return (
+        f"---\ntitle: {title}\ntype: knowledge\nstatus: draft\ncreated: 2026-08-20\n"
+        f"updated: 2026-08-20\nconfidence: medium\n---\n\n"
+        f"# {title}の解説\n\n## 結論\n\n"
+        f"{reason}について、二つの資料から確認できる中心的な判断を示します。\n\n"
+        "## テーマ概要\n\n"
+        + "対象の背景、目的、適用範囲を区別し、判断に必要な前提条件を整理します。" * 3
+        + "\n\n## 共通して確認できる点\n\n"
+        + "主要な仕組み、入力と出力、具体的な数値、条件を二つの根拠と結び付けて説明します。" * 4
+        + f"\n\n## 記事ごとの差分・視点の違い\n\n[{first.title}]({first.url})は測定条件を、"
+        f"[{second.title}]({second.url})は適用範囲を強調しており、混同せずに記録します。\n\n"
+        "## 深掘り調査で得られた知見\n\n"
+        + "追加調査で判明した具体的な条件、数値、時期を記録します。" * 3
+        + "\n\n## 不確実な点・追加確認が必要な点\n\n"
+        "- 適用範囲ごとの有効性は未確定であり、条件を揃えた比較データによる確認が必要です。\n\n"
+        f"## 元記事一覧\n\n- [{first.title}]({first.url})（公開日: 2026-08-01）\n"
+        f"- [{second.title}]({second.url})（公開日: 2026-08-02）\n\n"
+        f"## 参考ソース一覧\n\n- {first.url}\n- {second.url}\n"
+    )
+
+
+def _research_sources() -> list[SearchResult]:
+    return [
+        SearchResult("テスト資料A", "https://example.com/reference-a", "根拠A"),
+        SearchResult("テスト資料B", "https://example.com/reference-b", "根拠B"),
+    ]
 
 
 class _FakeClient:
@@ -450,8 +526,10 @@ class _FakeClient:
         existing: str = "",
         feedback: str = "",
         research_context: str = "",
+        articles: object = None,
     ) -> str:
-        return f"---\ntype: knowledge\nstatus: draft\n---\n\n# {title}\n\n## 概要\n\n{reason}\n"
+        typed_sources = sources if isinstance(sources, list) else []
+        return _substantive_page(title, reason, typed_sources)
 
     def review(self, content: str, research_context: str = "") -> dict[str, object]:
         return {"approved": True, "issues": []}
@@ -469,7 +547,7 @@ def test_run_once_does_not_crash_on_vault_escaping_llm_target(
     fake = _FakeClient([{"target": "../../etc/passwd", "reason": "r", "search_queries": []}])
     monkeypatch.setattr(wiki_agent, "create_client", lambda _config: fake)
     monkeypatch.setattr(wiki_agent, "create_reviewer_client", lambda _config: fake)
-    monkeypatch.setattr(Researcher, "search", lambda self, query, count=3: [])
+    monkeypatch.setattr(Researcher, "search", lambda self, query, count=3: _research_sources())
 
     result = run_once(config)
 
@@ -495,7 +573,7 @@ def test_run_once_salvages_poisoned_queue_target(
     fake = _FakeClient([])
     monkeypatch.setattr(wiki_agent, "create_client", lambda _config: fake)
     monkeypatch.setattr(wiki_agent, "create_reviewer_client", lambda _config: fake)
-    monkeypatch.setattr(Researcher, "search", lambda self, query, count=3: [])
+    monkeypatch.setattr(Researcher, "search", lambda self, query, count=3: _research_sources())
 
     result = run_once(config)
 
@@ -524,7 +602,7 @@ def test_run_once_falls_back_when_planner_omits_target(
     fake = TargetlessPlanner([])
     monkeypatch.setattr(wiki_agent, "create_client", lambda _config: fake)
     monkeypatch.setattr(wiki_agent, "create_reviewer_client", lambda _config: fake)
-    monkeypatch.setattr(Researcher, "search", lambda self, query, count=3: [])
+    monkeypatch.setattr(Researcher, "search", lambda self, query, count=3: _research_sources())
 
     result = run_once(config)
 
@@ -551,7 +629,7 @@ def test_run_once_normalizes_deferred_queue_targets(
     )
     monkeypatch.setattr(wiki_agent, "create_client", lambda _config: fake)
     monkeypatch.setattr(wiki_agent, "create_reviewer_client", lambda _config: fake)
-    monkeypatch.setattr(Researcher, "search", lambda self, query, count=3: [])
+    monkeypatch.setattr(Researcher, "search", lambda self, query, count=3: _research_sources())
 
     run_once(config)
 
@@ -1022,7 +1100,7 @@ def test_run_once_rss_drives_page_creation(
     fake = _FakeClient([])
     monkeypatch.setattr(wiki_agent, "create_client", lambda _config: fake)
     monkeypatch.setattr(wiki_agent, "create_reviewer_client", lambda _config: fake)
-    monkeypatch.setattr(Researcher, "search", lambda self, query, count=3: [])
+    monkeypatch.setattr(Researcher, "search", lambda self, query, count=3: _research_sources())
 
     result = run_once(config)
 
@@ -1289,40 +1367,41 @@ def test_build_cluster_context_uses_existing_research_without_network(tmp_path: 
     assert new_searches == 0  # nothing new researched, so no searches counted this run
 
 
-def test_write_passes_content_schema_to_chat() -> None:
-    captured: dict[str, object] = {}
-
-    class Probe(Ollama):
-        def chat(
-            self, system: str, prompt: str, response_schema: object = None
-        ) -> dict[str, object]:
-            captured["schema"] = response_schema
-            return {"content": "# ok\n\nbody"}
-
-    out = Probe("http://x", "m").write("題", "理由", [])
-    assert captured["schema"] == WRITE_RESPONSE_SCHEMA  # keys are pinned, not free-form json
-    assert "# ok" in out
-
-
-def test_write_instructs_the_model_to_answer_in_japanese() -> None:
-    """English titles and English research context were dragging pages into English."""
+def test_write_asks_for_markdown_not_json() -> None:
+    """Wrapping a long page in a JSON string is what truncated it mid-generation."""
     captured: dict[str, str] = {}
 
     class Probe(Ollama):
+        def generate_text(self, system: str, prompt: str, temperature: float = 0.5) -> str:
+            captured["system"] = system
+            captured["prompt"] = prompt
+            return "# ok\n\nbody"
+
         def chat(
             self, system: str, prompt: str, response_schema: object = None
         ) -> dict[str, object]:
-            captured["system"] = system
-            captured["prompt"] = prompt
-            return {"content": "# ok\n\nbody"}
+            raise AssertionError("page generation must not go through the JSON path")
 
-    Probe("http://x", "m").write("Block Scope in JavaScript", "reason", [])
-    system = captured["system"]
-    assert "WRITE IN JAPANESE" in system
-    # The required headings are pinned so normalize_page never adds duplicates.
-    for heading in ("## 概要", "## 詳細", "## 出典", "## 未解決点"):
-        assert heading in system
-    assert '"output_language": "ja"' in captured["prompt"]
+    out = Probe("http://x", "m").write("Block Scope in JavaScript", "理由", [])
+    assert "# ok" in out
+    # The ported report prompt: Japanese instructions, and the report structure.
+    assert "あなたは技術ライターです" in captured["system"]
+    for section in ("結論", "共通して確認できる点", "記事ごとの差分・視点の違い"):
+        assert section in captured["system"]
+    assert "理由" in captured["prompt"]
+
+
+def test_write_feeds_review_feedback_back_to_the_model() -> None:
+    captured: dict[str, str] = {}
+
+    class Probe(Ollama):
+        def generate_text(self, system: str, prompt: str, temperature: float = 0.5) -> str:
+            captured["prompt"] = prompt
+            return "# ok\n\nbody"
+
+    Probe("http://x", "m").write("題", "理由", [], "既存本文", "出典が足りません")
+    assert "出典が足りません" in captured["prompt"]
+    assert "既存本文" in captured["prompt"]
 
 
 class _EmptyThenValidWriter:
@@ -1344,11 +1423,13 @@ class _EmptyThenValidWriter:
         existing: str = "",
         feedback: str = "",
         research_context: str = "",
+        articles: object = None,
     ) -> str:
         self.calls += 1
         if self.calls <= self.empty_times:
             raise ValueError("writer returned no content")
-        return f"---\ntype: knowledge\nstatus: draft\n---\n\n# {title}\n\n## 概要\n\n{reason}\n"
+        typed_sources = sources if isinstance(sources, list) else []
+        return _substantive_page(title, reason, typed_sources)
 
     def review(self, content: str, research_context: str = "") -> dict[str, object]:
         return {"approved": True, "issues": []}
@@ -1365,7 +1446,7 @@ def test_run_once_recovers_when_writer_is_empty_once(
     fake = _EmptyThenValidWriter(empty_times=1)
     monkeypatch.setattr(wiki_agent, "create_client", lambda _config: fake)
     monkeypatch.setattr(wiki_agent, "create_reviewer_client", lambda _config: fake)
-    monkeypatch.setattr(Researcher, "search", lambda self, query, count=3: [])
+    monkeypatch.setattr(Researcher, "search", lambda self, query, count=3: _research_sources())
 
     result = run_once(config)
 
@@ -1384,7 +1465,7 @@ def test_run_once_reports_review_rejected_when_writer_stays_empty(
     fake = _EmptyThenValidWriter(empty_times=2)
     monkeypatch.setattr(wiki_agent, "create_client", lambda _config: fake)
     monkeypatch.setattr(wiki_agent, "create_reviewer_client", lambda _config: fake)
-    monkeypatch.setattr(Researcher, "search", lambda self, query, count=3: [])
+    monkeypatch.setattr(Researcher, "search", lambda self, query, count=3: _research_sources())
 
     result = run_once(config)
 
@@ -1431,7 +1512,7 @@ def test_run_once_reviews_with_separate_reviewer_client(
             return {"action": "improve_page", "reason": "更新する"}
 
         def write(self, *args: object, **kwargs: object) -> str:
-            return "---\ntype: knowledge\nstatus: draft\n---\n\n# T\n\n## 概要\n\n本文\n"
+            return _substantive_page("テスト", "レビュー経路を確認します")
 
         def review(self, content: str, research_context: str = "") -> dict[str, object]:
             self.reviews += 1
@@ -1448,7 +1529,7 @@ def test_run_once_reviews_with_separate_reviewer_client(
     writer, reviewer = Writer(), Reviewer()
     monkeypatch.setattr(wiki_agent, "create_client", lambda _config: writer)
     monkeypatch.setattr(wiki_agent, "create_reviewer_client", lambda _config: reviewer)
-    monkeypatch.setattr(Researcher, "search", lambda self, query, count=3: [])
+    monkeypatch.setattr(Researcher, "search", lambda self, query, count=3: _research_sources())
 
     result = run_once(config)
 

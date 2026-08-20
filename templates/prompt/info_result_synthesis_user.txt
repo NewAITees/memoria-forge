@@ -1,0 +1,28 @@
+以下の検索結果を統合して要約してください。
+
+【元のテーマ】
+{theme}
+
+【元の記事の要点】
+{article_summary}
+
+【記事の時系列メタデータ】
+{article_timeline}
+
+【重要度・関連度スコア】
+- 重要度: {importance_score} ({importance_reason})
+- 関連度: {relevance_score} ({relevance_reason})
+
+【検索クエリ】
+{search_query}
+
+【検索結果】
+{search_results}
+
+【統合の観点】
+1. 検索結果が元の記事の主張を裏付けるかどうか
+2. 元の記事で不足していた情報が補完されているか
+3. 検索結果と元の記事の間に矛盾がないか
+4. 深掘り調査で得られた新規性や価値
+
+上記の出力形式に従ってJSON出力してください。
