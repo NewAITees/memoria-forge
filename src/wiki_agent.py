@@ -1766,6 +1766,22 @@ def _page_urls(value: str) -> set[str]:
     return set(_URL_PATTERN.findall(value))
 
 
+def _normalize_url(url: str) -> str:
+    """Identity of a URL, ignoring formatting the writer may vary.
+
+    Scheme, a leading `www.`, a trailing slash and trailing sentence punctuation
+    are not part of what a source *is*, so citing `www.example.com/a` for a
+    supplied `https://example.com/a/` must not read as an invented source. The
+    path's case is preserved because paths are case-sensitive.
+    """
+    trimmed = url.strip().rstrip("。、，；：.,;:!?)]}>\"'")
+    match = re.match(r"(?i)^https?://(?:www\.)?([^/]+)(.*)$", trimmed)
+    if not match:
+        return trimmed
+    host, rest = match.groups()
+    return host.lower() + rest.rstrip("/")
+
+
 def validate_page_content(
     page: str,
     supplied_sources: list[SearchResult] | None = None,
@@ -1817,8 +1833,8 @@ def validate_page_content(
     if len(page_urls) < 2:
         issues.append("独立した出典URLが2件未満です")
     if supplied_sources is not None:
-        allowed_urls = {source.url for source in supplied_sources}
-        invented_urls = page_urls - allowed_urls
+        allowed_urls = {_normalize_url(source.url) for source in supplied_sources}
+        invented_urls = {url for url in page_urls if _normalize_url(url) not in allowed_urls}
         if invented_urls:
             issues.append("調査で取得していないURLがあります: " + ", ".join(sorted(invented_urls)))
     if existing_page:
@@ -2111,12 +2127,40 @@ def build_cluster_context(
         query_count += len(deep.get("queries", []))
         new_done += 1
 
+    # The context and the allow-list must be one selection, not two. Building the
+    # context from every member while truncating the sources to max_pages_fetched
+    # made large clusters impossible to publish: the Writer honestly cited URLs it
+    # had been shown, and validate_page_content read every citation past the cut as
+    # an invented URL. Pick the results first, then show exactly those.
+    # Round-robin across members so a bounded selection still spans the theme
+    # instead of exhausting the oldest member's research.
+    selected: dict[int, list[dict[str, Any]]] = {}
+    seen: set[str] = set()
+    depth = 0
+    deepest = max((len(item["results"]) for item in research), default=0)
+    while depth < deepest and len(seen) < config.max_pages_fetched:
+        for index, item in enumerate(research):
+            if len(seen) >= config.max_pages_fetched:
+                break
+            if depth >= len(item["results"]):
+                continue
+            result = item["results"][depth]
+            url = _normalize_url(str(result.get("url", "")))
+            if not url or url in seen:
+                continue
+            seen.add(url)
+            selected.setdefault(index, []).append(result)
+        depth += 1
+
     context_parts: list[str] = []
     sources: list[SearchResult] = []
-    for item in research:
+    for index, item in enumerate(research):
+        picked = selected.get(index)
+        if not picked:
+            continue
         if item["synthesis"]:
             context_parts.append("## 統合調査結果\n" + str(item["synthesis"]))
-        for result in item["results"]:
+        for result in picked:
             context_parts.append(
                 f"## 根拠\nタイトル: {result.get('title', '')}\nURL: {result.get('url', '')}\n"
                 f"抜粋:\n{result.get('page_content', '')[:2500]}"
@@ -2128,8 +2172,7 @@ def build_cluster_context(
                     snippet=str(result.get("snippet", "")),
                 )
             )
-    unique = list({source.url: source for source in sources}.values())[: config.max_pages_fetched]
-    return "\n\n".join(context_parts), unique, query_count
+    return "\n\n".join(context_parts), sources, query_count
 
 
 def format_deep_research(deep: dict[str, Any]) -> tuple[str, list[SearchResult]]:

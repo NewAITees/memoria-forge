@@ -1,6 +1,7 @@
 import json
 import math
 import os
+import re
 import subprocess
 import tempfile
 import time
@@ -466,6 +467,23 @@ def test_validate_page_content_rejects_url_not_supplied_by_research() -> None:
     supplied = [SearchResult("資料A", "https://example.com/reference-a", "根拠")]
     with pytest.raises(ValueError, match="調査で取得していないURL"):
         validate_page_content(page, supplied)
+
+
+def test_validate_page_content_accepts_supplied_url_written_differently() -> None:
+    """`www.`, a trailing slash or a trailing period is formatting, not a new source."""
+    supplied = [
+        SearchResult("テスト資料A", "https://example.com/reference-a", "根拠A"),
+        SearchResult("テスト資料B", "http://www.example.org/reference-b/", "根拠B"),
+    ]
+    page = _substantive_page(
+        "量子誤り訂正",
+        "基本原理と実装条件を整理します",
+        [
+            SearchResult("テスト資料A", "https://www.example.com/reference-a/", "根拠A"),
+            SearchResult("テスト資料B", "https://example.org/reference-b", "根拠B"),
+        ],
+    )
+    validate_page_content(page, supplied)
 
 
 def test_page_target_from_title_keeps_pages_inside_the_vault(tmp_path: Path) -> None:
@@ -1487,6 +1505,52 @@ def test_build_cluster_context_uses_existing_research_without_network(tmp_path: 
     assert "syn1" in context and "body" in context
     assert len(sources) == 1 and sources[0].url == "http://r1"
     assert new_searches == 0  # nothing new researched, so no searches counted this run
+
+
+def test_build_cluster_context_shows_only_urls_it_allows(tmp_path: Path) -> None:
+    """The Writer must never be shown a source the validator will call invented.
+
+    A large cluster used to put every member's research in the context while
+    truncating the allow-list to max_pages_fetched, so any citation past the cut
+    was rejected as an unresearched URL -- the same page failing every run.
+    """
+    db = StateDB(tmp_path / "s.sqlite3")
+    members = [(f"u{index}", f"t{index}") for index in range(8)]
+    _seed_rss(db, members)
+    cid, _ = db.assign_point("u0", [1.0, 0.0], 0.7)
+    for url, _title in members[1:]:
+        # Identical points: every member belongs to the one cluster under test.
+        assert db.assign_point(url, [1.0, 0.0], 0.7) == (cid, False)
+    for member_index, (url, _title) in enumerate(members):
+        db.save_deep_research(
+            url,
+            {
+                "queries": ["q"],
+                "results": [
+                    {
+                        "title": f"R{member_index}-{n}",
+                        "url": f"http://r{member_index}-{n}",
+                        "snippet": "s",
+                        "page_content": "body",
+                    }
+                    for n in range(5)
+                ],
+                "synthesis": f"syn{member_index}",
+            },
+        )
+    config = Config(vault_path=tmp_path / "v", max_pages_fetched=6)
+
+    class FakeClient:
+        def chat(self, system: str, prompt: str) -> dict[str, object]:
+            raise AssertionError("every member is already researched")
+
+    context, sources, _ = build_cluster_context(db, FakeClient(), cid, config)
+    assert len(sources) == 6  # the cap still bounds the prompt and the research
+    context_urls = set(re.findall(r"http://r\d+-\d+", context))
+    assert context_urls == {source.url for source in sources}
+    # Bounded, but still spanning the theme: round-robin reaches six members
+    # rather than exhausting the oldest member's five results first.
+    assert len({source.url.split("-")[0] for source in sources}) == 6
 
 
 def test_write_asks_for_markdown_not_json() -> None:
