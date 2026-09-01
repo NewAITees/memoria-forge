@@ -469,6 +469,23 @@ def test_validate_page_content_rejects_url_not_supplied_by_research() -> None:
         validate_page_content(page, supplied)
 
 
+def test_validate_page_content_accepts_shortened_compound_headings() -> None:
+    """The model drops the part after `・`; the section is still there and written."""
+    page = _substantive_page("量子誤り訂正", "基本原理と実装条件を整理します")
+    page = page.replace(
+        "## 記事ごとの差分・視点の違い", "## 記事ごとの差分"
+    ).replace("## 不確実な点・追加確認が必要な点", "## 不確実な点")
+    validate_page_content(page)
+
+
+def test_validate_page_content_still_rejects_a_genuinely_missing_section() -> None:
+    """Tolerating the short name must not tolerate the section being absent."""
+    page = _substantive_page("量子誤り訂正", "基本原理と実装条件を整理します")
+    page = page.replace("## 深掘り調査で得られた知見", "## 補足")
+    with pytest.raises(ValueError, match="必須セクション `## 深掘り調査で得られた知見`"):
+        validate_page_content(page)
+
+
 def test_validate_page_content_accepts_supplied_url_written_differently() -> None:
     """`www.`, a trailing slash or a trailing period is formatting, not a new source."""
     supplied = [

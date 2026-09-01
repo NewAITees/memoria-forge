@@ -1806,8 +1806,14 @@ def validate_page_content(
         # The report prompt lists the structure as a numbered outline ("0. 結論",
         # "1. テーマ概要", ...), so the model quite reasonably numbers its headings.
         # Accept an optional leading number rather than rejecting the page for it.
+        # A compound heading gets shortened to the part before `・` ("## 不確実な点"
+        # for "## 不確実な点・追加確認が必要な点") reliably enough that rejecting it
+        # blocked every page while the section itself was written. Accept the short
+        # form: the requirement worth enforcing is that the section is present.
+        names = sorted({name, name.split("・")[0]}, key=len, reverse=True)
+        alternation = "|".join(re.escape(variant) for variant in names)
         match = re.search(
-            rf"^##\s+(?:\d+[.、]\s*)?{re.escape(name)}\s*$\n(.*?)(?=^##\s+|\Z)",
+            rf"^##\s+(?:\d+[.、]\s*)?(?:{alternation})\s*$\n(.*?)(?=^##\s+|\Z)",
             page,
             re.MULTILINE | re.DOTALL,
         )
