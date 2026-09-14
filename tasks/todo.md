@@ -11,7 +11,18 @@
 - [x] `.gitignore`へ`.cluster-map-stats.json`を追加する
 - [x] pytest（153件）・ruff・mypyを実行してコミットする
 - [x] Webhook URLの読み込み元を環境変数から`config/discord_webhook.txt`（gitignore済み）へ変更する
-- [ ] `config/discord_webhook.txt`へ実際のWebhook URLを書き、実送信を確認する（ユーザー作業）
+- [x] `config/discord_webhook.txt`へ実際のWebhook URLを書き、実送信を確認する（手動スクリプトで送信成功）
+
+## 作業→push→通知の一本化（push_failed常態化の修正）
+- [x] 原因特定: 111.6MBの`live-vault/.agent-state.sqlite3.pre-stage3`が09-05のコミットに混入し、GH001で全pushが拒否されていた
+- [x] 未push14件から該当ファイルを除去（filter-branch）。消えた実ファイルはgitオブジェクトから復元済み
+- [x] `.gitignore`を`live-vault/.agent-state.sqlite3*`へ拡大
+- [x] pushの失敗理由を保持する（`Git.last_push_error`）
+- [x] 実行末尾で`push_pending`（MOC等の残り変更をコミット＋未pushをpush）を呼ぶ
+- [x] 通知に`@everyone`、push成功時のみGitHubリンク、失敗時は理由を表示
+- [x] pytest（161件）・ruff・mypy後にコミット
+- [ ] `scripts/run_scheduled.ps1`を定期実行と同じ引数で実行し、自動経路でpush・通知を確認する
+- [ ] 調査: 2026-09-14 19:57の定期実行が`database is locked`で失敗した原因
 
 ## クラスタリング・構成の可視化
 - [x] 既存のクラスタリング処理・永続データ・構成情報を調査する
