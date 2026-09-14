@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-14T17:02:19.984889+00:00
+updated_at: 2026-09-14T18:08:22.512141+00:00
 ---
 
 # MOC一覧
@@ -21,7 +21,7 @@ updated_at: 2026-09-14T17:02:19.984889+00:00
 ## 未整理の境界
 
 - Markdown未昇格クラスタ: 780
-- MOC未所属Markdown: 63
+- MOC未所属Markdown: 64
 
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
 - [[10_Knowledge/24GB GPUがローカルLLMに24GBを与えるわけではない理由]]
@@ -52,6 +52,7 @@ updated_at: 2026-09-14T17:02:19.984889+00:00
 - [[10_Knowledge/T. rexは6600万年前のこの噛み跡を残したのか]]
 - [[10_Knowledge/Trumpが物議を醸すワクチン政策に回帰]]
 - [[10_Knowledge/Uberはなぜ、自律走行車の普及を遅らせる規制を求めるのか？]]
+- [[10_Knowledge/Why I don’t want AI agents executing code in someone else’s cloud]]
 - [[10_Knowledge/Windows PCが侵害された可能性を示す10の兆候と監視方法]]
 - [[10_Knowledge/Zettelkasten AI統合]]
 - [[10_Knowledge/“ローファイ”によるAIへの抵抗]]
