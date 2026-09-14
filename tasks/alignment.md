@@ -85,6 +85,8 @@ run_agent.py（定期実行） → Ollama / Git push / Discord Webhook
 - **画面上の位置・利用者からの見え方 / Human View**: DiscordチャンネルのWebhookメッセージ
 - **実装 / Implementation**:
   - Files: `src/discord_notify.py`、呼び出しは`run_agent.py`の`_run_once_worker`
+  - 順序: 作業(`run_once`) → MOC・マップ → `push_pending`（残り変更をコミット＋未pushをpush、結果は`result["git_final"]`） → 通知
+  - 表示: 本文先頭に`@everyone`。`git_final.status == "pushed"`のときだけGitHubリンク、失敗時は「⚠️ push失敗: 理由」
   - State: `live-vault/.cluster-map-stats.json`（前回通知時のマップ数値、Git管理外）
   - API: `config/discord_webhook.txt`の1行目（Git管理外。無い・空なら送信しない）。`run_agent.main`が読み、workerへ引数で渡す
 - **指示に使える表現 / Human Labels**: Discord通知、Webhook

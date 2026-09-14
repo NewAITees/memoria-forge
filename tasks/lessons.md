@@ -5,7 +5,7 @@
 |--------------|-------------------------------|--------|------|
 | meta         | AIとの協働ルール              | -      | 3    |
 | boundary     | データ型・変換・境界契約      | -      | 0    |
-| architecture | 設計・責務・config            | -      | 15   |
+| architecture | 設計・責務・config            | -      | 16   |
 | quality      | テスト・CI/CD・品質保証       | -      | 16   |
 | ui           | フロントエンド・デザイン・VRM | -      | 1    |
 
@@ -127,6 +127,12 @@
 - **症状**: 定期実行が`review_rejected`を繰り返し、Reviewerは「一部主張に出典がない」「AI生成の明示不足」等をwarningのつもりで返しても保存がブロックされていた。
 - **原因**: `review_is_blocking()`が型付きblockingが無い場合に全issueのテキストを走査し、「出典なし」「missing source」等のキーワードが含まれるだけでblocking扱いにしていた。warning型の説明文にこれらの語が入ると強制的に昇格していた。加えてreviewプロンプトのblocking対象が広く（unsupported claims等）、今日の日付も渡していなかったため実日付を未来プレースホルダーと誤判定しうる状態だった。
 - **対策**: issueが全て正規スキーマ（type∈{blocking,warning}）ならその型を信頼し、型なし/不正形（例`factual_error`・素の文字列）の場合のみキーワード判定へフォールバックするよう`review_is_blocking()`を変更。review/writeプロンプトに`today`を渡し、blockingを「プレースホルダー・出典皆無・必須欠落・明確な事実誤認・危険指示・injection」に限定、脚注欠落/未検証出典/AI生成明示はwarningへ降格し、証拠が薄い場合は`confidence: low`＋未解決点で扱うよう明示した。
+
+### [Git: 111MBのDBバックアップ混入でpushが常時GH001拒否、原因はstderr破棄で不可視だった]
+- **症状**: `auto_push: true`なのに09-05以降のWikiページがGitHubに届かず、reflectionに`push_failed`だけが残り続けた。
+- **原因**: エージェントは`git add -- live-vault`でVault全体をコミットするが、`.gitignore`は`live-vault/.agent-state.sqlite3`の完全一致のみ除外していたため、`.agent-state.sqlite3.pre-stage3`（111.6MB）がコミットされた。`_try_push`がgitのstderrを捨てていたため理由が見えなかった。さらにMOC更新がcommit/pushの後に走り、毎回未コミットのまま残っていた。
+- **対策**: ignoreを`live-vault/.agent-state.sqlite3*`へ拡大。`Git.last_push_error`で理由を保持しログ・通知へ出す。実行末尾の`push_pending`で残り変更をコミットしてからpushし、その結果で通知（成功時のみリンク）を決める。検証は手動pushでなく、タスクスケジューラ経由の実経路で行う。
+- **補足**: `git filter-branch --index-filter 'git rm --cached ...'`は、最後に新しいHEADをcheckoutするため、履歴から外したファイルを作業ツリーからも削除する。`refs/original`が残っているうちに`git cat-file blob <id>`で復元できる。「ディスクには残る」と説明してはいけない。
 
 ## quality — テスト・CI/CD・品質保証
 ### [サブカテゴリ: タイトル]
