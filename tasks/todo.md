@@ -10,7 +10,8 @@
 - [x] `run_agent.py`の実行後処理から呼び出し、前回マップ値を`.cluster-map-stats.json`へ保存する
 - [x] `.gitignore`へ`.cluster-map-stats.json`を追加する
 - [x] pytest（153件）・ruff・mypyを実行してコミットする
-- [ ] 実際のWebhook URLを`DISCORD_WEBHOOK_URL`に設定し、実送信を確認する（ユーザー作業）
+- [x] Webhook URLの読み込み元を環境変数から`config/discord_webhook.txt`（gitignore済み）へ変更する
+- [ ] `config/discord_webhook.txt`へ実際のWebhook URLを書き、実送信を確認する（ユーザー作業）
 
 ## クラスタリング・構成の可視化
 - [x] 既存のクラスタリング処理・永続データ・構成情報を調査する

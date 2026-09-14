@@ -3,7 +3,7 @@
 ## INDEX（追記・修正のたびに必ず更新すること）
 | カテゴリ     | 説明                          | 開始行 | 件数 |
 |--------------|-------------------------------|--------|------|
-| meta         | AIとの協働ルール              | -      | 2    |
+| meta         | AIとの協働ルール              | -      | 3    |
 | boundary     | データ型・変換・境界契約      | -      | 0    |
 | architecture | 設計・責務・config            | -      | 15   |
 | quality      | テスト・CI/CD・品質保証       | -      | 16   |
@@ -26,6 +26,11 @@
 - **症状**: 「レポートを作成したときにDiscord Webhookを走らせて」の「レポート」が、Wikiページとcluster-map.htmlのどちらも指し得た。
 - **原因**: コード上ではWikiページを「レポート」と呼ぶ一方、README・`run_agent.py`ではクラスタマップHTMLも「レポート」と呼んでいた。
 - **対策**: 候補を表で示して確認した。ユーザーの判断基準は「価値があり、目に見えるもの」で、Wikiページを通知対象にし、マップは数値の差分を添える形に決まった。`tasks/alignment.md`の用語「レポート」に記録済み。
+
+### [config.jsonをGit管理対象と誤認して秘密情報の置き場を誤案内した]
+- **症状**: Webhook URLの置き場所として「config.jsonはGit管理・自動pushされる」と説明し、環境変数を推奨したが、実際は`.gitignore`でconfig.jsonは除外済みだった。
+- **原因**: `git check-ignore`で確認せず、自動pushの設定から推測で断定した。
+- **対策**: ファイルがGit管理されるかを述べる前に`git check-ignore -v <path>`と`git ls-files <path>`で確認する。最終的にURLは専用ファイル`config/discord_webhook.txt`（gitignore済み）に置く形にした。
 
 ## boundary — データ型・変換・境界契約
 ### [サブカテゴリ: タイトル]
