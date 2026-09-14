@@ -3,10 +3,12 @@ import argparse
 import hashlib
 import json
 import multiprocessing
+import os
 import tempfile
 import time
 
 from experiments.visualize_clusters import generate as generate_cluster_visualization
+from src.discord_notify import notify_run
 from src.moc_builder import build_mocs
 from src.wiki_agent import Config, StateDB, Vault, embed_text, process_lock, run_once
 
@@ -43,6 +45,12 @@ def _run_once_worker(config: Config, result_queue: object) -> None:
                 "status": "failed",
                 "error": repr(error),
             }
+        try:
+            result["discord"] = notify_run(
+                result, config.vault_path, os.environ.get("DISCORD_WEBHOOK_URL", "")
+            )
+        except Exception as error:  # noqa: BLE001 - notification must not fail a Wiki run
+            result["discord"] = {"status": "failed", "error": repr(error)}
         result_queue.put(result)  # type: ignore[attr-defined]
     except BaseException as error:  # noqa: BLE001 - report worker failures as JSON
         result_queue.put({"result": "error", "error_message": repr(error)})  # type: ignore[attr-defined]

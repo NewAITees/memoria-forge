@@ -9,5 +9,6 @@ config.json
 vault/.agent-state.sqlite3
 live-vault/.agent-state.sqlite3
 cluster-map.html
+.cluster-map-stats.json
 logs/
 .agent-run.lock
