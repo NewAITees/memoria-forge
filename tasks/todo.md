@@ -33,9 +33,10 @@
 - [x] 方針決定: 形式はコードが組み立て、LLMは中身だけ（案2）＋基準見直し（案3）＋改善し続ける仕組み
 
 ## フェーズ1: 測る仕組み（本番と同じ処理でN件評価）
-- [ ] 書く→検証→Reviewerのループを`write_and_review`へ切り出し、run_onceと評価で共用する
-- [ ] `experiments/writer_eval.py`（状態DBのコピーで動かし、Vault/Git/本番DBを汚さない）
-- [ ] 現行Writerの基準値を測る
+- [x] 書く→検証→Reviewerのループを`write_and_review`へ切り出し、run_onceと評価で共用する
+- [x] `experiments/writer_eval.py`（状態DBのコピーで動かし、Vault/Git/本番DBを汚さない）
+- [x] 現行Writerの基準値を測る → 2026-09-15 00:35 **0/5合格**（H1欠落2、必須セクション欠落5件分、順序違い1、捏造URL1。1件103〜196秒）
+- [ ] フェーズ2・3・5（feature/sectioned-writer: 574f407, 617e6e7, 754569e）を同条件で評価する
 
 ## フェーズ2: 形式はコードが組み立てる
 - [ ] 各セクションの中身だけをLLMに書かせ、結論は最後、日本語タイトルは別呼び出し

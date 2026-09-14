@@ -5,7 +5,7 @@
 |--------------|-------------------------------|--------|------|
 | meta         | AIとの協働ルール              | -      | 3    |
 | boundary     | データ型・変換・境界契約      | -      | 0    |
-| architecture | 設計・責務・config            | -      | 16   |
+| architecture | 設計・責務・config            | -      | 17   |
 | quality      | テスト・CI/CD・品質保証       | -      | 16   |
 | ui           | フロントエンド・デザイン・VRM | -      | 1    |
 
@@ -133,6 +133,11 @@
 - **原因**: エージェントは`git add -- live-vault`でVault全体をコミットするが、`.gitignore`は`live-vault/.agent-state.sqlite3`の完全一致のみ除外していたため、`.agent-state.sqlite3.pre-stage3`（111.6MB）がコミットされた。`_try_push`がgitのstderrを捨てていたため理由が見えなかった。さらにMOC更新がcommit/pushの後に走り、毎回未コミットのまま残っていた。
 - **対策**: ignoreを`live-vault/.agent-state.sqlite3*`へ拡大。`Git.last_push_error`で理由を保持しログ・通知へ出す。実行末尾の`push_pending`で残り変更をコミットしてからpushし、その結果で通知（成功時のみリンク）を決める。検証は手動pushでなく、タスクスケジューラ経由の実経路で行う。
 - **補足**: `git filter-branch --index-filter 'git rm --cached ...'`は、最後に新しいHEADをcheckoutするため、履歴から外したファイルを作業ツリーからも削除する。`refs/original`が残っているうちに`git cat-file blob <id>`で復元できる。「ディスクには残る」と説明してはいけない。
+
+### [Ollama: num_ctx未指定で既定約4096トークンに切り詰められ、systemプロンプトが毎回消えていた]
+- **症状**: 2026-08-20以降ページ生成がほぼ全却下（212/216）。「8見出しを一字一句」と明示してもqwen3:8bが見出しを守らず、セクション単位で英語に切り替わった。
+- **原因**: `generate_text`/`chat`が`options.num_ctx`を指定せず、qwen3:8bは既定の約4096トークンで動いていた。08-20の移植でプロンプトが4,500〜6,900トークンに伸び、Ollamaが`truncating input prompt limit=2050 keep=4`で先頭（system指示・構成・言語指定）を捨て、末尾約2,050トークンだけをモデルに渡していた。08-19以降の警告は2,043回。モデルは指示に従わなかったのではなく、指示が見えていなかった。
+- **対策**: 全Ollama呼び出しで`num_ctx`を明示する（config.jsonの`ollama.num_ctx`、qwen3:8bの上限は40,960）。評価（experiments/writer_eval.py）でOllamaのserver.logの切り詰め警告を数え、ゼロであることを確認してから本番へ入れる。LLMの「指示無視」を疑う前に、まずserver.logの`truncating input prompt`を確認すること。
 
 ## quality — テスト・CI/CD・品質保証
 ### [サブカテゴリ: タイトル]
