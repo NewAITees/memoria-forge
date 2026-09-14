@@ -72,7 +72,7 @@ def test_build_payload_uses_page_title_and_conclusion(tmp_path: Path) -> None:
     result = {
         "result": "success",
         "action": {"action": "create_page", "target": target},
-        "git_status": "pushed",
+        "git_final": {"status": "committed"},
         "cluster_visualization": _stats(2, 5, 1),
     }
     payload = build_payload(result, tmp_path, None)
@@ -80,8 +80,43 @@ def test_build_payload_uses_page_title_and_conclusion(tmp_path: Path) -> None:
         {"title": "量子計算の現状", "description": "量子誤り訂正が実用段階に入りつつある。"}
     ]
     assert "create_page" in payload["content"]
-    assert "pushed" in payload["content"]
+    assert "committed" in payload["content"]
     assert "クラスタ 2 / 点 5 / 関係 1" in payload["content"]
+
+
+def test_build_payload_mentions_everyone(tmp_path: Path) -> None:
+    target = _write_page(tmp_path)
+    result = {"result": "success", "action": {"action": "create_page", "target": target}}
+    payload = build_payload(result, tmp_path, None)
+    assert payload["content"].startswith("@everyone")
+    assert payload["allowed_mentions"] == {"parse": ["everyone"]}
+
+
+def test_build_payload_links_to_github_only_after_push(tmp_path: Path) -> None:
+    vault = tmp_path / "live-vault"
+    target = _write_page(vault, "10_Knowledge/量子 計算.md")
+    result = {
+        "result": "success",
+        "action": {"action": "create_page", "target": target.replace("/", "\\")},
+        "git_final": {"status": "pushed", "error": ""},
+    }
+    embed = build_payload(result, vault, None)["embeds"][0]
+    assert embed["url"] == (
+        "https://github.com/NewAITees/memoria-forge/blob/master/live-vault/10_Knowledge/"
+        "%E9%87%8F%E5%AD%90%20%E8%A8%88%E7%AE%97.md"
+    )
+
+
+def test_build_payload_warns_without_link_when_push_failed(tmp_path: Path) -> None:
+    target = _write_page(tmp_path)
+    result = {
+        "result": "success",
+        "action": {"action": "create_page", "target": target},
+        "git_final": {"status": "push_failed", "error": "GH001: Large files detected."},
+    }
+    payload = build_payload(result, tmp_path, None)
+    assert "url" not in payload["embeds"][0]
+    assert "⚠️ push失敗: GH001: Large files detected." in payload["content"]
 
 
 def test_build_payload_lists_every_new_page(tmp_path: Path) -> None:

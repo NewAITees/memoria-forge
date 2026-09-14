@@ -9,7 +9,15 @@ import time
 from experiments.visualize_clusters import generate as generate_cluster_visualization
 from src.discord_notify import notify_run, read_webhook_url
 from src.moc_builder import build_mocs
-from src.wiki_agent import Config, StateDB, Vault, embed_text, process_lock, run_once
+from src.wiki_agent import (
+    Config,
+    StateDB,
+    Vault,
+    embed_text,
+    process_lock,
+    push_pending,
+    run_once,
+)
 
 
 def scheduled_lock_path(config: Config) -> Path:
@@ -44,6 +52,11 @@ def _run_once_worker(config: Config, webhook_url: str, result_queue: object) -> 
                 "status": "failed",
                 "error": repr(error),
             }
+        # Work -> commit -> push must finish before the notice, which links to GitHub.
+        try:
+            result["git_final"] = push_pending(Vault(config.vault_path), config)
+        except Exception as error:  # noqa: BLE001 - a Git failure must not lose the run result
+            result["git_final"] = {"status": "failed", "error": repr(error)}
         try:
             result["discord"] = notify_run(result, config.vault_path, webhook_url)
         except Exception as error:  # noqa: BLE001 - notification must not fail a Wiki run

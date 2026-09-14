@@ -1533,10 +1533,15 @@ class Git:
             return False
         return self._try_push(branch)
 
+    # Why the last push was refused (e.g. GH001 large file); empty after a success.
+    last_push_error = ""
+
     def _try_push(self, branch: str) -> bool:
         result = subprocess.run(
             ["git", "push", "origin", branch], cwd=self.root, capture_output=True, text=True
         )
+        if result.returncode != 0:
+            self.last_push_error = (result.stderr or result.stdout).strip()
         return result.returncode == 0
 
 
@@ -1900,6 +1905,25 @@ def commit_and_push(vault: Vault, config: Config, message: str) -> str:
     if not config.auto_push:
         return "committed"
     return "pushed" if vault_git.push() else "push_failed"
+
+
+def push_pending(vault: Vault, config: Config) -> dict[str, str]:
+    """Last step of a run: commit what later steps changed (MOC pages) and push every
+    unpushed commit, so a notification can link to GitHub only once the page is there.
+
+    Returns {"status": "skipped" | "pushed" | "push_failed", "error": <git's reason>}.
+    """
+    if not (config.git_enabled and config.auto_commit and config.auto_push):
+        return {"status": "skipped", "error": ""}
+    vault_git = Git(vault.root)
+    if not vault_git.is_repo():
+        return {"status": "skipped", "error": ""}
+    if vault_git.status():
+        vault_git.commit("chore: refresh generated MOC pages")
+    if vault_git.push():
+        return {"status": "pushed", "error": ""}
+    logger.warning("Git push failed: %s", vault_git.last_push_error)
+    return {"status": "push_failed", "error": vault_git.last_push_error}
 
 
 def review_is_blocking(review: dict[str, Any]) -> bool:
