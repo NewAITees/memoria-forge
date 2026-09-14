@@ -1859,6 +1859,34 @@ def _normalize_url(url: str) -> str:
     return host.lower() + rest.rstrip("/")
 
 
+_MARKDOWN_LINK = re.compile(r"\[([^\]]*)\]\((https?://[^)\s]+)\)")
+
+
+def strip_unlisted_urls(page: str, sources: list[SearchResult]) -> tuple[str, list[str]]:
+    """Remove citations research never fetched: keep a link's text, drop a bare URL.
+
+    Deleting a fabricated citation invents nothing, while rejecting the page lost
+    otherwise sound work (70 rejections from 2026-09-01 cited a made-up URL).
+    Returns (page, removed URLs in order of appearance).
+    """
+    allowed = {_normalize_url(source.url) for source in sources}
+    removed: list[str] = []
+
+    def link(match: re.Match[str]) -> str:
+        if _normalize_url(match.group(2)) in allowed:
+            return match.group(0)
+        removed.append(match.group(2))
+        return match.group(1)
+
+    def bare(match: re.Match[str]) -> str:
+        if _normalize_url(match.group(0)) in allowed:
+            return match.group(0)
+        removed.append(match.group(0))
+        return ""
+
+    return _URL_PATTERN.sub(bare, _MARKDOWN_LINK.sub(link, page)), removed
+
+
 def validate_page_content(
     page: str,
     supplied_sources: list[SearchResult] | None = None,
@@ -1908,6 +1936,11 @@ def validate_page_content(
     # minimums: the model cannot act on "this section is short" feedback, and
     # per-section quotas is what left every run rejected.
     body = page[frontmatter.end() :] if frontmatter else page
+    # Judge the prose, not just the H1: an English body under a Japanese title is
+    # still an English page. URLs are excluded -- they are Latin by nature.
+    prose = _URL_PATTERN.sub("", body)
+    if len(re.findall(r"[ぁ-んァ-ヶ一-龯]", prose)) < len(re.findall(r"[A-Za-z]", prose)):
+        issues.append("本文が日本語で書かれていません")
     if compact(body) < MIN_PAGE_CHARS:
         issues.append(f"本文が短すぎます（空白除外{MIN_PAGE_CHARS}文字未満）")
     if "結論" in sections and compact(sections["結論"]) < 30:
@@ -2375,7 +2408,7 @@ def write_and_review(
             review = {"approved": False, "issues": [str(writer_error)]}
             feedback = "前回はcontentが空でした。完全なMarkdown本文をcontentに入れて返してください。"
             continue
-        content = normalize_page(target, generated, sources)
+        content, invented = strip_unlisted_urls(normalize_page(target, generated, sources), sources)
         try:
             validate_page_content(content, sources, existing)
         except ValueError as quality_error:
@@ -2388,6 +2421,12 @@ def write_and_review(
             continue
         review = reviewer.review(content, research_context)
         if not review_is_blocking(review):
+            if invented:
+                warning = {
+                    "type": "warning",
+                    "description": "調査で取得していないURLを削除しました: " + ", ".join(invented),
+                }
+                review = {**review, "issues": [*review.get("issues", []), warning]}
             return True, content, review
         feedback = json.dumps(review.get("issues", []), ensure_ascii=False)
         save_rejected_draft(vault_path, target, generated, feedback)

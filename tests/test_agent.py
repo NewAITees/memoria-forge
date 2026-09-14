@@ -1847,3 +1847,67 @@ def test_write_and_review_rejects_after_two_invalid_drafts(tmp_path: Path) -> No
     assert fake.calls == 2
     assert review["issues"][0]["type"] == "blocking"
     assert len(list((tmp_path / "logs" / "rejected").glob("*.md"))) == 2
+
+
+def test_strip_unlisted_urls_keeps_listed_links_and_drops_invented_ones() -> None:
+    from src.wiki_agent import strip_unlisted_urls
+
+    sources = _research_sources()
+    page = (
+        f"[資料A]({sources[0].url})と[偽物](https://dev.to/fake/post)を比べ、"
+        "https://invented.example.org/x も参照した。"
+    )
+    cleaned, removed = strip_unlisted_urls(page, sources)
+    assert f"[資料A]({sources[0].url})" in cleaned
+    assert "偽物" in cleaned
+    assert "dev.to/fake" not in cleaned
+    assert "invented.example.org" not in cleaned
+    assert removed == ["https://dev.to/fake/post", "https://invented.example.org/x"]
+
+
+class _InventedUrlWriter(_EmptyThenValidWriter):
+    """Writes a valid page plus one citation research never fetched."""
+
+    def write(
+        self,
+        title: str,
+        reason: str,
+        sources: object,
+        existing: str = "",
+        feedback: str = "",
+        research_context: str = "",
+        articles: object = None,
+    ) -> str:
+        self.calls += 1
+        typed_sources = sources if isinstance(sources, list) else []
+        page = _substantive_page(title, reason, typed_sources)
+        return page.replace(
+            "## 深掘り調査で得られた知見\n\n",
+            "## 深掘り調査で得られた知見\n\n[作られた出典](https://dev.to/fake/post)によれば、",
+        )
+
+
+def test_write_and_review_removes_invented_urls_and_records_a_warning(tmp_path: Path) -> None:
+    from src.wiki_agent import write_and_review
+
+    fake = _InventedUrlWriter(empty_times=0)
+    accepted, content, review = write_and_review(
+        fake, fake, Path("10_Knowledge/テスト.md"), "理由", _research_sources(), "", "", tmp_path / "vault"
+    )
+    assert accepted is True
+    assert "dev.to/fake" not in content
+    assert "作られた出典" in content
+    assert {"type": "warning", "description": "調査で取得していないURLを削除しました: https://dev.to/fake/post"} in review["issues"]
+
+
+def test_validate_rejects_a_mostly_english_body() -> None:
+    page = _substantive_page("量子誤り訂正", "基本原理と実装条件を整理します")
+    frontmatter, body = page.split("\n---\n", 1)
+    english = "\n".join(
+        line
+        if not line or line.startswith(("#", "-"))
+        else "This paragraph explains the mechanism, inputs, outputs and conditions. " * 4
+        for line in body.split("\n")
+    )
+    with pytest.raises(ValueError, match="本文が日本語で書かれていません"):
+        validate_page_content(frontmatter + "\n---\n" + english)
