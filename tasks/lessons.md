@@ -5,7 +5,7 @@
 |--------------|-------------------------------|--------|------|
 | meta         | AIとの協働ルール              | -      | 3    |
 | boundary     | データ型・変換・境界契約      | -      | 0    |
-| architecture | 設計・責務・config            | -      | 16   |
+| architecture | 設計・責務・config            | -      | 17   |
 | quality      | テスト・CI/CD・品質保証       | -      | 16   |
 | ui           | フロントエンド・デザイン・VRM | -      | 1    |
 
@@ -133,6 +133,11 @@
 - **原因**: エージェントは`git add -- live-vault`でVault全体をコミットするが、`.gitignore`は`live-vault/.agent-state.sqlite3`の完全一致のみ除外していたため、`.agent-state.sqlite3.pre-stage3`（111.6MB）がコミットされた。`_try_push`がgitのstderrを捨てていたため理由が見えなかった。さらにMOC更新がcommit/pushの後に走り、毎回未コミットのまま残っていた。
 - **対策**: ignoreを`live-vault/.agent-state.sqlite3*`へ拡大。`Git.last_push_error`で理由を保持しログ・通知へ出す。実行末尾の`push_pending`で残り変更をコミットしてからpushし、その結果で通知（成功時のみリンク）を決める。検証は手動pushでなく、タスクスケジューラ経由の実経路で行う。
 - **補足**: `git filter-branch --index-filter 'git rm --cached ...'`は、最後に新しいHEADをcheckoutするため、履歴から外したファイルを作業ツリーからも削除する。`refs/original`が残っているうちに`git cat-file blob <id>`で復元できる。「ディスクには残る」と説明してはいけない。
+
+### [クールダウン対象はリダイレクト前の計画識別子で記録する]
+- **症状**: 新規ページ候補が既存ページへ重複リダイレクトされて却下されると、元候補が毎回再選択される。
+- **原因**: 失敗記録にリダイレクト後の絶対パスを使い、Plannerの元の相対targetと一致しなかった。
+- **対策**: 正規化・重複リダイレクト前にPlannerのtargetをVault相対POSIXパスで保持し、失敗時はその識別子を記録する。
 
 ## quality — テスト・CI/CD・品質保証
 ### [サブカテゴリ: タイトル]

@@ -1911,3 +1911,69 @@ def test_validate_rejects_a_mostly_english_body() -> None:
     )
     with pytest.raises(ValueError, match="本文が日本語で書かれていません"):
         validate_page_content(frontmatter + "\n---\n" + english)
+
+
+def test_state_db_remembers_only_recently_failed_pages(tmp_path: Path) -> None:
+    db = StateDB(tmp_path / "state.sqlite3")
+    db.record_failed_page("10_Knowledge/失敗.md")
+    db.db.execute(
+        "INSERT OR REPLACE INTO failed_pages VALUES (?, ?)",
+        ("10_Knowledge/古い失敗.md", "2020-01-01T00:00:00+00:00"),
+    )
+    db.db.commit()
+    assert db.recently_failed_pages(24) == {"10_Knowledge/失敗.md"}
+
+
+def test_geometry_menu_skips_a_page_that_failed_recently(tmp_path: Path) -> None:
+    vault = Vault(tmp_path / "v")
+    db = StateDB(vault.root / ".agent-state.sqlite3")
+    config = Config(vault_path=vault.root, cluster_page_min_size=2)
+    _seed_rss(db, [("a1", "AI規制"), ("a2", "AI倫理")])
+    db.assign_point("a1", [1.0, 0.0], 0.7)
+    db.assign_point("a2", [0.99, 0.01], 0.7)
+    menu = geometry_menu(vault, db, config)
+    assert len(menu) == 1
+
+    db.record_failed_page(menu[0]["target"])
+
+    assert geometry_menu(vault, db, config) == []
+
+
+def test_run_once_remembers_the_page_it_failed_to_write(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import src.wiki_agent as wiki_agent
+
+    vault = Vault(tmp_path / "vault")
+    vault.write("10_Knowledge/seed.md", "# seed\n\nbody")
+    config = Config(tmp_path / "vault", mode="autonomous_safe")
+    fake = _InvalidPageWriter(empty_times=0)
+    monkeypatch.setattr(wiki_agent, "create_client", lambda _config: fake)
+    monkeypatch.setattr(wiki_agent, "create_reviewer_client", lambda _config: fake)
+    monkeypatch.setattr(Researcher, "search", lambda self, query, count=3: _research_sources())
+
+    assert run_once(config)["result"] == "review_rejected"
+
+    db = StateDB(tmp_path / "vault" / ".agent-state.sqlite3")
+    assert len(db.recently_failed_pages(24)) == 1
+
+
+def test_run_once_cools_down_original_target_after_duplicate_redirect(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import src.wiki_agent as wiki_agent
+
+    vault = Vault(tmp_path / "vault")
+    vault.write("20_MOC/重複テーマ.md", "# 重複テーマ\n\nbody")
+    config = Config(vault.root, mode="autonomous_safe")
+    db = StateDB(vault.root / ".agent-state.sqlite3")
+    original = "10_Knowledge/重複テーマ.md"
+    db.enqueue_task("create_page", original)
+    fake = _InvalidPageWriter(empty_times=0)
+    monkeypatch.setattr(wiki_agent, "create_client", lambda _config: fake)
+    monkeypatch.setattr(wiki_agent, "create_reviewer_client", lambda _config: fake)
+    monkeypatch.setattr(Researcher, "search", lambda self, query, count=3: _research_sources())
+
+    assert run_once(config)["result"] == "review_rejected"
+
+    assert StateDB(vault.root / ".agent-state.sqlite3").recently_failed_pages(24) == {original}

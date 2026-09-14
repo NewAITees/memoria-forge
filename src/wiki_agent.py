@@ -24,6 +24,7 @@ from src.research.deep_research import research_article
 from src.research.prompts import build_section_prompt
 
 logger = logging.getLogger(__name__)
+FAILED_PAGE_COOLDOWN_HOURS = 24
 
 
 def now() -> str:
@@ -471,6 +472,7 @@ class StateDB:
         CREATE TABLE IF NOT EXISTS runs (run_id TEXT PRIMARY KEY, model TEXT, start_time TEXT, end_time TEXT, result TEXT, search_count INTEGER, error_message TEXT);
         CREATE TABLE IF NOT EXISTS sources (url TEXT PRIMARY KEY, title TEXT, domain TEXT, fetched_at TEXT, source_type TEXT, reliability TEXT);
         CREATE TABLE IF NOT EXISTS reflections (run_id TEXT, problem TEXT, lesson TEXT, proposed_rule TEXT);
+        CREATE TABLE IF NOT EXISTS failed_pages (page TEXT PRIMARY KEY, failed_at TEXT);
         CREATE TABLE IF NOT EXISTS deep_research (
             rss_url TEXT PRIMARY KEY,
             queries TEXT NOT NULL,
@@ -942,6 +944,26 @@ class StateDB:
             "SELECT page_path FROM pages WHERE updated_at < ? ORDER BY updated_at ASC", (cutoff,)
         ).fetchall()
         return [row[0] for row in rows]
+
+    def record_failed_page(self, target: str) -> None:
+        self.db.execute(
+            "INSERT OR REPLACE INTO failed_pages VALUES (?, ?)",
+            (Path(target).as_posix(), now()),
+        )
+        self.db.commit()
+
+    def recently_failed_pages(self, hours: int) -> set[str]:
+        cutoff = (datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat()
+        rows = self.db.execute(
+            "SELECT page FROM failed_pages WHERE failed_at >= ?", (cutoff,)
+        ).fetchall()
+        return {str(row[0]) for row in rows}
+
+    def recent_runs(self, limit: int) -> list[tuple[str, str | None]]:
+        rows = self.db.execute(
+            "SELECT result, error_message FROM runs ORDER BY start_time DESC LIMIT ?", (limit,)
+        ).fetchall()
+        return [(str(result), error_message) for result, error_message in rows]
 
     def status_summary(self, stale_days: int = 30, recent_limit: int = 10) -> dict[str, Any]:
         """Read-only health report: recent runs, result counts, staleness, reflections."""
@@ -2207,6 +2229,9 @@ def geometry_menu(vault: Vault, db: StateDB, config: Config) -> list[dict[str, A
                 "score": size,
             }
         )
+    # The same giant cluster was chosen and rejected every hour, starving other themes.
+    failed = db.recently_failed_pages(FAILED_PAGE_COOLDOWN_HOURS)
+    menu = [item for item in menu if Path(str(item["target"])).as_posix() not in failed]
     # Frontier (create/dedup-into-existing) first, then most-grown improves.
     menu.sort(key=lambda m: (m["is_create"], m["score"]), reverse=True)
     return menu
@@ -2674,6 +2699,8 @@ def run_once(config: Config) -> dict[str, Any]:
             "git_status": git_status,
         }
     target = Path(action["target"])
+    # Cool down the planner's choice, even when duplicate detection redirects the write.
+    failed_target = target.relative_to(vault.root) if target.is_absolute() else target
     if action["action"] == "create_page" and not vault.safe(target).exists():
         target = safe_new_page_target(target)
         action = {**action, "target": str(target)}
@@ -2766,6 +2793,7 @@ def run_once(config: Config) -> dict[str, Any]:
             if not accepted:
                 run_id = now()
                 error = json.dumps(review, ensure_ascii=False)
+                db.record_failed_page(failed_target.as_posix())
                 db.db.execute(
                     "INSERT INTO runs VALUES (?, ?, ?, ?, ?, ?, ?)",
                     (

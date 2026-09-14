@@ -7,7 +7,7 @@ import tempfile
 import time
 
 from experiments.visualize_clusters import generate as generate_cluster_visualization
-from src.discord_notify import notify_run, read_webhook_url
+from src.discord_notify import notify_rejection_streak, notify_run, read_webhook_url
 from src.moc_builder import build_mocs
 from src.wiki_agent import (
     Config,
@@ -61,6 +61,11 @@ def _run_once_worker(config: Config, webhook_url: str, result_queue: object) -> 
             result["discord"] = notify_run(result, config.vault_path, webhook_url)
         except Exception as error:  # noqa: BLE001 - notification must not fail a Wiki run
             result["discord"] = {"status": "failed", "error": repr(error)}
+        try:
+            runs = StateDB(config.vault_path / ".agent-state.sqlite3").recent_runs(100)
+            result["discord_streak"] = notify_rejection_streak(runs, webhook_url)
+        except Exception as error:  # noqa: BLE001 - notification must not fail a Wiki run
+            result["discord_streak"] = {"status": "failed", "error": repr(error)}
         result_queue.put(result)  # type: ignore[attr-defined]
     except BaseException as error:  # noqa: BLE001 - report worker failures as JSON
         result_queue.put({"result": "error", "error_message": repr(error)})  # type: ignore[attr-defined]
