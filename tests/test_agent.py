@@ -1779,3 +1779,28 @@ def test_run_once_saves_rejected_drafts_with_reasons(
     assert "draft number 1" in first
     assert "必須セクション `## 結論` がありません" in first
     assert "draft number 2" in drafts[1].read_text(encoding="utf-8")
+
+
+def test_write_and_review_accepts_a_valid_page(tmp_path: Path) -> None:
+    from src.wiki_agent import write_and_review
+
+    fake = _EmptyThenValidWriter(empty_times=0)
+    accepted, content, review = write_and_review(
+        fake, fake, Path("10_Knowledge/テスト.md"), "理由", _research_sources(), "", "", tmp_path / "vault"
+    )
+    assert accepted is True
+    assert content.startswith("---")
+    assert review == {"approved": True, "issues": []}
+
+
+def test_write_and_review_rejects_after_two_invalid_drafts(tmp_path: Path) -> None:
+    from src.wiki_agent import write_and_review
+
+    fake = _InvalidPageWriter(empty_times=0)
+    accepted, _content, review = write_and_review(
+        fake, fake, Path("10_Knowledge/テスト.md"), "理由", _research_sources(), "", "", tmp_path / "vault"
+    )
+    assert accepted is False
+    assert fake.calls == 2
+    assert review["issues"][0]["type"] == "blocking"
+    assert len(list((tmp_path / "logs" / "rejected").glob("*.md"))) == 2

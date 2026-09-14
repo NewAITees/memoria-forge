@@ -2292,6 +2292,55 @@ def save_rejected_draft(vault_path: Path, target: Path, draft: str, reason: str)
     return path
 
 
+def write_and_review(
+    client: Any,
+    reviewer: Any,
+    target: Path,
+    reason: str,
+    sources: list[SearchResult],
+    existing: str,
+    research_context: str,
+    vault_path: Path,
+) -> tuple[bool, str, dict[str, Any]]:
+    """One page's write -> normalize -> validate -> review loop (two attempts).
+
+    Shared by run_once and experiments/writer_eval so an evaluation measures
+    exactly what production does. Returns (accepted, content, last review).
+    """
+    feedback = ""
+    content = ""
+    review: dict[str, Any] = {}
+    for _attempt in range(2):
+        try:
+            generated = client.write(
+                target.stem, reason, sources, existing, feedback, research_context
+            )
+        except ValueError as writer_error:
+            # A single empty/off-schema generation must not crash the run:
+            # nudge and retry within the attempt budget (schema already pins
+            # the shape; this covers an empty content string slipping through).
+            review = {"approved": False, "issues": [str(writer_error)]}
+            feedback = "前回はcontentが空でした。完全なMarkdown本文をcontentに入れて返してください。"
+            continue
+        content = normalize_page(target, generated, sources)
+        try:
+            validate_page_content(content, sources, existing)
+        except ValueError as quality_error:
+            review = {
+                "approved": False,
+                "issues": [{"type": "blocking", "description": str(quality_error)}],
+            }
+            feedback = str(quality_error)
+            save_rejected_draft(vault_path, target, generated, feedback)
+            continue
+        review = reviewer.review(content, research_context)
+        if not review_is_blocking(review):
+            return True, content, review
+        feedback = json.dumps(review.get("issues", []), ensure_ascii=False)
+        save_rejected_draft(vault_path, target, generated, feedback)
+    return False, content, review
+
+
 def run_once(config: Config) -> dict[str, Any]:
     vault = Vault(config.vault_path)
     db = StateDB(vault.root / ".agent-state.sqlite3")
@@ -2612,44 +2661,16 @@ def run_once(config: Config) -> dict[str, Any]:
         target_exists = vault.safe(target).exists()
         existing = vault.read(target) if target_exists else ""
         if config.mode == "autonomous_safe":
-            client = create_client(config)
-            reviewer = create_reviewer_client(config)
-            feedback = ""
-            accepted = False
-            for _attempt in range(2):
-                try:
-                    generated = client.write(
-                        target.stem,
-                        action["reason"],
-                        unique_sources,
-                        existing,
-                        feedback,
-                        research_context,
-                    )
-                except ValueError as writer_error:
-                    # A single empty/off-schema generation must not crash the run:
-                    # nudge and retry within the attempt budget (schema already pins
-                    # the shape; this covers an empty content string slipping through).
-                    review = {"approved": False, "issues": [str(writer_error)]}
-                    feedback = "前回はcontentが空でした。完全なMarkdown本文をcontentに入れて返してください。"
-                    continue
-                content = normalize_page(target, generated, unique_sources)
-                try:
-                    validate_page_content(content, unique_sources, existing)
-                except ValueError as quality_error:
-                    review = {
-                        "approved": False,
-                        "issues": [{"type": "blocking", "description": str(quality_error)}],
-                    }
-                    feedback = str(quality_error)
-                    save_rejected_draft(config.vault_path, target, generated, feedback)
-                    continue
-                review = reviewer.review(content, research_context)
-                if not review_is_blocking(review):
-                    accepted = True
-                    break
-                feedback = json.dumps(review.get("issues", []), ensure_ascii=False)
-                save_rejected_draft(config.vault_path, target, generated, feedback)
+            accepted, content, review = write_and_review(
+                create_client(config),
+                create_reviewer_client(config),
+                target,
+                action["reason"],
+                unique_sources,
+                existing,
+                research_context,
+                config.vault_path,
+            )
             if not accepted:
                 run_id = now()
                 error = json.dumps(review, ensure_ascii=False)
