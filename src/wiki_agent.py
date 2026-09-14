@@ -2281,6 +2281,17 @@ def ingest_rss(db: StateDB, config: Config) -> int:
     return db.ingest_rss_candidates(entries)
 
 
+def save_rejected_draft(vault_path: Path, target: Path, draft: str, reason: str) -> Path:
+    """Keep a rejected Writer draft next to the run logs (git-ignored, outside the vault
+    so it never becomes a page) -- rejections cannot be diagnosed without the text."""
+    folder = vault_path.parent / "logs" / "rejected"
+    folder.mkdir(parents=True, exist_ok=True)
+    stem = re.sub(r'[\\/:*?"<>|]', "_", target.stem)[:60]
+    path = folder / f"{datetime.now().strftime('%Y%m%d-%H%M%S-%f')}-{stem}.md"
+    path.write_text(f"<!-- rejected: {reason} -->\n\n{draft}", encoding="utf-8")
+    return path
+
+
 def run_once(config: Config) -> dict[str, Any]:
     vault = Vault(config.vault_path)
     db = StateDB(vault.root / ".agent-state.sqlite3")
@@ -2631,12 +2642,14 @@ def run_once(config: Config) -> dict[str, Any]:
                         "issues": [{"type": "blocking", "description": str(quality_error)}],
                     }
                     feedback = str(quality_error)
+                    save_rejected_draft(config.vault_path, target, generated, feedback)
                     continue
                 review = reviewer.review(content, research_context)
                 if not review_is_blocking(review):
                     accepted = True
                     break
                 feedback = json.dumps(review.get("issues", []), ensure_ascii=False)
+                save_rejected_draft(config.vault_path, target, generated, feedback)
             if not accepted:
                 run_id = now()
                 error = json.dumps(review, ensure_ascii=False)

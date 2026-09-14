@@ -1739,3 +1739,43 @@ def test_run_once_reviews_with_separate_reviewer_client(
     assert result["result"] == "success"
     # The page was judged by the separate reviewer, never the writer itself.
     assert reviewer.reviews == 1 and writer.reviews == 0
+
+
+class _InvalidPageWriter(_EmptyThenValidWriter):
+    """Writer whose drafts always fail validate_page_content."""
+
+    def write(
+        self,
+        title: str,
+        reason: str,
+        sources: object,
+        existing: str = "",
+        feedback: str = "",
+        research_context: str = "",
+        articles: object = None,
+    ) -> str:
+        self.calls += 1
+        return f"## Findings\n\ndraft number {self.calls}"
+
+
+def test_run_once_saves_rejected_drafts_with_reasons(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import src.wiki_agent as wiki_agent
+
+    vault = Vault(tmp_path / "vault")
+    vault.write("10_Knowledge/seed.md", "# seed\n\nbody")
+    config = Config(tmp_path / "vault", mode="autonomous_safe")
+    fake = _InvalidPageWriter(empty_times=0)
+    monkeypatch.setattr(wiki_agent, "create_client", lambda _config: fake)
+    monkeypatch.setattr(wiki_agent, "create_reviewer_client", lambda _config: fake)
+    monkeypatch.setattr(Researcher, "search", lambda self, query, count=3: _research_sources())
+
+    assert run_once(config)["result"] == "review_rejected"
+
+    drafts = sorted((tmp_path / "logs" / "rejected").glob("*.md"))
+    assert len(drafts) == 2
+    first = drafts[0].read_text(encoding="utf-8")
+    assert "draft number 1" in first
+    assert "必須セクション `## 結論` がありません" in first
+    assert "draft number 2" in drafts[1].read_text(encoding="utf-8")
