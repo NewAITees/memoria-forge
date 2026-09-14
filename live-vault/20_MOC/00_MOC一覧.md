@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-07T02:05:08.586624+00:00
+updated_at: 2026-09-14T09:07:30.786994+00:00
 ---
 
 # MOC一覧
@@ -20,8 +20,8 @@ updated_at: 2026-09-07T02:05:08.586624+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 728
-- MOC未所属Markdown: 62
+- Markdown未昇格クラスタ: 772
+- MOC未所属Markdown: 63
 
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
 - [[10_Knowledge/24GB GPUがローカルLLMに24GBを与えるわけではない理由]]
@@ -29,6 +29,7 @@ updated_at: 2026-09-07T02:05:08.586624+00:00
 - [[10_Knowledge/AIツールをGoogle Earthに追加すると何十年も築いた地図への信頼が揺らいだ]]
 - [[10_Knowledge/AI検索はグローバルサイトのローカライズを翻訳以上のものにする]]
 - [[10_Knowledge/AI生成論文と学術誌の完全性]]
+- [[10_Knowledge/Algebraic and analytic structure of Morikawa's sangaku problem]]
 - [[10_Knowledge/Bluffing in Scrabble]]
 - [[10_Knowledge/Chain-of-Thoughtが役立つ時と害になる時：LLM推論のボトルネック]]
 - [[10_Knowledge/CSSアートのスムージーフードトラック]]
