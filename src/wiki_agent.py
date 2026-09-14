@@ -21,9 +21,10 @@ from typing import Any, Callable, Generator, cast
 from src.rss_collector import RSSCollector, RSSEntry, load_rss_sources
 from src.research import DDGSearchClient
 from src.research.deep_research import research_article
-from src.research.prompts import build_theme_report_prompt
+from src.research.prompts import build_section_prompt
 
 logger = logging.getLogger(__name__)
+FAILED_PAGE_COOLDOWN_HOURS = 24
 
 
 def now() -> str:
@@ -175,6 +176,7 @@ class Config:
     max_files_changed: int = 5
     max_new_pages: int = 2
     timeout_seconds: int | None = 300
+    num_ctx: int = 16384
     max_run_minutes: int = 20
     git_enabled: bool = True
     auto_commit: bool = False
@@ -226,6 +228,7 @@ class Config:
             "max_pages_fetched": self.max_pages_fetched,
             "max_files_changed": self.max_files_changed,
             "max_new_pages": self.max_new_pages,
+            "num_ctx": self.num_ctx,
             "max_run_minutes": self.max_run_minutes,
             "stale_days": self.stale_days,
             "improve_cooldown_hours": self.improve_cooldown_hours,
@@ -292,6 +295,7 @@ class Config:
             max_files_changed=agent.get("max_files_changed", 5),
             max_new_pages=agent.get("max_new_pages", 2),
             timeout_seconds=ollama.get("timeout_seconds", 300),
+            num_ctx=ollama.get("num_ctx", cls.num_ctx),
             max_run_minutes=agent.get("max_run_minutes", 20),
             git_enabled=git.get("enabled", True),
             auto_commit=git.get("auto_commit", False),
@@ -471,6 +475,7 @@ class StateDB:
         CREATE TABLE IF NOT EXISTS runs (run_id TEXT PRIMARY KEY, model TEXT, start_time TEXT, end_time TEXT, result TEXT, search_count INTEGER, error_message TEXT);
         CREATE TABLE IF NOT EXISTS sources (url TEXT PRIMARY KEY, title TEXT, domain TEXT, fetched_at TEXT, source_type TEXT, reliability TEXT);
         CREATE TABLE IF NOT EXISTS reflections (run_id TEXT, problem TEXT, lesson TEXT, proposed_rule TEXT);
+        CREATE TABLE IF NOT EXISTS failed_pages (page TEXT PRIMARY KEY, failed_at TEXT);
         CREATE TABLE IF NOT EXISTS deep_research (
             rss_url TEXT PRIMARY KEY,
             queries TEXT NOT NULL,
@@ -943,6 +948,26 @@ class StateDB:
         ).fetchall()
         return [row[0] for row in rows]
 
+    def record_failed_page(self, target: str) -> None:
+        self.db.execute(
+            "INSERT OR REPLACE INTO failed_pages VALUES (?, ?)",
+            (Path(target).as_posix(), now()),
+        )
+        self.db.commit()
+
+    def recently_failed_pages(self, hours: int) -> set[str]:
+        cutoff = (datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat()
+        rows = self.db.execute(
+            "SELECT page FROM failed_pages WHERE failed_at >= ?", (cutoff,)
+        ).fetchall()
+        return {str(row[0]) for row in rows}
+
+    def recent_runs(self, limit: int) -> list[tuple[str, str | None]]:
+        rows = self.db.execute(
+            "SELECT result, error_message FROM runs ORDER BY start_time DESC LIMIT ?", (limit,)
+        ).fetchall()
+        return [(str(result), error_message) for result, error_message in rows]
+
     def status_summary(self, stale_days: int = 30, recent_limit: int = 10) -> dict[str, Any]:
         """Read-only health report: recent runs, result counts, staleness, reflections."""
         recent_rows = self.db.execute(
@@ -1189,8 +1214,11 @@ def build_frontmatter(title: str, page_type: str = "knowledge", confidence: str 
 
 
 class Ollama:
-    def __init__(self, base_url: str, model: str, timeout: int | None = 300) -> None:
+    def __init__(
+        self, base_url: str, model: str, timeout: int | None = 300, num_ctx: int = 16384
+    ) -> None:
         self.base_url, self.model, self.timeout = base_url.rstrip("/"), model, timeout
+        self.num_ctx = num_ctx
 
     def generate_text(self, system: str, prompt: str, temperature: float = 0.5) -> str:
         """Ask for prose and receive prose -- no JSON envelope around the document.
@@ -1207,7 +1235,12 @@ class Ollama:
             "stream": False,
             "think": False,
             "keep_alive": "10m",
-            "options": {"num_predict": -1, "temperature": temperature},
+            # Server logs showed 4,500-6,900 token prompts truncated at the default context.
+            "options": {
+                "num_predict": -1,
+                "num_ctx": self.num_ctx,
+                "temperature": temperature,
+            },
             "messages": [
                 {"role": "system", "content": system},
                 {"role": "user", "content": prompt},
@@ -1240,7 +1273,7 @@ class Ollama:
             "keep_alive": "10m",
             # Never cap generation length: a finite num_predict truncates the
             # JSON reply mid-string and breaks json.loads on longer pages.
-            "options": {"num_predict": -1},
+            "options": {"num_predict": -1, "num_ctx": self.num_ctx},
             "messages": [
                 {"role": "system", "content": system},
                 {"role": "user", "content": prompt},
@@ -1361,32 +1394,75 @@ class Ollama:
         research_context: str = "",
         articles: list[dict[str, Any]] | None = None,
     ) -> str:
-        """Write the page body as Markdown, using AIBackgroundWorker's report prompt.
+        """Write a page whose structure the code owns and whose prose the model writes.
 
-        `articles` carries the per-source detail blocks (title, url, published and
-        fetched timestamps, synthesis) that prompt is built to consume; when a
-        caller has only free-form research context, it arrives as a single block.
-        The reply is Markdown, not JSON -- see `generate_text`.
+        The model is asked for one section body at a time -- the conclusion last,
+        from the others -- and then for a Japanese title. The H1, the required `##`
+        headings, their order and the source list are assembled here: qwen3:8b
+        writes good prose but could not hold an eight-heading contract (from
+        2026-08-20, 212 of 216 runs were rejected, mostly on structure).
+        `articles` carries the per-source detail blocks; when a caller has only
+        free-form research context, it arrives as a single block. Replies are
+        prose, not JSON -- see `generate_text`.
         """
         blocks = articles if articles is not None else _articles_from_context(
             title, sources, research_context
         )
-        prompts = build_theme_report_prompt(
+        prompts = build_section_prompt(
             theme=title,
             articles=blocks,
             report_date=datetime.now().date().isoformat(),
         )
-        user = prompts["user"]
+        material = prompts["user"]
         if reason:
-            user += f"\n\n【このページを書く理由】\n{reason}\n"
+            material += f"\n\n【このページを書く理由】\n{reason}\n"
         if existing:
-            user += f"\n\n【既存ページ（情報を減らさずに更新すること）】\n{existing[:6000]}\n"
+            material += f"\n\n【既存ページ（情報を減らさずに更新すること）】\n{existing[:6000]}\n"
         if feedback:
-            user += f"\n\n【前回の指摘（必ず解消すること）】\n{feedback}\n"
-        content = self.generate_text(prompts["system"], user)
-        if not content.strip():
-            raise ValueError("writer returned no content")
-        return content
+            material += f"\n\n【前回の指摘（必ず解消すること）】\n{feedback}\n"
+        bodies = {
+            name: self._write_section(prompts["system"], material, name)
+            for name in _REQUIRED_PAGE_SECTIONS[1:-1]
+        }
+        written = "\n\n".join(f"### {name}\n{body}" for name, body in bodies.items())
+        conclusion = self._write_section(
+            prompts["system"], f"{material}\n\n【書き上がったセクション】\n{written}\n", "結論"
+        )
+        reply = self.generate_text(
+            prompts["system"],
+            f"{material}\n\n【結論】\n{conclusion}\n\n【タイトル】\n"
+            "このページの日本語のタイトルを1行だけ出力してください。40字以内。"
+            "英語のテーマ名は日本語に訳す（固有名詞は原語のままでよい）。",
+        )
+        page_title = next(
+            (line.lstrip("#").strip() for line in reply.splitlines() if line.strip()), ""
+        )
+        if not page_title:
+            raise ValueError("writer returned no title")
+        sections = {
+            "結論": conclusion,
+            **bodies,
+            "元記事一覧": "\n".join(
+                f"- [{source.title or source.url}]({source.url})" for source in sources
+            ),
+        }
+        return f"# {page_title}\n\n" + "\n\n".join(
+            f"## {name}\n\n{sections[name]}" for name in _REQUIRED_PAGE_SECTIONS
+        ) + "\n"
+
+    def _write_section(self, system: str, material: str, name: str) -> str:
+        reply = self.generate_text(
+            system,
+            f"{material}\n\n【書くセクション】{name}\n【書く内容】{_SECTION_GUIDES[name]}\n"
+            "見出しを付けずに、このセクションの本文だけを出力してください。",
+        )
+        # Headings are the code's job; a model-written heading would split the page.
+        body = "\n".join(
+            line for line in reply.splitlines() if not line.lstrip().startswith("#")
+        ).strip()
+        if not body:
+            raise ValueError(f"writer returned an empty section: {name}")
+        return body
 
     def review(self, content: str, research_context: str = "") -> dict[str, Any]:
         result = self.chat(
@@ -1463,7 +1539,7 @@ class LMStudio(Ollama):
 def create_client(config: Config) -> Ollama:
     if config.provider == "lmstudio":
         return LMStudio(config.ollama_url, config.model, config.timeout_seconds)
-    return Ollama(config.ollama_url, config.model, config.timeout_seconds)
+    return Ollama(config.ollama_url, config.model, config.timeout_seconds, config.num_ctx)
 
 
 def create_reviewer_client(config: Config) -> Ollama:
@@ -1475,7 +1551,7 @@ def create_reviewer_client(config: Config) -> Ollama:
     model = config.review_model or config.model
     if config.provider == "lmstudio":
         return LMStudio(config.ollama_url, model, config.timeout_seconds)
-    return Ollama(config.ollama_url, model, config.timeout_seconds)
+    return Ollama(config.ollama_url, model, config.timeout_seconds, config.num_ctx)
 
 
 class Git:
@@ -1773,6 +1849,16 @@ _REQUIRED_PAGE_SECTIONS = (
     "不確実な点・追加確認が必要な点",
     "元記事一覧",
 )
+# What the model is asked to write under each heading; 元記事一覧 is built in code.
+_SECTION_GUIDES = {
+    "結論": "上の【書き上がったセクション】をもとに、このテーマで最も重要な判断を1〜3文で、"
+    "断言できる形で書く",
+    "テーマ概要": "このテーマが何で、なぜ今注目されているかを要約する",
+    "共通して確認できる点": "複数の記事で共通して確認できた事実を書く",
+    "記事ごとの差分・視点の違い": "記事ごとの立場・強調点・論点の違いを、記事名を挙げて書き分ける",
+    "深掘り調査で得られた知見": "深掘り調査で分かった追加情報・業界動向・関連事例を書く",
+    "不確実な点・追加確認が必要な点": "記事間の食い違いや、資料からは断定できない点を具体的に書く",
+}
 _FORBIDDEN_BOILERPLATE = (
     "追加調査が必要です。",
     "現時点で特定された未解決点はありません。",
@@ -1804,6 +1890,34 @@ def _normalize_url(url: str) -> str:
         return trimmed
     host, rest = match.groups()
     return host.lower() + rest.rstrip("/")
+
+
+_MARKDOWN_LINK = re.compile(r"\[([^\]]*)\]\((https?://[^)\s]+)\)")
+
+
+def strip_unlisted_urls(page: str, sources: list[SearchResult]) -> tuple[str, list[str]]:
+    """Remove citations research never fetched: keep a link's text, drop a bare URL.
+
+    Deleting a fabricated citation invents nothing, while rejecting the page lost
+    otherwise sound work (70 rejections from 2026-09-01 cited a made-up URL).
+    Returns (page, removed URLs in order of appearance).
+    """
+    allowed = {_normalize_url(source.url) for source in sources}
+    removed: list[str] = []
+
+    def link(match: re.Match[str]) -> str:
+        if _normalize_url(match.group(2)) in allowed:
+            return match.group(0)
+        removed.append(match.group(2))
+        return match.group(1)
+
+    def bare(match: re.Match[str]) -> str:
+        if _normalize_url(match.group(0)) in allowed:
+            return match.group(0)
+        removed.append(match.group(0))
+        return ""
+
+    return _URL_PATTERN.sub(bare, _MARKDOWN_LINK.sub(link, page)), removed
 
 
 def validate_page_content(
@@ -1855,6 +1969,11 @@ def validate_page_content(
     # minimums: the model cannot act on "this section is short" feedback, and
     # per-section quotas is what left every run rejected.
     body = page[frontmatter.end() :] if frontmatter else page
+    # Judge the prose, not just the H1: an English body under a Japanese title is
+    # still an English page. URLs are excluded -- they are Latin by nature.
+    prose = _URL_PATTERN.sub("", body)
+    if len(re.findall(r"[ぁ-んァ-ヶ一-龯]", prose)) < len(re.findall(r"[A-Za-z]", prose)):
+        issues.append("本文が日本語で書かれていません")
     if compact(body) < MIN_PAGE_CHARS:
         issues.append(f"本文が短すぎます（空白除外{MIN_PAGE_CHARS}文字未満）")
     if "結論" in sections and compact(sections["結論"]) < 30:
@@ -2121,6 +2240,9 @@ def geometry_menu(vault: Vault, db: StateDB, config: Config) -> list[dict[str, A
                 "score": size,
             }
         )
+    # The same giant cluster was chosen and rejected every hour, starving other themes.
+    failed = db.recently_failed_pages(FAILED_PAGE_COOLDOWN_HOURS)
+    menu = [item for item in menu if Path(str(item["target"])).as_posix() not in failed]
     # Frontier (create/dedup-into-existing) first, then most-grown improves.
     menu.sort(key=lambda m: (m["is_create"], m["score"]), reverse=True)
     return menu
@@ -2322,7 +2444,7 @@ def write_and_review(
             review = {"approved": False, "issues": [str(writer_error)]}
             feedback = "前回はcontentが空でした。完全なMarkdown本文をcontentに入れて返してください。"
             continue
-        content = normalize_page(target, generated, sources)
+        content, invented = strip_unlisted_urls(normalize_page(target, generated, sources), sources)
         try:
             validate_page_content(content, sources, existing)
         except ValueError as quality_error:
@@ -2335,6 +2457,12 @@ def write_and_review(
             continue
         review = reviewer.review(content, research_context)
         if not review_is_blocking(review):
+            if invented:
+                warning = {
+                    "type": "warning",
+                    "description": "調査で取得していないURLを削除しました: " + ", ".join(invented),
+                }
+                review = {**review, "issues": [*review.get("issues", []), warning]}
             return True, content, review
         feedback = json.dumps(review.get("issues", []), ensure_ascii=False)
         save_rejected_draft(vault_path, target, generated, feedback)
@@ -2582,6 +2710,8 @@ def run_once(config: Config) -> dict[str, Any]:
             "git_status": git_status,
         }
     target = Path(action["target"])
+    # Cool down the planner's choice, even when duplicate detection redirects the write.
+    failed_target = target.relative_to(vault.root) if target.is_absolute() else target
     if action["action"] == "create_page" and not vault.safe(target).exists():
         target = safe_new_page_target(target)
         action = {**action, "target": str(target)}
@@ -2674,6 +2804,7 @@ def run_once(config: Config) -> dict[str, Any]:
             if not accepted:
                 run_id = now()
                 error = json.dumps(review, ensure_ascii=False)
+                db.record_failed_page(failed_target.as_posix())
                 db.db.execute(
                     "INSERT INTO runs VALUES (?, ?, ?, ?, ?, ?, ?)",
                     (

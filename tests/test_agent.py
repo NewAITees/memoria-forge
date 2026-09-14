@@ -49,6 +49,7 @@ from src.wiki_agent import (
     validate_action,
     validate_page_content,
     REVIEW_RESPONSE_SCHEMA,
+    _REQUIRED_PAGE_SECTIONS as REQUIRED_PAGE_SECTIONS,
 )
 from src.rss_collector import RSSCollector, RSSEntry, load_rss_sources
 from run_agent import run_once_with_timeout, scheduled_lock_path
@@ -713,6 +714,53 @@ def test_disabled_timeout_loads_and_reaches_client(tmp_path: Path) -> None:
     config = Config.load(config_file)
     assert config.timeout_seconds is None
     assert create_client(config).timeout is None
+
+
+def test_config_loads_ollama_context_length(tmp_path: Path) -> None:
+    config_file = tmp_path / "config.json"
+    config_file.write_text(
+        '{"vault_path": "./vault", "ollama": {"num_ctx": 32768}}', encoding="utf-8"
+    )
+
+    assert Config.load(config_file).num_ctx == 32768
+
+
+@pytest.mark.parametrize("method", ["generate_text", "chat"])
+def test_ollama_requests_include_context_length(
+    method: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    captured: dict[str, object] = {}
+
+    class Response:
+        def __enter__(self) -> "Response":
+            return self
+
+        def __exit__(self, *args: object) -> None:
+            pass
+
+        def read(self) -> bytes:
+            content = "本文" if method == "generate_text" else '{"approved": true}'
+            return json.dumps({"message": {"content": content}}).encode()
+
+    def fake_urlopen(request: object, timeout: object = None) -> Response:
+        captured.update(json.loads(request.data))  # type: ignore[attr-defined]
+        return Response()
+
+    monkeypatch.setattr("src.wiki_agent.urllib.request.urlopen", fake_urlopen)
+    client = Ollama("http://x", "m", num_ctx=16384)
+
+    getattr(client, method)("system", "prompt")
+
+    assert captured["options"] == {
+        "num_predict": -1,
+        "num_ctx": 16384,
+        **({"temperature": 0.5} if method == "generate_text" else {}),
+    }
+
+
+def test_config_rejects_non_positive_context_length(tmp_path: Path) -> None:
+    with pytest.raises(ValueError, match="num_ctx"):
+        Config(tmp_path / "vault", num_ctx=0).validate()
 
 
 def test_find_similar_page_matches_exact_normalized_title(tmp_path: Path) -> None:
@@ -1570,41 +1618,83 @@ def test_build_cluster_context_shows_only_urls_it_allows(tmp_path: Path) -> None
     assert len({source.url.split("-")[0] for source in sources}) == 6
 
 
-def test_write_asks_for_markdown_not_json() -> None:
-    """Wrapping a long page in a JSON string is what truncated it mid-generation."""
-    captured: dict[str, str] = {}
+class _SectionProbe(Ollama):
+    """Writer whose model answers each per-section call; records every prompt."""
 
-    class Probe(Ollama):
-        def generate_text(self, system: str, prompt: str, temperature: float = 0.5) -> str:
-            captured["system"] = system
-            captured["prompt"] = prompt
-            return "# ok\n\nbody"
+    def __init__(self, bodies: dict[str, str] | None = None, title: str = "量子計算の現状") -> None:
+        super().__init__("http://x", "m")
+        self.prompts: list[str] = []
+        self.bodies = bodies or {}
+        self.title = title
 
-        def chat(
-            self, system: str, prompt: str, response_schema: object = None
-        ) -> dict[str, object]:
-            raise AssertionError("page generation must not go through the JSON path")
+    def generate_text(self, system: str, prompt: str, temperature: float = 0.5) -> str:
+        self.prompts.append(prompt)
+        if "【タイトル】" in prompt:
+            return f"# {self.title}"
+        section = re.search(r"【書くセクション】(.+)", prompt)
+        assert section is not None, "every page call must name its section or the title"
+        name = section.group(1).strip()
+        # The model adds its own heading; the code must drop it.
+        return "## 勝手な見出し\n" + self.bodies.get(
+            name, f"{name}について、調査資料から確認できた具体的な事実を段落で説明します。" * 4
+        )
 
-    out = Probe("http://x", "m").write("Block Scope in JavaScript", "理由", [])
-    assert "# ok" in out
-    # The ported report prompt: Japanese instructions, and the report structure.
-    assert "あなたは技術ライターです" in captured["system"]
-    for section in ("結論", "共通して確認できる点", "記事ごとの差分・視点の違い"):
-        assert section in captured["system"]
-    assert "理由" in captured["prompt"]
+    def chat(
+        self, system: str, prompt: str, response_schema: object = None
+    ) -> dict[str, object]:
+        raise AssertionError("page generation must not go through the JSON path")
 
 
-def test_write_feeds_review_feedback_back_to_the_model() -> None:
-    captured: dict[str, str] = {}
+def test_write_builds_the_page_skeleton_in_code() -> None:
+    probe = _SectionProbe()
+    out = probe.write("Quantum computing today", "理由", _research_sources())
 
-    class Probe(Ollama):
-        def generate_text(self, system: str, prompt: str, temperature: float = 0.5) -> str:
-            captured["prompt"] = prompt
-            return "# ok\n\nbody"
+    assert out.startswith("# 量子計算の現状\n")
+    headings = re.findall(r"(?m)^## (.+)$", out)
+    assert headings == list(REQUIRED_PAGE_SECTIONS)
+    assert "勝手な見出し" not in out
+    for source in _research_sources():
+        assert f"- [{source.title}]({source.url})" in out
 
-    Probe("http://x", "m").write("題", "理由", [], "既存本文", "出典が足りません")
-    assert "出典が足りません" in captured["prompt"]
-    assert "既存本文" in captured["prompt"]
+
+def test_write_writes_the_conclusion_last_from_the_other_sections() -> None:
+    probe = _SectionProbe(bodies={"テーマ概要": "概要の本文だけに現れる語句。" * 5})
+    probe.write("Quantum computing today", "理由", _research_sources())
+
+    section_prompts = [prompt for prompt in probe.prompts if "【書くセクション】" in prompt]
+    assert "【書くセクション】結論" in section_prompts[-1]
+    assert "概要の本文だけに現れる語句" in section_prompts[-1]
+
+
+def test_write_passes_feedback_and_existing_page_to_every_call() -> None:
+    probe = _SectionProbe()
+    probe.write("題", "理由", _research_sources(), "既存本文", "出典が足りません")
+
+    assert probe.prompts
+    for prompt in probe.prompts:
+        assert "出典が足りません" in prompt
+        assert "既存本文" in prompt
+
+
+def test_write_raises_when_a_section_comes_back_empty() -> None:
+    probe = _SectionProbe(bodies={"共通して確認できる点": "   "})
+    with pytest.raises(ValueError, match="共通して確認できる点"):
+        probe.write("題", "理由", _research_sources())
+
+
+def test_page_written_section_by_section_passes_the_gate() -> None:
+    sources = _research_sources()
+    probe = _SectionProbe(
+        bodies={
+            "記事ごとの差分・視点の違い": (
+                f"[{sources[0].title}]({sources[0].url})は測定条件を、"
+                f"[{sources[1].title}]({sources[1].url})は適用範囲を強調しています。" * 3
+            )
+        }
+    )
+    target = Path("10_Knowledge/Quantum computing today.md")
+    page = normalize_page(target, probe.write(target.stem, "理由", sources), sources)
+    validate_page_content(page, sources)
 
 
 class _EmptyThenValidWriter:
@@ -1804,3 +1894,133 @@ def test_write_and_review_rejects_after_two_invalid_drafts(tmp_path: Path) -> No
     assert fake.calls == 2
     assert review["issues"][0]["type"] == "blocking"
     assert len(list((tmp_path / "logs" / "rejected").glob("*.md"))) == 2
+
+
+def test_strip_unlisted_urls_keeps_listed_links_and_drops_invented_ones() -> None:
+    from src.wiki_agent import strip_unlisted_urls
+
+    sources = _research_sources()
+    page = (
+        f"[資料A]({sources[0].url})と[偽物](https://dev.to/fake/post)を比べ、"
+        "https://invented.example.org/x も参照した。"
+    )
+    cleaned, removed = strip_unlisted_urls(page, sources)
+    assert f"[資料A]({sources[0].url})" in cleaned
+    assert "偽物" in cleaned
+    assert "dev.to/fake" not in cleaned
+    assert "invented.example.org" not in cleaned
+    assert removed == ["https://dev.to/fake/post", "https://invented.example.org/x"]
+
+
+class _InventedUrlWriter(_EmptyThenValidWriter):
+    """Writes a valid page plus one citation research never fetched."""
+
+    def write(
+        self,
+        title: str,
+        reason: str,
+        sources: object,
+        existing: str = "",
+        feedback: str = "",
+        research_context: str = "",
+        articles: object = None,
+    ) -> str:
+        self.calls += 1
+        typed_sources = sources if isinstance(sources, list) else []
+        page = _substantive_page(title, reason, typed_sources)
+        return page.replace(
+            "## 深掘り調査で得られた知見\n\n",
+            "## 深掘り調査で得られた知見\n\n[作られた出典](https://dev.to/fake/post)によれば、",
+        )
+
+
+def test_write_and_review_removes_invented_urls_and_records_a_warning(tmp_path: Path) -> None:
+    from src.wiki_agent import write_and_review
+
+    fake = _InventedUrlWriter(empty_times=0)
+    accepted, content, review = write_and_review(
+        fake, fake, Path("10_Knowledge/テスト.md"), "理由", _research_sources(), "", "", tmp_path / "vault"
+    )
+    assert accepted is True
+    assert "dev.to/fake" not in content
+    assert "作られた出典" in content
+    assert {"type": "warning", "description": "調査で取得していないURLを削除しました: https://dev.to/fake/post"} in review["issues"]
+
+
+def test_validate_rejects_a_mostly_english_body() -> None:
+    page = _substantive_page("量子誤り訂正", "基本原理と実装条件を整理します")
+    frontmatter, body = page.split("\n---\n", 1)
+    english = "\n".join(
+        line
+        if not line or line.startswith(("#", "-"))
+        else "This paragraph explains the mechanism, inputs, outputs and conditions. " * 4
+        for line in body.split("\n")
+    )
+    with pytest.raises(ValueError, match="本文が日本語で書かれていません"):
+        validate_page_content(frontmatter + "\n---\n" + english)
+
+
+def test_state_db_remembers_only_recently_failed_pages(tmp_path: Path) -> None:
+    db = StateDB(tmp_path / "state.sqlite3")
+    db.record_failed_page("10_Knowledge/失敗.md")
+    db.db.execute(
+        "INSERT OR REPLACE INTO failed_pages VALUES (?, ?)",
+        ("10_Knowledge/古い失敗.md", "2020-01-01T00:00:00+00:00"),
+    )
+    db.db.commit()
+    assert db.recently_failed_pages(24) == {"10_Knowledge/失敗.md"}
+
+
+def test_geometry_menu_skips_a_page_that_failed_recently(tmp_path: Path) -> None:
+    vault = Vault(tmp_path / "v")
+    db = StateDB(vault.root / ".agent-state.sqlite3")
+    config = Config(vault_path=vault.root, cluster_page_min_size=2)
+    _seed_rss(db, [("a1", "AI規制"), ("a2", "AI倫理")])
+    db.assign_point("a1", [1.0, 0.0], 0.7)
+    db.assign_point("a2", [0.99, 0.01], 0.7)
+    menu = geometry_menu(vault, db, config)
+    assert len(menu) == 1
+
+    db.record_failed_page(menu[0]["target"])
+
+    assert geometry_menu(vault, db, config) == []
+
+
+def test_run_once_remembers_the_page_it_failed_to_write(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import src.wiki_agent as wiki_agent
+
+    vault = Vault(tmp_path / "vault")
+    vault.write("10_Knowledge/seed.md", "# seed\n\nbody")
+    config = Config(tmp_path / "vault", mode="autonomous_safe")
+    fake = _InvalidPageWriter(empty_times=0)
+    monkeypatch.setattr(wiki_agent, "create_client", lambda _config: fake)
+    monkeypatch.setattr(wiki_agent, "create_reviewer_client", lambda _config: fake)
+    monkeypatch.setattr(Researcher, "search", lambda self, query, count=3: _research_sources())
+
+    assert run_once(config)["result"] == "review_rejected"
+
+    db = StateDB(tmp_path / "vault" / ".agent-state.sqlite3")
+    assert len(db.recently_failed_pages(24)) == 1
+
+
+def test_run_once_cools_down_original_target_after_duplicate_redirect(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import src.wiki_agent as wiki_agent
+
+    vault = Vault(tmp_path / "vault")
+    vault.write("20_MOC/重複テーマ.md", "# 重複テーマ\n\nbody")
+    config = Config(vault.root, mode="autonomous_safe")
+    db = StateDB(vault.root / ".agent-state.sqlite3")
+    original = "10_Knowledge/重複テーマ.md"
+    db.enqueue_task("create_page", original)
+    fake = _InvalidPageWriter(empty_times=0)
+    monkeypatch.setattr(wiki_agent, "create_client", lambda _config: fake)
+    monkeypatch.setattr(wiki_agent, "create_reviewer_client", lambda _config: fake)
+    monkeypatch.setattr(Researcher, "search", lambda self, query, count=3: _research_sources())
+
+    assert run_once(config)["result"] == "review_rejected"
+
+    assert StateDB(vault.root / ".agent-state.sqlite3").recently_failed_pages(24) == {original}

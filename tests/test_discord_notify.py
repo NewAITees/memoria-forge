@@ -190,3 +190,51 @@ def test_read_webhook_url_is_empty_without_file_or_content(tmp_path: Path) -> No
     empty = tmp_path / "empty.txt"
     empty.write_text("\n", encoding="utf-8")
     assert read_webhook_url(empty) == ""
+
+
+def _runs(results: list[str], reason: str = "本文が短すぎます") -> list[tuple[str, str | None]]:
+    issues = json.dumps({"issues": [{"type": "blocking", "description": reason}]}, ensure_ascii=False)
+    return [(result, None if result == "success" else issues) for result in results]
+
+
+def test_rejection_streak_counts_failures_since_the_last_success() -> None:
+    from src.discord_notify import rejection_streak
+
+    assert rejection_streak(_runs(["review_rejected"] * 3 + ["success", "review_rejected"])) == 3
+    assert rejection_streak(_runs(["success", "review_rejected"])) == 0
+    assert rejection_streak(_runs(["plan_rejected", "review_rejected"])) == 2
+
+
+@pytest.mark.parametrize(("streak", "sent"), [(5, False), (6, True), (7, False), (12, True)])
+def test_rejection_alert_fires_every_sixth_failure(streak: int, sent: bool) -> None:
+    from src.discord_notify import notify_rejection_streak
+
+    posted: list[Any] = []
+    status = notify_rejection_streak(
+        _runs(["review_rejected"] * streak + ["success"]), "https://example.invalid/hook", posted.append
+    )
+    assert (status["status"] == "sent") is sent
+    assert (len(posted) == 1) is sent
+
+
+def test_rejection_alert_mentions_everyone_with_count_and_reasons() -> None:
+    from src.discord_notify import notify_rejection_streak
+
+    posted: list[Any] = []
+    runs = _runs(["review_rejected"] * 4, "必須セクション `## 結論` がありません; 本文が短すぎます")
+    runs += _runs(["review_rejected"] * 2, "本文が短すぎます") + _runs(["success"])
+    notify_rejection_streak(runs, "https://example.invalid/hook", posted.append)
+    content = posted[0]["content"]
+    assert content.startswith("@everyone")
+    assert "6回" in content
+    assert "本文が短すぎます（6）" in content
+    assert posted[0]["allowed_mentions"] == {"parse": ["everyone"]}
+
+
+def test_rejection_alert_needs_a_webhook() -> None:
+    from src.discord_notify import notify_rejection_streak
+
+    posted: list[Any] = []
+    status = notify_rejection_streak(_runs(["review_rejected"] * 6), "", posted.append)
+    assert status == {"status": "skipped", "reason": "no_webhook"}
+    assert posted == []

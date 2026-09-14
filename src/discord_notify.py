@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import re
+from collections import Counter
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -94,6 +95,48 @@ def _post(webhook_url: str) -> Callable[[dict[str, Any]], None]:
         requests.post(webhook_url, json=payload, timeout=10).raise_for_status()
 
     return send
+
+
+def rejection_streak(runs: list[tuple[str, str | None]]) -> int:
+    """Count consecutive rejected runs from the newest run backwards."""
+    streak = 0
+    for result, _error_message in runs:
+        if result in REPORT_RESULTS:
+            break
+        streak += 1
+    return streak
+
+
+def notify_rejection_streak(
+    runs: list[tuple[str, str | None]],
+    webhook_url: str,
+    send: Callable[[dict[str, Any]], None] | None = None,
+) -> dict[str, str]:
+    """Alert on each sixth consecutive rejection with its common reasons."""
+    if not webhook_url:
+        return {"status": "skipped", "reason": "no_webhook"}
+    streak = rejection_streak(runs)
+    if streak < 6 or streak % 6:
+        return {"status": "skipped", "reason": "not_milestone"}
+    reasons: Counter[str] = Counter()
+    for _result, error_message in runs[:streak]:
+        if not error_message:
+            continue
+        try:
+            issues = json.loads(error_message).get("issues", [])
+        except (json.JSONDecodeError, AttributeError):
+            continue
+        for issue in issues:
+            if not isinstance(issue, dict):
+                continue
+            reasons.update(reason for reason in str(issue.get("description", "")).split("; ") if reason)
+    summary = " / ".join(f"{reason}（{count}）" for reason, count in reasons.most_common(3))
+    content = f"@everyone ⚠️ ページ生成の却下が{streak}回連続しています"
+    if summary:
+        content += f"\n主な理由: {summary}"
+    payload = {"content": content, "allowed_mentions": {"parse": ["everyone"]}}
+    (send or _post(webhook_url))(payload)
+    return {"status": "sent"}
 
 
 def notify_run(
