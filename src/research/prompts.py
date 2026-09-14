@@ -98,10 +98,14 @@ def build_result_synthesis_prompt(
     }
 
 
-def build_theme_report_prompt(
+def build_section_prompt(
     theme: str, articles: list[dict[str, Any]], report_date: str
 ) -> dict[str, str]:
-    """Assemble the per-article detail blocks the theme report is written from."""
+    """Assemble the per-article material each section (and the title) is written from.
+
+    The page structure is assembled in code (Ollama.write); these prompts ask for
+    one piece of prose at a time, so the user block carries material, not layout.
+    """
     article_details = ""
     for index, article in enumerate(articles, 1):
         article_details += f"\n### 記事 {index}: {article.get('article_title', 'N/A')}\n"
@@ -161,8 +165,8 @@ def build_theme_report_prompt(
         article_timeline += "深掘り本文でもこの時系列を手がかりに新旧を判別すること\n"
 
     return {
-        "system": load_prompt("info_theme_report_system.txt"),
-        "user": load_prompt("info_theme_report_user.txt").format(
+        "system": load_prompt("info_theme_section_system.txt"),
+        "user": load_prompt("info_theme_section_user.txt").format(
             theme=theme,
             report_date=report_date,
             article_count=len(articles),

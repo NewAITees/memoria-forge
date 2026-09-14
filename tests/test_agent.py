@@ -49,6 +49,7 @@ from src.wiki_agent import (
     validate_action,
     validate_page_content,
     REVIEW_RESPONSE_SCHEMA,
+    _REQUIRED_PAGE_SECTIONS as REQUIRED_PAGE_SECTIONS,
 )
 from src.rss_collector import RSSCollector, RSSEntry, load_rss_sources
 from run_agent import run_once_with_timeout, scheduled_lock_path
@@ -1570,41 +1571,83 @@ def test_build_cluster_context_shows_only_urls_it_allows(tmp_path: Path) -> None
     assert len({source.url.split("-")[0] for source in sources}) == 6
 
 
-def test_write_asks_for_markdown_not_json() -> None:
-    """Wrapping a long page in a JSON string is what truncated it mid-generation."""
-    captured: dict[str, str] = {}
+class _SectionProbe(Ollama):
+    """Writer whose model answers each per-section call; records every prompt."""
 
-    class Probe(Ollama):
-        def generate_text(self, system: str, prompt: str, temperature: float = 0.5) -> str:
-            captured["system"] = system
-            captured["prompt"] = prompt
-            return "# ok\n\nbody"
+    def __init__(self, bodies: dict[str, str] | None = None, title: str = "量子計算の現状") -> None:
+        super().__init__("http://x", "m")
+        self.prompts: list[str] = []
+        self.bodies = bodies or {}
+        self.title = title
 
-        def chat(
-            self, system: str, prompt: str, response_schema: object = None
-        ) -> dict[str, object]:
-            raise AssertionError("page generation must not go through the JSON path")
+    def generate_text(self, system: str, prompt: str, temperature: float = 0.5) -> str:
+        self.prompts.append(prompt)
+        if "【タイトル】" in prompt:
+            return f"# {self.title}"
+        section = re.search(r"【書くセクション】(.+)", prompt)
+        assert section is not None, "every page call must name its section or the title"
+        name = section.group(1).strip()
+        # The model adds its own heading; the code must drop it.
+        return "## 勝手な見出し\n" + self.bodies.get(
+            name, f"{name}について、調査資料から確認できた具体的な事実を段落で説明します。" * 4
+        )
 
-    out = Probe("http://x", "m").write("Block Scope in JavaScript", "理由", [])
-    assert "# ok" in out
-    # The ported report prompt: Japanese instructions, and the report structure.
-    assert "あなたは技術ライターです" in captured["system"]
-    for section in ("結論", "共通して確認できる点", "記事ごとの差分・視点の違い"):
-        assert section in captured["system"]
-    assert "理由" in captured["prompt"]
+    def chat(
+        self, system: str, prompt: str, response_schema: object = None
+    ) -> dict[str, object]:
+        raise AssertionError("page generation must not go through the JSON path")
 
 
-def test_write_feeds_review_feedback_back_to_the_model() -> None:
-    captured: dict[str, str] = {}
+def test_write_builds_the_page_skeleton_in_code() -> None:
+    probe = _SectionProbe()
+    out = probe.write("Quantum computing today", "理由", _research_sources())
 
-    class Probe(Ollama):
-        def generate_text(self, system: str, prompt: str, temperature: float = 0.5) -> str:
-            captured["prompt"] = prompt
-            return "# ok\n\nbody"
+    assert out.startswith("# 量子計算の現状\n")
+    headings = re.findall(r"(?m)^## (.+)$", out)
+    assert headings == list(REQUIRED_PAGE_SECTIONS)
+    assert "勝手な見出し" not in out
+    for source in _research_sources():
+        assert f"- [{source.title}]({source.url})" in out
 
-    Probe("http://x", "m").write("題", "理由", [], "既存本文", "出典が足りません")
-    assert "出典が足りません" in captured["prompt"]
-    assert "既存本文" in captured["prompt"]
+
+def test_write_writes_the_conclusion_last_from_the_other_sections() -> None:
+    probe = _SectionProbe(bodies={"テーマ概要": "概要の本文だけに現れる語句。" * 5})
+    probe.write("Quantum computing today", "理由", _research_sources())
+
+    section_prompts = [prompt for prompt in probe.prompts if "【書くセクション】" in prompt]
+    assert "【書くセクション】結論" in section_prompts[-1]
+    assert "概要の本文だけに現れる語句" in section_prompts[-1]
+
+
+def test_write_passes_feedback_and_existing_page_to_every_call() -> None:
+    probe = _SectionProbe()
+    probe.write("題", "理由", _research_sources(), "既存本文", "出典が足りません")
+
+    assert probe.prompts
+    for prompt in probe.prompts:
+        assert "出典が足りません" in prompt
+        assert "既存本文" in prompt
+
+
+def test_write_raises_when_a_section_comes_back_empty() -> None:
+    probe = _SectionProbe(bodies={"共通して確認できる点": "   "})
+    with pytest.raises(ValueError, match="共通して確認できる点"):
+        probe.write("題", "理由", _research_sources())
+
+
+def test_page_written_section_by_section_passes_the_gate() -> None:
+    sources = _research_sources()
+    probe = _SectionProbe(
+        bodies={
+            "記事ごとの差分・視点の違い": (
+                f"[{sources[0].title}]({sources[0].url})は測定条件を、"
+                f"[{sources[1].title}]({sources[1].url})は適用範囲を強調しています。" * 3
+            )
+        }
+    )
+    target = Path("10_Knowledge/Quantum computing today.md")
+    page = normalize_page(target, probe.write(target.stem, "理由", sources), sources)
+    validate_page_content(page, sources)
 
 
 class _EmptyThenValidWriter:

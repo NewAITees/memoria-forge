@@ -21,7 +21,7 @@ from typing import Any, Callable, Generator, cast
 from src.rss_collector import RSSCollector, RSSEntry, load_rss_sources
 from src.research import DDGSearchClient
 from src.research.deep_research import research_article
-from src.research.prompts import build_theme_report_prompt
+from src.research.prompts import build_section_prompt
 
 logger = logging.getLogger(__name__)
 
@@ -1361,32 +1361,75 @@ class Ollama:
         research_context: str = "",
         articles: list[dict[str, Any]] | None = None,
     ) -> str:
-        """Write the page body as Markdown, using AIBackgroundWorker's report prompt.
+        """Write a page whose structure the code owns and whose prose the model writes.
 
-        `articles` carries the per-source detail blocks (title, url, published and
-        fetched timestamps, synthesis) that prompt is built to consume; when a
-        caller has only free-form research context, it arrives as a single block.
-        The reply is Markdown, not JSON -- see `generate_text`.
+        The model is asked for one section body at a time -- the conclusion last,
+        from the others -- and then for a Japanese title. The H1, the required `##`
+        headings, their order and the source list are assembled here: qwen3:8b
+        writes good prose but could not hold an eight-heading contract (from
+        2026-08-20, 212 of 216 runs were rejected, mostly on structure).
+        `articles` carries the per-source detail blocks; when a caller has only
+        free-form research context, it arrives as a single block. Replies are
+        prose, not JSON -- see `generate_text`.
         """
         blocks = articles if articles is not None else _articles_from_context(
             title, sources, research_context
         )
-        prompts = build_theme_report_prompt(
+        prompts = build_section_prompt(
             theme=title,
             articles=blocks,
             report_date=datetime.now().date().isoformat(),
         )
-        user = prompts["user"]
+        material = prompts["user"]
         if reason:
-            user += f"\n\n【このページを書く理由】\n{reason}\n"
+            material += f"\n\n【このページを書く理由】\n{reason}\n"
         if existing:
-            user += f"\n\n【既存ページ（情報を減らさずに更新すること）】\n{existing[:6000]}\n"
+            material += f"\n\n【既存ページ（情報を減らさずに更新すること）】\n{existing[:6000]}\n"
         if feedback:
-            user += f"\n\n【前回の指摘（必ず解消すること）】\n{feedback}\n"
-        content = self.generate_text(prompts["system"], user)
-        if not content.strip():
-            raise ValueError("writer returned no content")
-        return content
+            material += f"\n\n【前回の指摘（必ず解消すること）】\n{feedback}\n"
+        bodies = {
+            name: self._write_section(prompts["system"], material, name)
+            for name in _REQUIRED_PAGE_SECTIONS[1:-1]
+        }
+        written = "\n\n".join(f"### {name}\n{body}" for name, body in bodies.items())
+        conclusion = self._write_section(
+            prompts["system"], f"{material}\n\n【書き上がったセクション】\n{written}\n", "結論"
+        )
+        reply = self.generate_text(
+            prompts["system"],
+            f"{material}\n\n【結論】\n{conclusion}\n\n【タイトル】\n"
+            "このページの日本語のタイトルを1行だけ出力してください。40字以内。"
+            "英語のテーマ名は日本語に訳す（固有名詞は原語のままでよい）。",
+        )
+        page_title = next(
+            (line.lstrip("#").strip() for line in reply.splitlines() if line.strip()), ""
+        )
+        if not page_title:
+            raise ValueError("writer returned no title")
+        sections = {
+            "結論": conclusion,
+            **bodies,
+            "元記事一覧": "\n".join(
+                f"- [{source.title or source.url}]({source.url})" for source in sources
+            ),
+        }
+        return f"# {page_title}\n\n" + "\n\n".join(
+            f"## {name}\n\n{sections[name]}" for name in _REQUIRED_PAGE_SECTIONS
+        ) + "\n"
+
+    def _write_section(self, system: str, material: str, name: str) -> str:
+        reply = self.generate_text(
+            system,
+            f"{material}\n\n【書くセクション】{name}\n【書く内容】{_SECTION_GUIDES[name]}\n"
+            "見出しを付けずに、このセクションの本文だけを出力してください。",
+        )
+        # Headings are the code's job; a model-written heading would split the page.
+        body = "\n".join(
+            line for line in reply.splitlines() if not line.lstrip().startswith("#")
+        ).strip()
+        if not body:
+            raise ValueError(f"writer returned an empty section: {name}")
+        return body
 
     def review(self, content: str, research_context: str = "") -> dict[str, Any]:
         result = self.chat(
@@ -1773,6 +1816,16 @@ _REQUIRED_PAGE_SECTIONS = (
     "不確実な点・追加確認が必要な点",
     "元記事一覧",
 )
+# What the model is asked to write under each heading; 元記事一覧 is built in code.
+_SECTION_GUIDES = {
+    "結論": "上の【書き上がったセクション】をもとに、このテーマで最も重要な判断を1〜3文で、"
+    "断言できる形で書く",
+    "テーマ概要": "このテーマが何で、なぜ今注目されているかを要約する",
+    "共通して確認できる点": "複数の記事で共通して確認できた事実を書く",
+    "記事ごとの差分・視点の違い": "記事ごとの立場・強調点・論点の違いを、記事名を挙げて書き分ける",
+    "深掘り調査で得られた知見": "深掘り調査で分かった追加情報・業界動向・関連事例を書く",
+    "不確実な点・追加確認が必要な点": "記事間の食い違いや、資料からは断定できない点を具体的に書く",
+}
 _FORBIDDEN_BOILERPLATE = (
     "追加調査が必要です。",
     "現時点で特定された未解決点はありません。",
