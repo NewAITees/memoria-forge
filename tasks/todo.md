@@ -55,6 +55,14 @@
 - [x] 失敗ページの記録と24時間クールダウンを実装する
 - [x] pytest・ruff・mypyを通し、feature/sectioned-writerへコミットする
 
+## Ollamaコンテキスト切り詰めの解消と評価記録
+- [x] `Config.num_ctx`を追加し、Ollamaの生成・チャット両payloadへ渡す
+- [x] 設定読み込み・検証・HTTP payloadの回帰テストを追加する
+- [x] Writer評価で実行後の切り詰め件数を集計し、レポートへ保存する
+- [x] Writer評価で合格ページ本文を`accepted/`へ保存する
+- [x] `count_truncations`の回帰テストを追加する
+- [x] ruff・mypyを実行する
+
 ## 保留（記録のみ）
 - [ ] 巨大クラスタ問題（最大414点、50点以上43個）でタイトルと材料が噛み合わない
 

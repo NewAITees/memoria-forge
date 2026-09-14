@@ -13,10 +13,12 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sqlite3
 import tempfile
 import time
 from collections import Counter
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -43,6 +45,22 @@ def summarize(results: list[dict[str, Any]]) -> dict[str, Any]:
         "passed": sum(1 for result in results if result["accepted"]),
         "reasons": dict(reasons.most_common()),
     }
+
+
+def count_truncations(log_text: str, since: str) -> int:
+    """Count Ollama prompt truncations at or after an ISO timestamp."""
+    cutoff = datetime.fromisoformat(since)
+    count = 0
+    for line in log_text.splitlines():
+        if 'msg="truncating input prompt"' not in line:
+            continue
+        timestamp = next(
+            (part.removeprefix("time=") for part in line.split() if part.startswith("time=")),
+            None,
+        )
+        if timestamp is not None and datetime.fromisoformat(timestamp) >= cutoff:
+            count += 1
+    return count
 
 
 def _review_reason(review: dict[str, Any]) -> str:
@@ -73,9 +91,13 @@ def evaluate(config: Config, count: int) -> tuple[list[dict[str, Any]], Path]:
         unique = list({source.url: source for source in sources}.values())[: config.max_pages_fetched]
         existing = vault.read(target) if vault.safe(target).exists() else ""
         started = time.monotonic()
-        accepted, _content, review = write_and_review(
+        accepted, content, review = write_and_review(
             client, reviewer, target, action["reason"], unique, existing, context, workdir / "vault"
         )
+        if accepted:
+            accepted_dir = workdir / "accepted"
+            accepted_dir.mkdir(exist_ok=True)
+            (accepted_dir / f"{target.stem}.md").write_text(content, encoding="utf-8")
         results.append(
             {
                 "target": str(target),
@@ -95,8 +117,18 @@ def main() -> None:
     parser.add_argument("--config", type=Path, default=Path("config.json"))
     parser.add_argument("--count", type=int, default=5)
     args = parser.parse_args()
+    started_at = datetime.now(timezone.utc).isoformat()
     results, workdir = evaluate(Config.load(args.config), args.count)
     summary = summarize(results)
+    local_app_data = os.environ.get("LOCALAPPDATA")
+    log_path = Path(local_app_data) / "Ollama" / "server.log" if local_app_data else None
+    if log_path is not None and log_path.exists():
+        summary["truncations"] = count_truncations(
+            log_path.read_text(encoding="utf-8", errors="replace"), started_at
+        )
+    else:
+        summary["truncations"] = 0
+        summary["truncations_note"] = "Ollama server.log not found"
     (workdir / "report.json").write_text(
         json.dumps({"summary": summary, "results": results}, ensure_ascii=False, indent=2),
         encoding="utf-8",

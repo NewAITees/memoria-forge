@@ -176,6 +176,7 @@ class Config:
     max_files_changed: int = 5
     max_new_pages: int = 2
     timeout_seconds: int | None = 300
+    num_ctx: int = 16384
     max_run_minutes: int = 20
     git_enabled: bool = True
     auto_commit: bool = False
@@ -227,6 +228,7 @@ class Config:
             "max_pages_fetched": self.max_pages_fetched,
             "max_files_changed": self.max_files_changed,
             "max_new_pages": self.max_new_pages,
+            "num_ctx": self.num_ctx,
             "max_run_minutes": self.max_run_minutes,
             "stale_days": self.stale_days,
             "improve_cooldown_hours": self.improve_cooldown_hours,
@@ -293,6 +295,7 @@ class Config:
             max_files_changed=agent.get("max_files_changed", 5),
             max_new_pages=agent.get("max_new_pages", 2),
             timeout_seconds=ollama.get("timeout_seconds", 300),
+            num_ctx=ollama.get("num_ctx", cls.num_ctx),
             max_run_minutes=agent.get("max_run_minutes", 20),
             git_enabled=git.get("enabled", True),
             auto_commit=git.get("auto_commit", False),
@@ -1211,8 +1214,11 @@ def build_frontmatter(title: str, page_type: str = "knowledge", confidence: str 
 
 
 class Ollama:
-    def __init__(self, base_url: str, model: str, timeout: int | None = 300) -> None:
+    def __init__(
+        self, base_url: str, model: str, timeout: int | None = 300, num_ctx: int = 16384
+    ) -> None:
         self.base_url, self.model, self.timeout = base_url.rstrip("/"), model, timeout
+        self.num_ctx = num_ctx
 
     def generate_text(self, system: str, prompt: str, temperature: float = 0.5) -> str:
         """Ask for prose and receive prose -- no JSON envelope around the document.
@@ -1229,7 +1235,12 @@ class Ollama:
             "stream": False,
             "think": False,
             "keep_alive": "10m",
-            "options": {"num_predict": -1, "temperature": temperature},
+            # Server logs showed 4,500-6,900 token prompts truncated at the default context.
+            "options": {
+                "num_predict": -1,
+                "num_ctx": self.num_ctx,
+                "temperature": temperature,
+            },
             "messages": [
                 {"role": "system", "content": system},
                 {"role": "user", "content": prompt},
@@ -1262,7 +1273,7 @@ class Ollama:
             "keep_alive": "10m",
             # Never cap generation length: a finite num_predict truncates the
             # JSON reply mid-string and breaks json.loads on longer pages.
-            "options": {"num_predict": -1},
+            "options": {"num_predict": -1, "num_ctx": self.num_ctx},
             "messages": [
                 {"role": "system", "content": system},
                 {"role": "user", "content": prompt},
@@ -1528,7 +1539,7 @@ class LMStudio(Ollama):
 def create_client(config: Config) -> Ollama:
     if config.provider == "lmstudio":
         return LMStudio(config.ollama_url, config.model, config.timeout_seconds)
-    return Ollama(config.ollama_url, config.model, config.timeout_seconds)
+    return Ollama(config.ollama_url, config.model, config.timeout_seconds, config.num_ctx)
 
 
 def create_reviewer_client(config: Config) -> Ollama:
@@ -1540,7 +1551,7 @@ def create_reviewer_client(config: Config) -> Ollama:
     model = config.review_model or config.model
     if config.provider == "lmstudio":
         return LMStudio(config.ollama_url, model, config.timeout_seconds)
-    return Ollama(config.ollama_url, model, config.timeout_seconds)
+    return Ollama(config.ollama_url, model, config.timeout_seconds, config.num_ctx)
 
 
 class Git:

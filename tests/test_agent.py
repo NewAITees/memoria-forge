@@ -716,6 +716,53 @@ def test_disabled_timeout_loads_and_reaches_client(tmp_path: Path) -> None:
     assert create_client(config).timeout is None
 
 
+def test_config_loads_ollama_context_length(tmp_path: Path) -> None:
+    config_file = tmp_path / "config.json"
+    config_file.write_text(
+        '{"vault_path": "./vault", "ollama": {"num_ctx": 32768}}', encoding="utf-8"
+    )
+
+    assert Config.load(config_file).num_ctx == 32768
+
+
+@pytest.mark.parametrize("method", ["generate_text", "chat"])
+def test_ollama_requests_include_context_length(
+    method: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    captured: dict[str, object] = {}
+
+    class Response:
+        def __enter__(self) -> "Response":
+            return self
+
+        def __exit__(self, *args: object) -> None:
+            pass
+
+        def read(self) -> bytes:
+            content = "本文" if method == "generate_text" else '{"approved": true}'
+            return json.dumps({"message": {"content": content}}).encode()
+
+    def fake_urlopen(request: object, timeout: object = None) -> Response:
+        captured.update(json.loads(request.data))  # type: ignore[attr-defined]
+        return Response()
+
+    monkeypatch.setattr("src.wiki_agent.urllib.request.urlopen", fake_urlopen)
+    client = Ollama("http://x", "m", num_ctx=16384)
+
+    getattr(client, method)("system", "prompt")
+
+    assert captured["options"] == {
+        "num_predict": -1,
+        "num_ctx": 16384,
+        **({"temperature": 0.5} if method == "generate_text" else {}),
+    }
+
+
+def test_config_rejects_non_positive_context_length(tmp_path: Path) -> None:
+    with pytest.raises(ValueError, match="num_ctx"):
+        Config(tmp_path / "vault", num_ctx=0).validate()
+
+
 def test_find_similar_page_matches_exact_normalized_title(tmp_path: Path) -> None:
     vault = Vault(tmp_path / "vault")
     vault.write("10_Knowledge/Ollama の モデル管理.md", "# body")
