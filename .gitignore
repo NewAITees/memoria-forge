@@ -8,5 +8,6 @@ __pycache__/
 config.json
 vault/.agent-state.sqlite3
 live-vault/.agent-state.sqlite3
+cluster-map.html
 logs/
 .agent-run.lock

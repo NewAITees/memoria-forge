@@ -503,6 +503,25 @@ class StateDB:
             assigned_at TEXT NOT NULL,
             embedding TEXT
         );
+        CREATE TABLE IF NOT EXISTS mocs (
+            moc_id INTEGER PRIMARY KEY,
+            title TEXT NOT NULL,
+            page_path TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS moc_members (
+            moc_id INTEGER NOT NULL,
+            page_path TEXT NOT NULL PRIMARY KEY,
+            cluster_id INTEGER,
+            similarity REAL NOT NULL,
+            FOREIGN KEY (moc_id) REFERENCES mocs(moc_id)
+        );
+        CREATE TABLE IF NOT EXISTS page_embeddings (
+            page_path TEXT PRIMARY KEY,
+            content_hash TEXT NOT NULL,
+            embedding TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        );
         """)
         self._ensure_rss_columns()
         self._ensure_cluster_member_columns()

@@ -5,7 +5,10 @@ import json
 import multiprocessing
 import tempfile
 import time
-from src.wiki_agent import Config, StateDB, Vault, process_lock, run_once
+
+from experiments.visualize_clusters import generate as generate_cluster_visualization
+from src.moc_builder import build_mocs
+from src.wiki_agent import Config, StateDB, Vault, embed_text, process_lock, run_once
 
 
 def scheduled_lock_path(config: Config) -> Path:
@@ -18,6 +21,28 @@ def _run_once_worker(config: Config, result_queue: object) -> None:
     """Execute one agent cycle in a killable child process."""
     try:
         result = run_once(config)
+        try:
+            result["moc"] = build_mocs(
+                config.vault_path,
+                config.vault_path / ".agent-state.sqlite3",
+                lambda text: embed_text(text, config.embed_url, config.embed_model),
+            )
+        except Exception as error:  # noqa: BLE001 - MOC refresh must not fail a Wiki run
+            result["moc"] = {"status": "failed", "error": repr(error)}
+        try:
+            report = config.vault_path / "cluster-map.html"
+            result["cluster_visualization"] = {
+                "status": "updated",
+                "path": str(report),
+                **generate_cluster_visualization(
+                    config.vault_path / ".agent-state.sqlite3", report
+                ),
+            }
+        except Exception as error:  # noqa: BLE001 - report refresh must not fail a Wiki run
+            result["cluster_visualization"] = {
+                "status": "failed",
+                "error": repr(error),
+            }
         result_queue.put(result)  # type: ignore[attr-defined]
     except BaseException as error:  # noqa: BLE001 - report worker failures as JSON
         result_queue.put({"result": "error", "error_message": repr(error)})  # type: ignore[attr-defined]

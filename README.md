@@ -125,6 +125,22 @@ uv run python run_agent.py --config config.json --once
 
 現在の実装は、Vault境界検証、ページ一覧同期、候補選択、Planner・Writer・Reviewer、実Web検索、SQLite実行ログ、Git連携を提供します。検索方式の動的比較と、AI自身による次の改善案生成も実装しています。
 
+### クラスタ分布を可視化する
+
+永続化されたクラスタについて、意味空間上の分布、クラスタ内のばらつき、近いクラスタ同士の関係、サイズ分布をHTMLレポートへ出力できます。
+
+```powershell
+uv run python -m experiments.visualize_clusters
+```
+
+生成先は`live-vault/cluster-map.html`です。通常のエージェント実行後にも、その実行対象Vault直下の`cluster-map.html`が自動更新されます。各点を選ぶと代表タイトル、件数、まとまり具合、対応Wikiページ、代表的な構成要素を最大5件確認できます。別のDBや出力先を使う場合は`--database`と`--output`を指定します。生成物はGit管理対象外です。
+
+### MOCとDB・Markdownの関係
+
+通常のエージェント実行後、Markdown本文のEmbeddingを差分更新し、十分に強い関係だけを`live-vault/20_MOC/`へMOCとして自動生成します。固定カテゴリへの強制分類は行わず、類似度0.9以上、または相互最近傍かつ類似度0.8以上のページだけを束ねます。それ以外は`00_MOC一覧.md`の「未整理の境界」に残します。
+
+DB内では`page_embeddings`がMarkdown本文ハッシュとEmbeddingを保持し、`mocs`と`moc_members`がMOC→Markdown→クラスタの関係を保持します。RSS記事用の`cluster_members.embedding`は観測データのクラスタリング専用であり、MOC分類には使用しません。
+
 ### Vaultの変更をこのプロジェクトの一部としてコミット・push する
 
 Wikiがこのマシンの外からでも「その日どう構造が変化したか」を追える状態にするため、Vault（`vault_path`が指すディレクトリ）はこのプロジェクトのリポジトリの一部として扱います。`.gitignore`ではVault内のMarkdownを除外していません（`.agent-state.sqlite3`のみ除外）。
