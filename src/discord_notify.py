@@ -20,6 +20,14 @@ STATS_KEYS = (("clusters", "クラスタ"), ("members", "点"), ("relations", "�
 EXCERPT_CHARS = 300
 
 
+def read_webhook_url(path: Path) -> str:
+    """Return the first line of the git-ignored webhook file; empty disables notices."""
+    if not path.exists():
+        return ""
+    lines = path.read_text(encoding="utf-8").splitlines()
+    return lines[0].strip() if lines else ""
+
+
 def conclusion_excerpt(page: str, limit: int = EXCERPT_CHARS) -> str:
     """Return the conclusion section, or the body under the H1 when there is none."""
     body = re.sub(r"^---\n.*?\n---\n", "", page, flags=re.DOTALL)

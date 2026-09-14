@@ -5,7 +5,13 @@ from typing import Any
 import pytest
 
 from src import discord_notify
-from src.discord_notify import build_payload, conclusion_excerpt, map_change_line, notify_run
+from src.discord_notify import (
+    build_payload,
+    conclusion_excerpt,
+    map_change_line,
+    notify_run,
+    read_webhook_url,
+)
 
 PAGE = """---
 title: テスト
@@ -136,3 +142,16 @@ def test_notify_run_keeps_previous_stats_when_map_failed(tmp_path: Path) -> None
     notify_run(result, tmp_path, "https://example.invalid/hook", lambda _payload: None)
     stored = json.loads((tmp_path / discord_notify.STATS_FILE).read_text(encoding="utf-8"))
     assert stored == previous
+
+
+def test_read_webhook_url_reads_first_line(tmp_path: Path) -> None:
+    path = tmp_path / "discord_webhook.txt"
+    path.write_text("  https://discord.com/api/webhooks/1/abc  \n# memo\n", encoding="utf-8")
+    assert read_webhook_url(path) == "https://discord.com/api/webhooks/1/abc"
+
+
+def test_read_webhook_url_is_empty_without_file_or_content(tmp_path: Path) -> None:
+    assert read_webhook_url(tmp_path / "missing.txt") == ""
+    empty = tmp_path / "empty.txt"
+    empty.write_text("\n", encoding="utf-8")
+    assert read_webhook_url(empty) == ""

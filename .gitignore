@@ -6,6 +6,7 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 config.json
+config/discord_webhook.txt
 vault/.agent-state.sqlite3
 live-vault/.agent-state.sqlite3
 cluster-map.html

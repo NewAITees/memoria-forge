@@ -3,12 +3,11 @@ import argparse
 import hashlib
 import json
 import multiprocessing
-import os
 import tempfile
 import time
 
 from experiments.visualize_clusters import generate as generate_cluster_visualization
-from src.discord_notify import notify_run
+from src.discord_notify import notify_run, read_webhook_url
 from src.moc_builder import build_mocs
 from src.wiki_agent import Config, StateDB, Vault, embed_text, process_lock, run_once
 
@@ -19,7 +18,7 @@ def scheduled_lock_path(config: Config) -> Path:
     return Path(tempfile.gettempdir()) / f"autonomous-wiki-agent-{digest}.lock"
 
 
-def _run_once_worker(config: Config, result_queue: object) -> None:
+def _run_once_worker(config: Config, webhook_url: str, result_queue: object) -> None:
     """Execute one agent cycle in a killable child process."""
     try:
         result = run_once(config)
@@ -46,9 +45,7 @@ def _run_once_worker(config: Config, result_queue: object) -> None:
                 "error": repr(error),
             }
         try:
-            result["discord"] = notify_run(
-                result, config.vault_path, os.environ.get("DISCORD_WEBHOOK_URL", "")
-            )
+            result["discord"] = notify_run(result, config.vault_path, webhook_url)
         except Exception as error:  # noqa: BLE001 - notification must not fail a Wiki run
             result["discord"] = {"status": "failed", "error": repr(error)}
         result_queue.put(result)  # type: ignore[attr-defined]
@@ -56,11 +53,11 @@ def _run_once_worker(config: Config, result_queue: object) -> None:
         result_queue.put({"result": "error", "error_message": repr(error)})  # type: ignore[attr-defined]
 
 
-def run_once_with_timeout(config: Config) -> dict[str, object]:
+def run_once_with_timeout(config: Config, webhook_url: str) -> dict[str, object]:
     """Run one cycle and terminate it when the configured limit is reached."""
     context = multiprocessing.get_context("spawn")
     result_queue = context.Queue()
-    worker = context.Process(target=_run_once_worker, args=(config, result_queue))
+    worker = context.Process(target=_run_once_worker, args=(config, webhook_url, result_queue))
     worker.start()
     worker.join(config.max_run_minutes * 60)
     if worker.is_alive():
@@ -93,20 +90,21 @@ def main() -> None:
         db = StateDB(vault.root / ".agent-state.sqlite3")
         print(json.dumps(db.status_summary(config.stale_days), ensure_ascii=False, indent=2), flush=True)
         return
+    webhook_url = read_webhook_url(args.config.parent / "config" / "discord_webhook.txt")
     lock = process_lock(scheduled_lock_path(config)) if args.scheduled else None
     if lock is not None:
         with lock as acquired:
             if not acquired:
                 print(json.dumps({"result": "skipped_locked"}), flush=True)
                 return
-            _run(config, args.once, args.interval_hours)
+            _run(config, webhook_url, args.once, args.interval_hours)
         return
-    _run(config, args.once, args.interval_hours)
+    _run(config, webhook_url, args.once, args.interval_hours)
 
 
-def _run(config: Config, once: bool, interval_hours: float) -> None:
+def _run(config: Config, webhook_url: str, once: bool, interval_hours: float) -> None:
     while True:
-        result = run_once_with_timeout(config)
+        result = run_once_with_timeout(config, webhook_url)
         print(json.dumps(result, ensure_ascii=False, indent=2), flush=True)
         if once:
             return

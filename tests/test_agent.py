@@ -173,7 +173,7 @@ def test_scheduled_lock_path_is_outside_vault(tmp_path: Path) -> None:
 
 def test_run_once_with_timeout_returns_worker_result(tmp_path: Path) -> None:
     config = Config(tmp_path / "vault", max_run_minutes=1)
-    result = run_once_with_timeout(config)
+    result = run_once_with_timeout(config, "")
     assert result["result"] in {"success", "proposal", "expanded", "no_new_pages"}
 
 
