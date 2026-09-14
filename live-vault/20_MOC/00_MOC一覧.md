@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-14T18:08:22.512141+00:00
+updated_at: 2026-09-14T19:08:04.499182+00:00
 ---
 
 # MOC一覧
@@ -20,8 +20,8 @@ updated_at: 2026-09-14T18:08:22.512141+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 780
-- MOC未所属Markdown: 64
+- Markdown未昇格クラスタ: 778
+- MOC未所属Markdown: 65
 
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
 - [[10_Knowledge/24GB GPUがローカルLLMに24GBを与えるわけではない理由]]
@@ -50,6 +50,7 @@ updated_at: 2026-09-14T18:08:22.512141+00:00
 - [[10_Knowledge/STAT+ FDAが2件を承認：新薬と新ワクチン]]
 - [[10_Knowledge/STAT+ MedicareがACCESSを推進する一方対応医療機関を患者に伝えず]]
 - [[10_Knowledge/T. rexは6600万年前のこの噛み跡を残したのか]]
+- [[10_Knowledge/Transfer Learning for Named Entity Recognition of Classical Latin through LLM Pr]]
 - [[10_Knowledge/Trumpが物議を醸すワクチン政策に回帰]]
 - [[10_Knowledge/Uberはなぜ、自律走行車の普及を遅らせる規制を求めるのか？]]
 - [[10_Knowledge/Why I don’t want AI agents executing code in someone else’s cloud]]
