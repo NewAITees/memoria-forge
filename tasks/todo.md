@@ -3,6 +3,15 @@
 2. 完了したら [x] にする
 3. セクションが全て完了したら、セクションごと削除してよい
 
+## Discord Webhook通知（レポート生成時）
+- [x] `tasks/alignment.md`を作成する
+- [x] 通知条件・結論抜粋・マップ差分の失敗するテストを書く
+- [x] `src/discord_notify.py`を実装する（URLは環境変数`DISCORD_WEBHOOK_URL`）
+- [x] `run_agent.py`の実行後処理から呼び出し、前回マップ値を`.cluster-map-stats.json`へ保存する
+- [x] `.gitignore`へ`.cluster-map-stats.json`を追加する
+- [x] pytest（153件）・ruff・mypyを実行してコミットする
+- [ ] 実際のWebhook URLを`DISCORD_WEBHOOK_URL`に設定し、実送信を確認する（ユーザー作業）
+
 ## クラスタリング・構成の可視化
 - [x] 既存のクラスタリング処理・永続データ・構成情報を調査する
 - [x] 分布・ばらつき・クラスタ間関係を確認できる最小可視化を実装する
