@@ -112,6 +112,14 @@ run_agent.py（定期実行） → Ollama / Git push / Discord Webhook
 - **現在の解釈規則 / Current Rule**: 「レポート」はWikiページを指す
 - **状態 / Status**: resolved
 
+### 2026-09-15「複数の記事の共通点や、組み合わせた記事を書いてほしい」
+- **対象候補 / Candidate Target**: Wikiページ（レポート）の中身、材料の選び方
+- **ユーザーの意図 / User Meaning**: 複数の記事を扱うなら、共通点や組み合わせから新しいことを言うレポートにしてほしい。そうでなければ面白いテーマ1本を深く書いてほしい
+- **AIの解釈 / Agent Interpretation**: （実装時点）ページ＝クラスタとし、クラスタの先頭から材料を集めれば十分と見ていた
+- **実装上の実体 / Actual Implementation**: 81件の「数学全般」クラスタで、タイトルはケーキの記事、材料はマトリックス・RustのGPU処理などクラスタ順の無関係な記事。Writerは「関係ない」と列挙し当たり前の結論になった
+- **現在の解釈規則 / Current Rule**: 材料は代表記事と埋め込みで近い記事から選び、書く前に共通の切り口を決める。切り口が立たなければ代表記事1本を深く掘り下げる（ユーザー決定: A）
+- **状態 / Status**: resolved（実装は feature/theme-selection でCodexが対応中）
+
 ## 未解決の観察 / Unresolved Observations
 
 ### 2026-09-14「マップをURLで見て視覚的な更新を楽しみたい」
