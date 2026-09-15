@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-15T02:13:23.438947+00:00
+updated_at: 2026-09-15T03:07:48.299605+00:00
 ---
 
 # MOC一覧
@@ -20,8 +20,8 @@ updated_at: 2026-09-15T02:13:23.438947+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 782
-- MOC未所属Markdown: 72
+- Markdown未昇格クラスタ: 781
+- MOC未所属Markdown: 73
 
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
 - [[10_Knowledge/24GB GPUがローカルLLMに24GBを与えるわけではない理由]]
@@ -41,6 +41,7 @@ updated_at: 2026-09-15T02:13:23.438947+00:00
 - [[10_Knowledge/It is a sign of the times that Amazon gets to call this fair use]]
 - [[10_Knowledge/Java Spring Bootのログ設定と本番運用]]
 - [[10_Knowledge/JavaScriptのブロックスコープ]]
+- [[10_Knowledge/Lectures on piecewise distance-preserving maps]]
 - [[10_Knowledge/NvidiaがPowerへの購入オプションを取得]]
 - [[10_Knowledge/OAuth 2]]
 - [[10_Knowledge/Omarchy Any User Process Can Escalate to Root]]
