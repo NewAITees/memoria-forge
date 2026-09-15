@@ -32,7 +32,13 @@ try {
     }
 
     $before = Get-MarkdownSnapshot $vault
-    $output = @(& $UvPath run python run_agent.py --config $Config --once --scheduled *>&1 | Tee-Object -FilePath $log)
+    try {
+        # Windows PowerShell 5.1 turns redirected native stderr into terminating ErrorRecords under Stop.
+        $ErrorActionPreference = "Continue"
+        $output = @(& $UvPath run python run_agent.py --config $Config --once --scheduled *>&1 | Tee-Object -FilePath $log)
+    } finally {
+        $ErrorActionPreference = "Stop"
+    }
     $text = ($output | ForEach-Object { $_.ToString() }) -join "`n"
     $jsonStart = $text.IndexOf('{')
     if ($jsonStart -lt 0) {
