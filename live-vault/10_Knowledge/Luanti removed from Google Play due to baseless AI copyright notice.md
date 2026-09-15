@@ -1,0 +1,52 @@
+---
+title: Luanti、AI著作権告訴でGoogle Playから削除
+type: knowledge
+status: draft
+created: 2026-09-15
+updated: 2026-09-15
+confidence: medium
+---
+
+# Luanti、AI著作権告訴でGoogle Playから削除
+
+## 結論
+
+Luantiは2026年8月27日に、Tracer.AIによるMicrosoftを代表するDMCA告訴によりGoogle Playから削除され、翌日に再登録された。この告訴はMinecraftの著作権を侵害しているとしていたが、Luantiは自身のアプリにMinecraftや他のソースからのプロプライエタリコードやアセットは含まれていないと主張し、告訴を根拠のないものとして反論した。この出来事は、AIを活用した著作権侵害の自動的な取り締まりがオープンソースやコミュニティドリブンなプロジェクトに与える影響を浮き彫りにした。
+
+## テーマ概要
+
+Luantiは、オープンソースのビoxelゲームエンジンであり、2026年8月27日にGoogle Playストアから削除されました。その理由は、Tracer.AIがMicrosoftを代表して提出した著作権侵害のDMCA通知で、Minecraftの著作権を侵害しているとされました。しかし、Luantiはこの通知が根拠のないものであり、自身のアプリにはMinecraftや他のソースからのプロプライエタリコードやアセットは含まれていないと主張しました。Luantiは、ゲーム作成プラットフォームであり、デフォルトではゲームやアセットを含んでおらず、ユーザーがコミュニティ制作のゲームやマルチプレイヤーサーバーにアクセスできるようにしています。この件は、AIによる著作権主張の自動化とオープンソースプロジェクトへの影響についての懸念を浮き彫りにしています。また、Microsoftは後日この通知を取り下げ、Luantiは8月28日にGoogle Playストアに戻りました。
+
+## 共通して確認できる点
+
+Luantiは、2026年8月27日にGoogle Play Storeから削除されました。その理由は、Microsoftを代表してTracer.AIが提出した著作権侵害のDMCA告訴によるものです。この告訴では、LuantiがMinecraftの著作権を侵害していると主張されていましたが、Luantiはこれを根拠のない告訴であると主張しました。Luantiは、自身のアプリにはMinecraftやその他のソースからの専用コードやアセットは含まれていないと説明し、ゲーム作成プラットフォームとしての性質を強調しました。また、Luantiは以前にも同様のDMCA告訴を受けたことがあり、2023年に提出された告訴に対して異議を申し立てて成功した経緯を示しました。告訴はMinecraft Java Edition 1.9の米国著作権登録を引用していましたが、具体的に侵害されたアセットは明示されていませんでした。Luantiは自身のデフォルトアセットがオリジナルであり、含まれるフォントなどのアセットもライセンスファイルで適切に属性付けられていると説明しました。Microsoftは後日、告訴を撤回し、Luantiは2026年8月28日にGoogle Play Storeに再登録されました。この出来事は、AIを用いた著作権の自動的な権利行使がオープンソースやコミュニティ駆動のソフトウェアプロジェクトに与える影響を浮き彫りにしています。また、Luantiは、告訴の対象となるコンテンツがユーザーによって配布されるため、第三者パッケージはボランティアスタッフによって手動でレビューされる Moderation Controls を備えていると述べました。
+
+## 記事ごとの差分・視点の違い
+
+記事「BuildLow-LatencyMultilingualVoiceAgents:OpenWeights&Full...」は、NVIDIAが提供するMagpie TTS技術について紹介しており、低遅延かつ多言語対応の音声合成モデルの開発と導入に関する技術的な詳細を説明しています。この記事は主に技術者や開発者向けで、モデルのパラメータ数やサポート言語、導入環境の柔軟性などに焦点を当てています。
+
+記事「NVIDIAUnveilsOpen-WeightMagpieTTSforLow-Latency...」は、同様にMagpie TTSについて触れていますが、より一般的な読者向けの説明を試みており、技術的な深掘りよりも導入の利便性や実用性に重きを置いている点が異なります。
+
+記事「Luanti - Wikipedia」は、Luantiというプロジェクトの歴史と機能について概説しており、開発の背景や技術的な特徴、コミュニティへの影響などを説明しています。この記事はLuantiのプロジェクト全体を理解するための基本的な情報源となっています。
+
+記事「IntroducciónalosDataLakesParte2- DEV Community」は、AWS上で構築されるサーバーレスData Lakeの設計と実装について述べており、特にS3やLambda、Glueなどのサービスの組み合わせによるアーキテクチャの構築に注目しています。この記事はデータエンジニアやアーキテクチャ設計者向けの実践的なガイドとして位置づけられています。
+
+記事「theodore-jsnow supports displayinginlinesuggestionsin theeditor!」は、theodore-jsというReactライブラリが新しい機能として提案テキストの表示を導入したことを報告しており、開発者向けのツールとしての機能拡張に注目しています。この記事は具体的な実装例や使用方法の紹介に重点を置いている点が特徴です。
+
+## 深掘り調査で得られた知見
+
+Luantiは2026年8月27日にGoogle Playから削除された。この出来事は、Tracer.AIがMicrosoftを代表して提出した著作権侵害の訴えによるもので、Minecraftの著作権を侵害しているとしていた。Luantiはこの訴えを根拠のないものとして反論し、自身のアプリにはMinecraftや他のソースからのプロプライエタリコードやアセットは含まれていないと主張した。Luantiは、ゲーム開発プラットフォームであり、デフォルトではゲームやアセットを含んでいないことを強調した。ユーザーはコミュニティで作成されたゲームを閲覧し、マルチプレイヤーサーバーに参加できる。この訴えは2023年に類似のDMCA通知があったが、Luantiはその時も異議を申し立てた。今回の通知はMinecraft Java Edition 1.9の米国著作権登録を参照していたが、具体的にどのアセットが侵害されたかは明記されていなかった。Luantiは自身のデフォルトアセットがオリジナルであると主張し、含まれるフォントなどのアセットはライセンスファイルで適切に記載されていると説明した。Microsoftは後に通知を取り下げ、Luantiは8月28日にGoogle Playに戻った。この出来事は、AIを活用した著作権侵害の自動的な取り締まりがオープンソースやコミュニティドリブンなソフトウェアプロジェクトに与える影響を浮き彫りにした。Luantiは、DMCAの通知と削除プロセスが完全な調査前にアプリを削除してしまう可能性があることを指摘し、AIによる著作権主張の正当性を疑問視した。また、Luantiはユーザーが配布するコンテンツに対して自身のモデレーション制御を強調し、第三者のパッケージはボランティアスタッフが手動でレビューされるとしている。
+
+## 不確実な点・追加確認が必要な点
+
+記事間の情報にはいくつかの不一致や曖昧な点が確認されている。まず、LuantiがGoogle Playから削除された件に関しては、Wikipediaの記事（https://en.wikipedia.org/wiki/Luanti）によると、2026年8月27日にTracer.AIを介してMicrosoftによるDMCA告訴が行われ、その結果としてLuantiが削除されたとされている。ただし、具体的な告訴日や告訴の内容については明記されていない。また、同記事では、LuantiがMinecraftの著作権を侵害しているとされるが、Luanti側はその告訴が根拠のないものであり、アプリ内にはMinecraftの専有コードや資産は含まれていないと主張している。この点については、他の記事や資料で詳細な根拠が示されていないため、断定的な記述は避けている。
+
+一方で、Luantiの技術的な背景や機能については、Wikipediaの記事（https://en.wikipedia.org/wiki/Luanti）と他の資料で一部の情報が重複しているが、Luantiがvoxelゲームエンジンであり、コミュニティが作成したゲームやMODをベースにしたプラットフォームであるという点は一致している。ただし、LuantiがMinecraftのメカニクスを探索するために作られたという記述は、Wikipediaの記事にのみ見られ、他の資料には記載されていないため、その信頼性や正確性については追加調査が必要である。また、Luantiが提供するコンテンツやMODの管理方法、利用規約などについては、詳細な情報が不足している。
+
+## 元記事一覧
+
+- [BuildLow-LatencyMultilingualVoiceAgents:OpenWeights&Full...](https://huggingface.co/blog/nvidia/magpie-tts-multilingual-voice-agents)
+- [NVIDIAUnveilsOpen-WeightMagpieTTSforLow-Latency...](https://interestana.com/articles/build-low-latency-multilingual-voice-agents-open-weights-full-deployment-control-with-nvidia-magpie-tts-00z27yru)
+- [Luanti - Wikipedia](https://en.wikipedia.org/wiki/Luanti)
+- [IntroducciónalosDataLakesParte2- DEV Community](https://dev.to/alvarongg/introduccion-a-los-data-lakes-parte-2-4ca0)
+- [theodore-jsnow supports displayinginlinesuggestionsin theeditor!](https://dev.to/fatemeh_karimi_24b0262790/theodore-js-now-supports-displaying-inline-suggestions-in-the-editor-1m6j)
