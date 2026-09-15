@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-15T05:10:01.063448+00:00
+updated_at: 2026-09-15T06:10:24.518657+00:00
 ---
 
 # MOC一覧
@@ -20,8 +20,8 @@ updated_at: 2026-09-15T05:10:01.063448+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 778
-- MOC未所属Markdown: 75
+- Markdown未昇格クラスタ: 779
+- MOC未所属Markdown: 76
 
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
 - [[10_Knowledge/24GB GPUがローカルLLMに24GBを与えるわけではない理由]]
@@ -53,6 +53,7 @@ updated_at: 2026-09-15T05:10:01.063448+00:00
 - [[10_Knowledge/Qantas Airbus A380 catastrophic engine failure in 2010 (2023)]]
 - [[10_Knowledge/QuarkusとGitHub Actionsで大規模RunnerなしにCI時間を半減]]
 - [[10_Knowledge/Rustを一緒に学ぼう]]
+- [[10_Knowledge/Six curl CVEs after OpenAI and Anthropic came back with zero]]
 - [[10_Knowledge/STAT+ FDAが2件を承認：新薬と新ワクチン]]
 - [[10_Knowledge/STAT+ MedicareがACCESSを推進する一方対応医療機関を患者に伝えず]]
 - [[10_Knowledge/T. rexは6600万年前のこの噛み跡を残したのか]]
