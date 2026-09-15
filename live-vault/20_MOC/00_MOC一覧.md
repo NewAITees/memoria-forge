@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-15T00:10:47.817354+00:00
+updated_at: 2026-09-15T01:08:37.929988+00:00
 ---
 
 # MOC一覧
@@ -20,8 +20,8 @@ updated_at: 2026-09-15T00:10:47.817354+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 781
-- MOC未所属Markdown: 70
+- Markdown未昇格クラスタ: 782
+- MOC未所属Markdown: 71
 
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
 - [[10_Knowledge/24GB GPUがローカルLLMに24GBを与えるわけではない理由]]
@@ -61,6 +61,7 @@ updated_at: 2026-09-15T00:10:47.817354+00:00
 - [[10_Knowledge/Why I don’t want AI agents executing code in someone else’s cloud]]
 - [[10_Knowledge/Windows PCが侵害された可能性を示す10の兆候と監視方法]]
 - [[10_Knowledge/Zettelkasten AI統合]]
+- [[10_Knowledge/« J'ai fini le tuto Node, et là je suis bloqué » — le mur dont personne ne parle]]
 - [[10_Knowledge/“ローファイ”によるAIへの抵抗]]
 - [[10_Knowledge/「AI軍拡競争」という物語が現実をつくる──元DeepMind幹部が警鐘]]
 - [[10_Knowledge/「美術館や映画館に通う高齢者ほど体は“若い”」という研究結果は、どこまで本当？]]
