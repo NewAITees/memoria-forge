@@ -5,7 +5,7 @@
 |--------------|-------------------------------|--------|------|
 | meta         | AIとの協働ルール              | -      | 3    |
 | boundary     | データ型・変換・境界契約      | -      | 0    |
-| architecture | 設計・責務・config            | -      | 18   |
+| architecture | 設計・責務・config            | -      | 19   |
 | quality      | テスト・CI/CD・品質保証       | -      | 16   |
 | ui           | フロントエンド・デザイン・VRM | -      | 1    |
 
@@ -143,6 +143,11 @@
 - **症状**: 新規ページ候補が既存ページへ重複リダイレクトされて却下されると、元候補が毎回再選択される。
 - **原因**: 失敗記録にリダイレクト後の絶対パスを使い、Plannerの元の相対targetと一致しなかった。
 - **対策**: 正規化・重複リダイレクト前にPlannerのtargetをVault相対POSIXパスで保持し、失敗時はその識別子を記録する。
+
+### [PowerShell 5.1: ErrorActionPreference=Stop と *>&1 で、外部コマンドのstderr 1行がスクリプトを止める]
+- **症状**: 2026-09-15、ページのコミットは19件あるのに定期実行ログは11件。残ったログにはstderr由来の行が1行もなく、タスクの終了コードは1。
+- **原因**: `run_scheduled.ps1`はWindows PowerShell 5.1で`$ErrorActionPreference = "Stop"`のまま`& uv run python ... *>&1 | Tee-Object`を実行していた。5.1ではリダイレクトしたネイティブのstderrがErrorRecordになり、Stop下では終了エラーになる。調査中の`page_fetcher: skipped ... 403`などが出た回だけ、スクリプトがそこで止まり、ログと結果確認が失われていた（Python側の処理は最後まで動くのでページは作られていた）。
+- **対策**: 外部コマンドを呼ぶ1行だけ`try { $ErrorActionPreference = "Continue"; ... } finally { $ErrorActionPreference = "Stop" }`で囲む。stderrを出すPythonの小さな再現で、修正前は終了コード1・途中停止、修正後は終了コード0・ログ完全を確認した。ログの件数と成果物（コミット）の件数が合わないときは、まずタスクの終了コードとstderrの扱いを疑う。
 
 ## quality — テスト・CI/CD・品質保証
 ### [サブカテゴリ: タイトル]
