@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-16T20:08:21.439834+00:00
+updated_at: 2026-09-16T21:17:11.487983+00:00
 ---
 
 # MOC一覧
@@ -23,8 +23,8 @@ updated_at: 2026-09-16T20:08:21.439834+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 778
-- MOC未所属Markdown: 96
+- Markdown未昇格クラスタ: 779
+- MOC未所属Markdown: 97
 
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
 - [[10_Knowledge/24GB GPUがローカルLLMに24GBを与えるわけではない理由]]
@@ -62,6 +62,7 @@ updated_at: 2026-09-16T20:08:21.439834+00:00
 - [[10_Knowledge/Open Source AI Phone Assistant  Call & Chat]]
 - [[10_Knowledge/OpenAI buying Astral means uv now answers to a model company]]
 - [[10_Knowledge/OpenAI restores 5-hour Codex and Work limits for ChatGPT Plus users]]
+- [[10_Knowledge/Pentagon rescinds new testosterone screening policy without explanation]]
 - [[10_Knowledge/Polyfill、Shim、ネイティブモジュール：React Nativeの教訓]]
 - [[10_Knowledge/Popaボットネットと上場イスラエル企業]]
 - [[10_Knowledge/Pythonでフリーランス業務を自動化する方法]]
