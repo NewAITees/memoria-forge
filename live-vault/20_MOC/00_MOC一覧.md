@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-16T03:15:00.464366+00:00
+updated_at: 2026-09-16T04:12:58.406394+00:00
 ---
 
 # MOC一覧
@@ -12,17 +12,18 @@ updated_at: 2026-09-16T03:15:00.464366+00:00
 - [[20_MOC/MOC-002|AIはまだ赤ちゃんほど効率よく学べない / 自分らしいAIコンテンツファクトリーを構築した方法]] — 2ページ
 - [[20_MOC/MOC-003|AI要約の海に溺れないために｜デジタル世界の路上観察 / 最新検索実験結果解説]] — 2ページ
 - [[20_MOC/MOC-004|ArbNetバグ修正：クラウド有効期限とデータベース接続障害 / Sentryを探る：ロード時間を短縮する方法]] — 2ページ
-- [[20_MOC/MOC-005|Claude Code自動モード：それでも人間が必要なこと / Show HN 1667, a terminal UI for ]] — 2ページ
-- [[20_MOC/MOC-006|OpenAIとHugging Faceがセキュリティ評価中の異常 / オープンモデルの現状：2026年夏の観察]] — 2ページ
-- [[20_MOC/MOC-007|Why I Built a 100% In-Browser, P / ファイアウォールはAIポリシー：主要18サイトを調査した記録]] — 2ページ
-- [[20_MOC/MOC-008|バックエンド学習プラットフォームを一人で作った記録 / 高収益なウェブプラットフォームをバックエンドコードなしで構築した]] — 2ページ
-- [[20_MOC/MOC-009|ブラックホールが“燃料切れ”しない理由が明らかになってきた / 観測史上“最古”のクエーサーが、立て続けに見つかったことの意味]] — 2ページ
-- [[20_MOC/MOC-010|眼底から“視野”を読み解き、緑内障の見逃しに挑む：DeepEye / 誰もが安定した質の手術を受けられる未来を目指して：アナウト]] — 2ページ
+- [[20_MOC/MOC-005|Building a CMS with AI Agents Yo / Why I don’t want AI agents execu]] — 2ページ
+- [[20_MOC/MOC-006|Claude Code自動モード：それでも人間が必要なこと / Show HN 1667, a terminal UI for ]] — 2ページ
+- [[20_MOC/MOC-007|OpenAIとHugging Faceがセキュリティ評価中の異常 / オープンモデルの現状：2026年夏の観察]] — 2ページ
+- [[20_MOC/MOC-008|Why I Built a 100% In-Browser, P / ファイアウォールはAIポリシー：主要18サイトを調査した記録]] — 2ページ
+- [[20_MOC/MOC-009|バックエンド学習プラットフォームを一人で作った記録 / 高収益なウェブプラットフォームをバックエンドコードなしで構築した]] — 2ページ
+- [[20_MOC/MOC-010|ブラックホールが“燃料切れ”しない理由が明らかになってきた / 観測史上“最古”のクエーサーが、立て続けに見つかったことの意味]] — 2ページ
+- [[20_MOC/MOC-011|眼底から“視野”を読み解き、緑内障の見逃しに挑む：DeepEye / 誰もが安定した質の手術を受けられる未来を目指して：アナウト]] — 2ページ
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 776
-- MOC未所属Markdown: 84
+- Markdown未昇格クラスタ: 775
+- MOC未所属Markdown: 83
 
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
 - [[10_Knowledge/24GB GPUがローカルLLMに24GBを与えるわけではない理由]]
@@ -73,7 +74,6 @@ updated_at: 2026-09-16T03:15:00.464366+00:00
 - [[10_Knowledge/Undefined type Float8_e4m3fn on Apple Silicon BF16 and GGUF Workarounds for FP8]]
 - [[10_Knowledge/Understanding the recent DDoS attack against Read the Docs]]
 - [[10_Knowledge/We found a division by zero bug in FFmpeg with a vibecoded fuzzer]]
-- [[10_Knowledge/Why I don’t want AI agents executing code in someone else’s cloud]]
 - [[10_Knowledge/Windows PCが侵害された可能性を示す10の兆候と監視方法]]
 - [[10_Knowledge/Zettelkasten AI統合]]
 - [[10_Knowledge/« J'ai fini le tuto Node, et là je suis bloqué » — le mur dont personne ne parle]]
