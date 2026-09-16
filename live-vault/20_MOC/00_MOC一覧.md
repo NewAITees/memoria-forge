@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-16T11:14:45.108141+00:00
+updated_at: 2026-09-16T12:08:25.720082+00:00
 ---
 
 # MOC一覧
@@ -23,7 +23,7 @@ updated_at: 2026-09-16T11:14:45.108141+00:00
 ## 未整理の境界
 
 - Markdown未昇格クラスタ: 777
-- MOC未所属Markdown: 89
+- MOC未所属Markdown: 90
 
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
 - [[10_Knowledge/24GB GPUがローカルLLMに24GBを与えるわけではない理由]]
@@ -50,6 +50,7 @@ updated_at: 2026-09-16T11:14:45.108141+00:00
 - [[10_Knowledge/JavaScriptのブロックスコープ]]
 - [[10_Knowledge/Lectures on piecewise distance-preserving maps]]
 - [[10_Knowledge/Luanti removed from Google Play due to baseless AI copyright notice]]
+- [[10_Knowledge/Move in C++ without a stdmove]]
 - [[10_Knowledge/MY FIRST GITHUB PROJECT]]
 - [[10_Knowledge/New analysis reveals 'encouraging' global mangrove cover increase despite losses]]
 - [[10_Knowledge/NvidiaがPowerへの購入オプションを取得]]
