@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-17T12:10:26.226679+00:00
+updated_at: 2026-09-17T13:14:10.006872+00:00
 ---
 
 # MOC一覧
@@ -25,7 +25,7 @@ updated_at: 2026-09-17T12:10:26.226679+00:00
 ## 未整理の境界
 
 - Markdown未昇格クラスタ: 773
-- MOC未所属Markdown: 109
+- MOC未所属Markdown: 110
 
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
 - [[10_Knowledge/24GB GPUがローカルLLMに24GBを与えるわけではない理由]]
@@ -136,3 +136,4 @@ updated_at: 2026-09-17T12:10:26.226679+00:00
 - [[10_Knowledge/自律Wiki構築AI]]
 - [[10_Knowledge/英国スタートアップ、長寿研究ラボを宇宙空間に打ち上げ]]
 - [[10_Knowledge/見覚えのないコードがリポジトリにあった：テスト82件合格]]
+- [[10_Knowledge/雇用機会もとい成長機会]]
