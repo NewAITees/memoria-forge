@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-17T19:11:14.418131+00:00
+updated_at: 2026-09-17T20:11:55.810570+00:00
 ---
 
 # MOC一覧
@@ -24,8 +24,8 @@ updated_at: 2026-09-17T19:11:14.418131+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 772
-- MOC未所属Markdown: 116
+- Markdown未昇格クラスタ: 771
+- MOC未所属Markdown: 117
 
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
 - [[10_Knowledge/24GB GPUがローカルLLMに24GBを与えるわけではない理由]]
@@ -52,6 +52,7 @@ updated_at: 2026-09-17T19:11:14.418131+00:00
 - [[10_Knowledge/Genesis-Vault取引が映すオーストラリア金産業の成長戦略]]
 - [[10_Knowledge/GitHub API Rate Limits an Unauthenticated 304 Still Costs You a Request]]
 - [[10_Knowledge/Hackers Had a Live Feed of Every ID Verification Company Scanned for over a Year]]
+- [[10_Knowledge/Hot Chips 2026 CUDA Targets RISC-V – By Chester Lam]]
 - [[10_Knowledge/How can a cake be cut into two equal pieces]]
 - [[10_Knowledge/I Measured What Self-Hosted Chatwoot Actually Uses. 348,703 Messages, 1.8 GB of]]
 - [[10_Knowledge/I Ran 89,479 WhatsApp Messages Through WAHA. Twilio $604]]
