@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-17T01:08:55.620234+00:00
+updated_at: 2026-09-17T02:14:59.213728+00:00
 ---
 
 # MOC一覧
@@ -23,8 +23,8 @@ updated_at: 2026-09-17T01:08:55.620234+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 776
-- MOC未所属Markdown: 100
+- Markdown未昇格クラスタ: 775
+- MOC未所属Markdown: 101
 
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
 - [[10_Knowledge/24GB GPUがローカルLLMに24GBを与えるわけではない理由]]
@@ -89,6 +89,7 @@ updated_at: 2026-09-17T01:08:55.620234+00:00
 - [[10_Knowledge/Undefined type Float8_e4m3fn on Apple Silicon BF16 and GGUF Workarounds for FP8]]
 - [[10_Knowledge/Understanding the recent DDoS attack against Read the Docs]]
 - [[10_Knowledge/We found a division by zero bug in FFmpeg with a vibecoded fuzzer]]
+- [[10_Knowledge/What Wallet Popups Don’t Tell You A Developer-Friendly Guide to Web3 Permissions]]
 - [[10_Knowledge/Windows PCが侵害された可能性を示す10の兆候と監視方法]]
 - [[10_Knowledge/Worst-case glacial lake flood scenarios in a transboundary Himalayan basin 2022]]
 - [[10_Knowledge/Your coding agent already learned this local-first memory with Graft]]
