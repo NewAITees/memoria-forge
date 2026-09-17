@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-17T20:11:55.810570+00:00
+updated_at: 2026-09-17T21:12:01.759709+00:00
 ---
 
 # MOC一覧
@@ -24,8 +24,8 @@ updated_at: 2026-09-17T20:11:55.810570+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 771
-- MOC未所属Markdown: 117
+- Markdown未昇格クラスタ: 770
+- MOC未所属Markdown: 118
 
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
 - [[10_Knowledge/24GB GPUがローカルLLMに24GBを与えるわけではない理由]]
@@ -42,6 +42,7 @@ updated_at: 2026-09-17T20:11:55.810570+00:00
 - [[10_Knowledge/Automating the Workflow My Journey from Jenkins Freestyle Jobs to Declarative Pi]]
 - [[10_Knowledge/Bluffing in Scrabble]]
 - [[10_Knowledge/Building an Escalation Root-Cause Agent with Gemini and ADK]]
+- [[10_Knowledge/Catalyzing the community Chemists and Navajo leaders educate on clean water]]
 - [[10_Knowledge/Chain-of-Thoughtが役立つ時と害になる時：LLM推論のボトルネック]]
 - [[10_Knowledge/ChatGPT Connects to Health Records, Bringing AI Closer to Clinical Workflows]]
 - [[10_Knowledge/CLAUDE.md for an iOS Team What to Put In It (and What to Leave Out)]]
