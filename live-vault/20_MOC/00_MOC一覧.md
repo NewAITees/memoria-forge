@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-17T11:09:54.013024+00:00
+updated_at: 2026-09-17T12:10:26.226679+00:00
 ---
 
 # MOC一覧
@@ -25,7 +25,7 @@ updated_at: 2026-09-17T11:09:54.013024+00:00
 ## 未整理の境界
 
 - Markdown未昇格クラスタ: 773
-- MOC未所属Markdown: 108
+- MOC未所属Markdown: 109
 
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
 - [[10_Knowledge/24GB GPUがローカルLLMに24GBを与えるわけではない理由]]
@@ -81,6 +81,7 @@ updated_at: 2026-09-17T11:09:54.013024+00:00
 - [[10_Knowledge/Silent success is worse than a loud agent crash]]
 - [[10_Knowledge/Six curl CVEs after OpenAI and Anthropic came back with zero]]
 - [[10_Knowledge/SKILL.md is not a compiler]]
+- [[10_Knowledge/Sony makes bold claim about game ownership]]
 - [[10_Knowledge/Splash-free urinals for global sustainability and accessibility]]
 - [[10_Knowledge/STAT+ FDAが2件を承認：新薬と新ワクチン]]
 - [[10_Knowledge/STAT+ MedicareがACCESSを推進する一方対応医療機関を患者に伝えず]]
