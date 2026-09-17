@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-17T06:09:07.862484+00:00
+updated_at: 2026-09-17T07:17:42.354347+00:00
 ---
 
 # MOC一覧
@@ -24,7 +24,7 @@ updated_at: 2026-09-17T06:09:07.862484+00:00
 ## 未整理の境界
 
 - Markdown未昇格クラスタ: 774
-- MOC未所属Markdown: 105
+- MOC未所属Markdown: 106
 
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
 - [[10_Knowledge/24GB GPUがローカルLLMに24GBを与えるわけではない理由]]
@@ -40,6 +40,7 @@ updated_at: 2026-09-17T06:09:07.862484+00:00
 - [[10_Knowledge/Bluffing in Scrabble]]
 - [[10_Knowledge/Building an Escalation Root-Cause Agent with Gemini and ADK]]
 - [[10_Knowledge/Chain-of-Thoughtが役立つ時と害になる時：LLM推論のボトルネック]]
+- [[10_Knowledge/ChatGPT Connects to Health Records, Bringing AI Closer to Clinical Workflows]]
 - [[10_Knowledge/CSSアートのスムージーフードトラック]]
 - [[10_Knowledge/CursorとClaude Code：Laravel開発者にはどちらが勝つか]]
 - [[10_Knowledge/FCバイエルン、Geminiを公式AIパートナーに指名]]
