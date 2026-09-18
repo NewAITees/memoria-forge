@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-18T15:12:06.135164+00:00
+updated_at: 2026-09-18T16:09:43.557775+00:00
 ---
 
 # MOC一覧
@@ -11,28 +11,28 @@ updated_at: 2026-09-18T15:12:06.135164+00:00
 - [[20_MOC/MOC-001|Latest Retrieval Experiment / AI知識構築手順ガイド]] — 3ページ
 - [[20_MOC/MOC-002|205 Million Agent Payments Just  / Is Your AI Account Hacked Quick ]] — 2ページ
 - [[20_MOC/MOC-003|24GB GPUがローカルLLMに24GBを与えるわけではない理 / A GPU Is Two Things, and Only On]] — 2ページ
-- [[20_MOC/MOC-004|AIはまだ赤ちゃんほど効率よく学べない / 自分らしいAIコンテンツファクトリーを構築した方法]] — 2ページ
-- [[20_MOC/MOC-005|AI要約の海に溺れないために｜デジタル世界の路上観察 / 最新検索実験結果解説]] — 2ページ
-- [[20_MOC/MOC-006|About Best in IT Practical AI, A / The Production AI Checklist That]] — 2ページ
-- [[20_MOC/MOC-007|ArbNetバグ修正：クラウド有効期限とデータベース接続障害 / Sentryを探る：ロード時間を短縮する方法]] — 2ページ
-- [[20_MOC/MOC-008|Building a CMS with AI Agents Yo / Why I don’t want AI agents execu]] — 2ページ
-- [[20_MOC/MOC-009|Claude Code自動モード：それでも人間が必要なこと / Show HN 1667, a terminal UI for ]] — 2ページ
-- [[20_MOC/MOC-010|DeepMind's WeatherNext model ach / DeepMindのWeatherNextモデルがサイクロン予測で]] — 2ページ
-- [[20_MOC/MOC-011|How I Simplified My Backend Arch / 高収益なウェブプラットフォームをバックエンドコードなしで構築した]] — 2ページ
-- [[20_MOC/MOC-012|How Should AI Agents Discover Ea / Serve Markdown to AI Agents with]] — 2ページ
-- [[20_MOC/MOC-013|Reviewing AI code from juniors i / The Extra Argument Is a Release ]] — 2ページ
-- [[20_MOC/MOC-014|Why I Built a 100% In-Browser, P / ファイアウォールはAIポリシー：主要18サイトを調査した記録]] — 2ページ
-- [[20_MOC/MOC-015|ブラックホールが“燃料切れ”しない理由が明らかになってきた / 観測史上“最古”のクエーサーが、立て続けに見つかったことの意味]] — 2ページ
-- [[20_MOC/MOC-016|眼底から“視野”を読み解き、緑内障の見逃しに挑む：DeepEye / 誰もが安定した質の手術を受けられる未来を目指して：アナウト]] — 2ページ
+- [[20_MOC/MOC-004|A Practical Pattern for Giving A / Beyond Vibes Architecting Closed]] — 2ページ
+- [[20_MOC/MOC-005|AIはまだ赤ちゃんほど効率よく学べない / 自分らしいAIコンテンツファクトリーを構築した方法]] — 2ページ
+- [[20_MOC/MOC-006|AI要約の海に溺れないために｜デジタル世界の路上観察 / 最新検索実験結果解説]] — 2ページ
+- [[20_MOC/MOC-007|About Best in IT Practical AI, A / The Production AI Checklist That]] — 2ページ
+- [[20_MOC/MOC-008|ArbNetバグ修正：クラウド有効期限とデータベース接続障害 / Sentryを探る：ロード時間を短縮する方法]] — 2ページ
+- [[20_MOC/MOC-009|Building a CMS with AI Agents Yo / Why I don’t want AI agents execu]] — 2ページ
+- [[20_MOC/MOC-010|Claude Code自動モード：それでも人間が必要なこと / Show HN 1667, a terminal UI for ]] — 2ページ
+- [[20_MOC/MOC-011|DeepMind's WeatherNext model ach / DeepMindのWeatherNextモデルがサイクロン予測で]] — 2ページ
+- [[20_MOC/MOC-012|How I Simplified My Backend Arch / 高収益なウェブプラットフォームをバックエンドコードなしで構築した]] — 2ページ
+- [[20_MOC/MOC-013|How Should AI Agents Discover Ea / Serve Markdown to AI Agents with]] — 2ページ
+- [[20_MOC/MOC-014|Reviewing AI code from juniors i / The Extra Argument Is a Release ]] — 2ページ
+- [[20_MOC/MOC-015|Why I Built a 100% In-Browser, P / ファイアウォールはAIポリシー：主要18サイトを調査した記録]] — 2ページ
+- [[20_MOC/MOC-016|ブラックホールが“燃料切れ”しない理由が明らかになってきた / 観測史上“最古”のクエーサーが、立て続けに見つかったことの意味]] — 2ページ
+- [[20_MOC/MOC-017|眼底から“視野”を読み解き、緑内障の見逃しに挑む：DeepEye / 誰もが安定した質の手術を受けられる未来を目指して：アナウト]] — 2ページ
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 756
-- MOC未所属Markdown: 129
+- Markdown未昇格クラスタ: 753
+- MOC未所属Markdown: 128
 
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
 - [[10_Knowledge/24時間365日市場に必要なインフラ]]
-- [[10_Knowledge/A Practical Pattern for Giving AI Agents Access to External APIs with MCP]]
 - [[10_Knowledge/Academic social network developed to connect students through knowledge exchange]]
 - [[10_Knowledge/AI companies look to the ocean as a place to put more data centers]]
 - [[10_Knowledge/AI labs cutting off Cursor and Windsurf is the platform risk nobody priced in]]
