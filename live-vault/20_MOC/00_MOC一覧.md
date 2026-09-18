@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-17T23:17:09.386649+00:00
+updated_at: 2026-09-18T01:10:37.534073+00:00
 ---
 
 # MOC一覧
@@ -17,7 +17,7 @@ updated_at: 2026-09-17T23:17:09.386649+00:00
 - [[20_MOC/MOC-007|Building a CMS with AI Agents Yo / Why I don’t want AI agents execu]] — 2ページ
 - [[20_MOC/MOC-008|Claude Code自動モード：それでも人間が必要なこと / Show HN 1667, a terminal UI for ]] — 2ページ
 - [[20_MOC/MOC-009|DeepMind's WeatherNext model ach / DeepMindのWeatherNextモデルがサイクロン予測で]] — 2ページ
-- [[20_MOC/MOC-010|How Should AI Agents Discover Ea / Implementing Persistent AI Discl]] — 2ページ
+- [[20_MOC/MOC-010|How Should AI Agents Discover Ea / Serve Markdown to AI Agents with]] — 2ページ
 - [[20_MOC/MOC-011|Why I Built a 100% In-Browser, P / ファイアウォールはAIポリシー：主要18サイトを調査した記録]] — 2ページ
 - [[20_MOC/MOC-012|バックエンド学習プラットフォームを一人で作った記録 / 高収益なウェブプラットフォームをバックエンドコードなしで構築した]] — 2ページ
 - [[20_MOC/MOC-013|ブラックホールが“燃料切れ”しない理由が明らかになってきた / 観測史上“最古”のクエーサーが、立て続けに見つかったことの意味]] — 2ページ
@@ -25,8 +25,8 @@ updated_at: 2026-09-17T23:17:09.386649+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 769
-- MOC未所属Markdown: 118
+- Markdown未昇格クラスタ: 767
+- MOC未所属Markdown: 119
 
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
 - [[10_Knowledge/24時間365日市場に必要なインフラ]]
@@ -58,6 +58,7 @@ updated_at: 2026-09-17T23:17:09.386649+00:00
 - [[10_Knowledge/How can a cake be cut into two equal pieces]]
 - [[10_Knowledge/I Measured What Self-Hosted Chatwoot Actually Uses. 348,703 Messages, 1.8 GB of]]
 - [[10_Knowledge/I Ran 89,479 WhatsApp Messages Through WAHA. Twilio $604]]
+- [[10_Knowledge/Implementing Persistent AI Disclosure Without Killing the Persona Experience]]
 - [[10_Knowledge/It is a sign of the times that Amazon gets to call this fair use]]
 - [[10_Knowledge/Java Spring Bootのログ設定と本番運用]]
 - [[10_Knowledge/JavaScriptのブロックスコープ]]
