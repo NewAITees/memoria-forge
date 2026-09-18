@@ -1,0 +1,52 @@
+---
+title: カーネルアップグレードでiptablesが破壊される原因
+type: knowledge
+status: draft
+created: 2026-09-18
+updated: 2026-09-18
+confidence: medium
+---
+
+# カーネルアップグレードでiptablesが破壊される原因
+
+## 結論
+
+カーネルのアップグレードにより、Raspberry Piの6.18カーネルラインではlegacy iptablesがサポートされなくなったことが確認され、ip_tables.ko、iptable_nat.ko、iptable_filter.koなどのモジュールが意図的にビルドされない。この問題はnftablesへの移行が進んでいるためであり、エラーのメッセージが誤ってカーネルのアップグレードを推奨しているため、ユーザーが混乱する原因となっている。実際にはnftablesへの移行が必要であることが明確に示されている。
+
+## テーマ概要
+
+カーネルアップグレードにより、legacy iptablesがサポートされなくなったという問題が注目されている。特に、Raspberry Piの6.18カーネルラインでは、ip_tables.ko、iptable_nat.ko、iptable_filter.koなどのモジュールが意図的にビルドされず、nftablesへの移行が推奨されている。このエラーは、カーネルのアップグレードを誤って推奨しているため、ユーザーが混乱する原因となっている。また、カーネル構成ファイルではlegacy iptablesが有効に設定されているにもかかわらず、必要なモジュールが存在しないため、実際にはnftablesを導入する必要がある。この問題は、カーネルとネットワーク設定の互換性に関する深い理解が求められる技術的な課題として注目されている。
+
+## 共通して確認できる点
+
+複数の記事で共通して確認できた事実として、iptablesがカーネルのアップグレードによりサポートされなくなったという情報が挙げられている。特に、Raspberry Piの6.18カーネルラインでは、legacy iptablesがnftablesに置き換えられ、ip_tables.ko、iptable_nat.ko、iptable_filter.koといったモジュールがビルドされない。これは意図的な設計であり、カーネル構成ファイルではCONFIG_IP_NF_IPTABLES=mが設定されているものの、実際にはlegacyモジュールはビルドされない。このため、legacy iptablesの設定が誤って期待されることが原因で、エラーが発生する。また、エラーのメッセージがカーネルのアップグレードを推奨しているが、実際にはnftablesへの移行が必要であることが指摘されている。
+
+## 記事ごとの差分・視点の違い
+
+記事ごとの立場や強調点、論点の違いは以下の通りです。
+
+記事1は、Raspberry Piの6.18カーネルラインにおけるlegacy iptablesの非サポートについて詳しく説明しています。カーネルのアップグレードが問題の原因であり、nftablesへの移行が必要であることを強調しています。また、カーネル構成ファイルの設定と現実の動作の矛盾を指摘し、誤ったエラーメッセージが発生している点を指摘しています。この記事では、技術的な背景と具体的なエラーの原因について詳しく掘り下げています。
+
+記事2は、カーネルのアップグレード後にiptablesが動作しなくなる問題について論じています。この記事では、iptablesが将来的に廃止される可能性があるため、早めに移行するべきであると述べています。また、カーネルとiptablesの関係性について簡潔に説明し、解決策としてnftablesへの移行を提案しています。この記事は、問題の背景と解決策を簡潔にまとめたものとなっています。
+
+記事3は、コンテナごとのジョブを実行する方法について説明しています。Dockerfileやビルドプロセスを使わずに、パッケージリストを直接指定してコンテナイメージを作成する方法を紹介しています。この記事では、ビルドプロセスに依存しない方法の利点、つまり再現性の高さやビルド時間の短縮などを強調しています。また、apkoというツールの使用方法も説明しており、コンテナ化の新しいアプローチとしての価値を示しています。
+
+記事4は、Testcontainersを使用してPostgreSQLをNode.jsのテスト環境で使用する方法について説明しています。この記事では、テスト環境で本番環境と同じPostgreSQLを実行し、マиграーションやシーディングを行う方法を紹介しています。また、CI環境での実行方法や、テストの高速化に関するヒントも提供しています。この記事は、テストの信頼性を高めるための実践的なガイドとして位置付けられています。
+
+記事5は、Cloud Run Jobにおけるネットワークの制限について説明しています。Cloud Run Jobは、ネットワークへのアクセスを制限することで、不正なコードの実行を防ぐ設計となっています。この記事では、`unshare -rn`コマンドを使用してネットワーク名前空間を分割し、ネットワークの隔離を実現する方法を紹介しています。また、Cloud Run Jobのスケジューリングや静的IPアドレスの取得方法も触れており、実際の運用における考慮点を示しています。
+
+## 深掘り調査で得られた知見
+
+カーネルのアップグレードにより、legacy iptablesがサポートされなくなった問題が発生している。具体的には、Raspberry Piの6.18カーネルラインでは、ip_tables.ko、iptable_nat.ko、iptable_filter.koといったモジュールが意図的にビルドされない。これはnftablesへの移行が進んでいるためであり、legacy iptablesは非推奨とされている。カーネル構成ではCONFIG_IP_NF_IPTABLES=mが設定されているが、実際にはCONFIG_IP_NF_IPTABLES_LEGACYが使用され、これが未設定のため、必要なモジュールが生成されない。この結果、legacy iptablesをサポートするモジュールが存在しなくなり、エラーが発生する。エラーのメッセージは誤ってカーネルのアップグレードを推奨しているが、実際にはnftablesへの移行が必要である。モジュールディレクトリにはipt_*ファイルが存在するが、必要なテーブルを提供するモジュールが存在しない。これにより、legacy iptablesの設定が誤って期待される。カーネル構成ファイルは、CONFIG_IP_NF_IPTABLESとCONFIG_NFT_COMPATが設定されているが、カーネルのアップグレードによりlegacy iptablesがサポートされなくなったという情報と、カーネル構成がlegacy iptablesをサポートしているという情報が矛盾している。エラーのメッセージがカーネルのアップグレードを推奨しているが、実際にはnftablesへの移行が必要であるという情報が矛盾している。
+
+## 不確実な点・追加確認が必要な点
+
+カーネルのアップグレードにより、legacy iptablesがサポートされなくなったという情報と、カーネル構成がlegacy iptablesをサポートしているという情報が矛盾している。記事1では、Raspberry Piの6.18カーネルラインでは、ip_tables.ko、iptable_nat.ko、iptable_filter.koが意図的にビルドされないことが述べられている。これはnftablesへの移行が進んでいるためであり、legacy iptablesが非推奨となった結果である。しかし、カーネル構成ファイルではCONFIG_IP_NF_IPTABLES=mが設定されているにもかかわらず、必要なモジュールが存在しない状態になっている。このため、エラーのメッセージが誤ってカーネルのアップグレードを推奨しているが、実際にはnftablesへの移行が必要であることが指摘されている。また、エラーのメッセージがカーネルのアップグレードを推奨しているが、実際にはnftablesへの移行が必要であるという情報が矛盾している。この矛盾は、カーネルのアップグレードによりlegacy iptablesがサポートされなくなったという事実と、カーネル構成がlegacy iptablesをサポートしているという事実の違いから生じている。
+
+## 元記事一覧
+
+- [iptablessaysyourkernelneedsupgrading. - DEV Community](https://dev.to/homelabpm/iptables-says-your-kernel-needs-upgrading-upgrading-the-kernel-is-what-broke-it-10le)
+- [[SOLVED]IPTABLESfailed afterkernelupgrade| Forum](https://forums.gentoo.org/viewtopic.php?t=1176990)
+- [Acontainerperjob,withoutadaemon- DEV Community](https://dev.to/amartyadev/a-container-per-job-without-a-daemon-1l7c)
+- [Testcontainers Postgres in Node.js: Complete Guide (2026) | QASkills.sh](https://qaskills.sh/blog/testcontainers-postgres-node-guide)
+- [TakingthenetworkawayfromaCloudRunjob· Amartya Gaur](https://amartya-gaur.com/blog/no-network-inside-a-cloud-run-job/)
