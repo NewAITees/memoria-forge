@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-18T13:23:12.552718+00:00
+updated_at: 2026-09-18T14:10:37.473260+00:00
 ---
 
 # MOC一覧
@@ -28,7 +28,7 @@ updated_at: 2026-09-18T13:23:12.552718+00:00
 ## 未整理の境界
 
 - Markdown未昇格クラスタ: 757
-- MOC未所属Markdown: 127
+- MOC未所属Markdown: 128
 
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
 - [[10_Knowledge/24時間365日市場に必要なインフラ]]
@@ -46,6 +46,7 @@ updated_at: 2026-09-18T13:23:12.552718+00:00
 - [[10_Knowledge/Automating the Workflow My Journey from Jenkins Freestyle Jobs to Declarative Pi]]
 - [[10_Knowledge/Bluffing in Scrabble]]
 - [[10_Knowledge/Building an Escalation Root-Cause Agent with Gemini and ADK]]
+- [[10_Knowledge/Canary Verdicts Do Not Belong on Free Inference]]
 - [[10_Knowledge/Catalyzing the community Chemists and Navajo leaders educate on clean water]]
 - [[10_Knowledge/Chain-of-Thoughtが役立つ時と害になる時：LLM推論のボトルネック]]
 - [[10_Knowledge/ChatGPT Connects to Health Records, Bringing AI Closer to Clinical Workflows]]
