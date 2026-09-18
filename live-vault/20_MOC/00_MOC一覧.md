@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-18T19:17:13.925042+00:00
+updated_at: 2026-09-18T20:16:42.479148+00:00
 ---
 
 # MOC一覧
@@ -29,7 +29,7 @@ updated_at: 2026-09-18T19:17:13.925042+00:00
 ## 未整理の境界
 
 - Markdown未昇格クラスタ: 749
-- MOC未所属Markdown: 131
+- MOC未所属Markdown: 132
 
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
 - [[10_Knowledge/24時間365日市場に必要なインフラ]]
@@ -64,6 +64,7 @@ updated_at: 2026-09-18T19:17:13.925042+00:00
 - [[10_Knowledge/Hash Chains Protect Every Record Except the One That Matters]]
 - [[10_Knowledge/Hot Chips 2026 CUDA Targets RISC-V – By Chester Lam]]
 - [[10_Knowledge/How can a cake be cut into two equal pieces]]
+- [[10_Knowledge/How to Choose a Vector Database for AI and RAG Workloads Without Creating Ops De]]
 - [[10_Knowledge/I built a job-risk checker that never calls an LLM — it reads your GitHub instea]]
 - [[10_Knowledge/I Measured What Self-Hosted Chatwoot Actually Uses. 348,703 Messages, 1.8 GB of]]
 - [[10_Knowledge/I Ran 89,479 WhatsApp Messages Through WAHA. Twilio $604]]
