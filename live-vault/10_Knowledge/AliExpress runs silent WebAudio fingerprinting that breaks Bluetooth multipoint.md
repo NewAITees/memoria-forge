@@ -1,0 +1,48 @@
+---
+title: AliExpress、静かなWebAudioフィンガープリントでBluetoothマルチポイントを妨害
+type: knowledge
+status: draft
+created: 2026-09-19
+updated: 2026-09-19
+confidence: medium
+---
+
+# AliExpress、静かなWebAudioフィンガープリントでBluetoothマルチポイントを妨害
+
+## 結論
+
+AliExpressは、静かなWebAudioフィンガープリント技術を用いてユーザーのデバイス情報を収集しており、この技術がBluetoothマルチポイント機能に影響を及ぼす可能性があることが確認されている。具体的には、collina.jsとfireyejs.jsというスクリプトが背景で音声グラフを生成し、ブラウザとOSが音声パスウェイを保持するため、Bluetoothヘッドホンの音声切り替えを妨げている。この現象は、2026年8月に独立開発者laserphileが発見したが、その影響範囲や普遍性についてはまだ明確にはされていない。
+
+## テーマ概要
+
+AliExpressが静かなWebAudioフィンガープリント技術を採用していることが判明し、Bluetoothマルチポイント機能に影響を及ぼしている。この技術は、ユーザーのデバイスやブラウザの特徴を収集するために、音声出力が聞こえないながらもブラウザが処理する音声グラフを生成する。このフィンガープリントは、Canvas、WebGL、WebRTCなどの技術と組み合わせて、デバイスの詳細なサインを取得し、Alibabaのテレメトリーエンドポイントに送信している。この現象は、BluetoothマルチポイントヘッドホンがPCを開いたままにしておくとスマートフォンへの音声転送ができなくなるという不具合として発覚し、開発者による調査を通じて明らかになった。この技術は、ブラウザやOS、ヘッドホンの実装に依存しており、その影響範囲や普遍性はまだ明確にはされていない。この問題が注目されているのは、ユーザーのプライバシー侵害やデバイスの動作への影響が懸念されるからである。
+
+## 共通して確認できる点
+
+AliExpressは、Bluetooth multipoint機能を破壊する可能性のある静かなWebAudioフィンガープリント技術を実装していることが確認されている。この技術は、ユーザーの追跡を目的としており、ブラウザ内での音声処理を介してデバイスやブラウザの指紋を収集する。具体的には、collina.jsとfireyejs.jsという二つのオブフュースされたスクリプトが、Web Audioコンテキストを生成し、サウンドトゥースオシレーター、アナライザーノード、スクリプトプロセッサノード、ゲインノード（ゲインがゼロ）を組み合わせた音声グラフを構築している。このグラフは、音声として聴こえないが、ブラウザやOSが音声パイプラインを維持するため、Bluetooth multipointヘッドホンの音声切り替えを妨げる副作用を引き起こす。この問題は、2026年8月20日に独立開発者laserphileが発見し、AliExpressのタブを開くとBluetoothヘッドホンがスマートフォンとの接続を失うという症状を確認した。また、この技術は、キャンバスやWebGL、WebRTC、ポインタやタッチ行動などの情報を組み合わせて、Alibabaのテレメトリーエンドポイントに送信する。一方で、この現象の普遍性や、どのOSやブラウザ、ヘッドホンモデルで発生するかについては未確認のままである。
+
+## 記事ごとの差分・視点の違い
+
+記事「AliExpressRunsSilentWebAudioFingerprinting, and It Hijacks...」では、AliExpressが利用する静かなWebAudioフィンガープリント技術がBluetoothマルチポイント機能を破壊していることを中心に説明しており、具体的な技術的な実装やスクリプトの挙動、そしてその結果として生じるシステムリソースの占有について詳しく論じている。また、この技術がユーザーのデバイス情報を収集する手段としての側面も強調されている。一方、「ABluetoothGlitch RevealedAliExpress'sSilentWebAudio...」では、Bluetoothマルチポイントヘッドホンの挙動に影響を与えるという現象が主な焦点であり、その原因としてWebAudioフィンガープリントの実装が挙げられている。この記事では、具体的なデバッグプロセスや、スクリプトがどのように動作するかを実験的に確認した点が特徴的である。また、他の記事では、WebAudioフィンガープリント技術の存在はすでに知られていたが、AliExpressがそれを実装しているという点が注目されており、技術的な詳細やその影響範囲についての議論が行われている。一方で、ベンチマーク最適化や高温超伝導に関する記事は、テーマとは直接関係が薄いため、このセクションでは関連性のない内容として扱われている。
+
+## 深掘り調査で得られた知見
+
+AliExpressは、Bluetoothマルチポイント機能を破壊する可能性のある静かなWebAudioフィンガープリント技術を実装していることが確認されています。この技術は、音声認識モデルがベンチマークに過度に依存する「benchmaxxing」現象とは別の分野ですが、両方ともデバイスやブラウザの特徴を抽出する技術として共通点があります。AliExpressのケースでは、ブラウザのWebAudioコンテキストを背景で暗に実行し、音声出力がない状態でも音声レンダリングの違いを指紋として利用しています。このアプローチは、JavaScriptスクリプトcollina.jsとfireyejs.jsを通じて実装されており、これらのスクリプトはassets.aliexpress-media.comから配信されています。実際の動作では、音声出力がないにもかかわらず、ブラウザとOSが音声パスウェイを保持し続けるため、Bluetoothマルチポイントヘッドホンがスマートフォンへの音声転送を失敗することが観測されています。この現象は、Firefox 118で導入されたフィンガープリント防止機能によって抑止される可能性がありますが、その有効性はまだ議論の対象となっています。また、この技術は、ブラウザやオペレーティングシステム、ヘッドホンモデルごとに異なる挙動を示す可能性があり、その普遍性は未確認のままであります。
+
+## 不確実な点・追加確認が必要な点
+
+記事間の食い違いや、資料からは断定できない点を具体的に挙げると、以下の通りです。  
+
+まず、AliExpressがWebAudioフィンガープリントを実行しているという主張は、複数の記事で確認されていますが、その実装の詳細や影響範囲については一貫性がありません。記事1と記事2では、具体的なスクリプト名（collina.jsとfireyejs.js）やWebAudioグラフの構成（サインウェーブオシレーターやアナライザーノードの配置）が記載されており、技術的な詳細が明確です。しかし、記事3や記事4はAliExpressの技術的実装とは関係なく、音声認識モデルのベンチマーク最適化（benchmaxxing）についての研究を扱っており、主題が完全に一致しません。同様に、記事5は高温超伝導材料に関する研究であり、主題とは全く関係ありません。  
+
+また、AliExpressの技術がBluetoothマルチポイント機能を破壊するという現象については、記事1と記事2が同様の記述をしていますが、その影響がどのOSやブラウザ、ヘッドホンモデルに及ぶかは明確ではありません。一部の情報では、Firefox 118の対策が効果的である可能性があるとされていますが、この点については確認がされていません。さらに、この現象がAliExpressの標準的なフィンガープリント技術の一環である可能性も示唆されていますが、その断定は根拠が不十分です。  
+
+また、記事1と記事2では、WebAudioフィンガープリントの技術が既に知られているものの、AliExpressがそれを物理的な影響を与える形で実装している点が特徴として挙げられています。しかし、この技術の実装がどの程度広範な環境で再現されるか、あるいは特定のブラウザやOSに限定されているかについては、明確な情報が提供されていません。そのため、この現象の普遍性や影響範囲を断定することはできません。
+
+## 元記事一覧
+
+- [AliExpressRunsSilentWebAudioFingerprinting, and It Hijacks...](https://hwbusters.com/news/aliexpress-runs-silent-webaudio-fingerprinting-and-it-hijacks-bluetooth-multipoint/)
+- [ABluetoothGlitch RevealedAliExpress'sSilentWebAudio...](https://xenospectrum.com/en/aliexpress-webaudio-fingerprint/)
+- [Measuringbenchmarkoptimizationinspeechrecognition](https://huggingface.co/blog/asr-benchmark-optimization)
+- [Measuringbenchmarkoptimizationinspeechrecognition| Hume AI](https://www.hume.ai/blog/measuring-benchmark-optimization-in-speech-recognition)
+- [Fabrication and test ofa6-tesla-classhigh-temperature...](https://journals.aps.org/prab/pdf/10.1103/4nhs-bkwh)
