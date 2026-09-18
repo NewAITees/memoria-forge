@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-18T06:10:19.356591+00:00
+updated_at: 2026-09-18T07:12:57.332843+00:00
 ---
 
 # MOC一覧
@@ -26,11 +26,12 @@ updated_at: 2026-09-18T06:10:19.356591+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 757
-- MOC未所属Markdown: 122
+- Markdown未昇格クラスタ: 758
+- MOC未所属Markdown: 123
 
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
 - [[10_Knowledge/24時間365日市場に必要なインフラ]]
+- [[10_Knowledge/A Practical Pattern for Giving AI Agents Access to External APIs with MCP]]
 - [[10_Knowledge/Academic social network developed to connect students through knowledge exchange]]
 - [[10_Knowledge/AI companies look to the ocean as a place to put more data centers]]
 - [[10_Knowledge/AI labs cutting off Cursor and Windsurf is the platform risk nobody priced in]]
