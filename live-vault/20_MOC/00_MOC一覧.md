@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-18T12:11:20.195010+00:00
+updated_at: 2026-09-18T13:23:12.552718+00:00
 ---
 
 # MOC一覧
@@ -28,7 +28,7 @@ updated_at: 2026-09-18T12:11:20.195010+00:00
 ## 未整理の境界
 
 - Markdown未昇格クラスタ: 757
-- MOC未所属Markdown: 126
+- MOC未所属Markdown: 127
 
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
 - [[10_Knowledge/24時間365日市場に必要なインフラ]]
@@ -64,6 +64,7 @@ updated_at: 2026-09-18T12:11:20.195010+00:00
 - [[10_Knowledge/I Measured What Self-Hosted Chatwoot Actually Uses. 348,703 Messages, 1.8 GB of]]
 - [[10_Knowledge/I Ran 89,479 WhatsApp Messages Through WAHA. Twilio $604]]
 - [[10_Knowledge/Implementing Persistent AI Disclosure Without Killing the Persona Experience]]
+- [[10_Knowledge/iptables says your kernel needs upgrading. Upgrading the kernel is what broke it]]
 - [[10_Knowledge/It is a sign of the times that Amazon gets to call this fair use]]
 - [[10_Knowledge/Java Spring Bootのログ設定と本番運用]]
 - [[10_Knowledge/JavaScriptのブロックスコープ]]
