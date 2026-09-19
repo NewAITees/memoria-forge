@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-19T01:08:05.852186+00:00
+updated_at: 2026-09-19T02:14:22.317663+00:00
 ---
 
 # MOC一覧
@@ -30,7 +30,7 @@ updated_at: 2026-09-19T01:08:05.852186+00:00
 ## 未整理の境界
 
 - Markdown未昇格クラスタ: 745
-- MOC未所属Markdown: 135
+- MOC未所属Markdown: 136
 
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
 - [[10_Knowledge/24時間365日市場に必要なインフラ]]
@@ -105,6 +105,7 @@ updated_at: 2026-09-19T01:08:05.852186+00:00
 - [[10_Knowledge/Silent success is worse than a loud agent crash]]
 - [[10_Knowledge/Six curl CVEs after OpenAI and Anthropic came back with zero]]
 - [[10_Knowledge/SKILL.md is not a compiler]]
+- [[10_Knowledge/SOC 2, CRA, NIS2 they all ask your cluster the same five questions]]
 - [[10_Knowledge/Sony makes bold claim about game ownership]]
 - [[10_Knowledge/Splash-free urinals for global sustainability and accessibility]]
 - [[10_Knowledge/STAT+ FDAが2件を承認：新薬と新ワクチン]]
