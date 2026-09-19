@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-19T15:08:11.893038+00:00
+updated_at: 2026-09-19T16:10:10.553055+00:00
 ---
 
 # MOC一覧
@@ -32,8 +32,8 @@ updated_at: 2026-09-19T15:08:11.893038+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 745
-- MOC未所属Markdown: 142
+- Markdown未昇格クラスタ: 744
+- MOC未所属Markdown: 143
 
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
 - [[10_Knowledge/24時間365日市場に必要なインフラ]]
@@ -50,6 +50,7 @@ updated_at: 2026-09-19T15:08:11.893038+00:00
 - [[10_Knowledge/Another Better Lower Bound for N=17 Square Packing]]
 - [[10_Knowledge/Attention Is All You Need The Translation Problem That Led to ChatGPT]]
 - [[10_Knowledge/Automating the Workflow My Journey from Jenkins Freestyle Jobs to Declarative Pi]]
+- [[10_Knowledge/AWS Serverless Patterns and Anti-Patterns What Works, What Breaks, and When to U]]
 - [[10_Knowledge/Blog #2 What I Learned After Building My First Real App]]
 - [[10_Knowledge/Bluffing in Scrabble]]
 - [[10_Knowledge/Building an Escalation Root-Cause Agent with Gemini and ADK]]
