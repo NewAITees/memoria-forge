@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-19T16:10:10.553055+00:00
+updated_at: 2026-09-19T17:10:08.829242+00:00
 ---
 
 # MOC一覧
@@ -22,18 +22,19 @@ updated_at: 2026-09-19T16:10:10.553055+00:00
 - [[20_MOC/MOC-012|DeepMind's WeatherNext model ach / DeepMindのWeatherNextモデルがサイクロン予測で]] — 2ページ
 - [[20_MOC/MOC-013|How I Simplified My Backend Arch / 高収益なウェブプラットフォームをバックエンドコードなしで構築した]] — 2ページ
 - [[20_MOC/MOC-014|How Should AI Agents Discover Ea / Serve Markdown to AI Agents with]] — 2ページ
-- [[20_MOC/MOC-015|Reviewing AI code from juniors i / The Extra Argument Is a Release ]] — 2ページ
-- [[20_MOC/MOC-016|Silent Failures, Not Crashes Wha / Silent success is worse than a l]] — 2ページ
-- [[20_MOC/MOC-017|Why I Built a 100% In-Browser, P / ファイアウォールはAIポリシー：主要18サイトを調査した記録]] — 2ページ
-- [[20_MOC/MOC-018|Why XopProtector Is a Lightweigh / 开源 Android APK 加固项目横向对比]] — 2ページ
-- [[20_MOC/MOC-019|Zero-Budget Release Notes A Case / agent-usage 0.10.0 charts by age]] — 2ページ
-- [[20_MOC/MOC-020|ブラックホールが“燃料切れ”しない理由が明らかになってきた / 観測史上“最古”のクエーサーが、立て続けに見つかったことの意味]] — 2ページ
-- [[20_MOC/MOC-021|眼底から“視野”を読み解き、緑内障の見逃しに挑む：DeepEye / 誰もが安定した質の手術を受けられる未来を目指して：アナウト]] — 2ページ
+- [[20_MOC/MOC-015|Nobody Gets Hired for Knowing No / « J'ai fini le tuto Node, et là ]] — 2ページ
+- [[20_MOC/MOC-016|Reviewing AI code from juniors i / The Extra Argument Is a Release ]] — 2ページ
+- [[20_MOC/MOC-017|Silent Failures, Not Crashes Wha / Silent success is worse than a l]] — 2ページ
+- [[20_MOC/MOC-018|Why I Built a 100% In-Browser, P / ファイアウォールはAIポリシー：主要18サイトを調査した記録]] — 2ページ
+- [[20_MOC/MOC-019|Why XopProtector Is a Lightweigh / 开源 Android APK 加固项目横向对比]] — 2ページ
+- [[20_MOC/MOC-020|Zero-Budget Release Notes A Case / agent-usage 0.10.0 charts by age]] — 2ページ
+- [[20_MOC/MOC-021|ブラックホールが“燃料切れ”しない理由が明らかになってきた / 観測史上“最古”のクエーサーが、立て続けに見つかったことの意味]] — 2ページ
+- [[20_MOC/MOC-022|眼底から“視野”を読み解き、緑内障の見逃しに挑む：DeepEye / 誰もが安定した質の手術を受けられる未来を目指して：アナウト]] — 2ページ
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 744
-- MOC未所属Markdown: 143
+- Markdown未昇格クラスタ: 742
+- MOC未所属Markdown: 142
 
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
 - [[10_Knowledge/24時間365日市場に必要なインフラ]]
@@ -143,7 +144,6 @@ updated_at: 2026-09-19T16:10:10.553055+00:00
 - [[10_Knowledge/Your coding agent already learned this local-first memory with Graft]]
 - [[10_Knowledge/Your TTS shortlist is three shortlists, and they barely intersect]]
 - [[10_Knowledge/Zettelkasten AI統合]]
-- [[10_Knowledge/« J'ai fini le tuto Node, et là je suis bloqué » — le mur dont personne ne parle]]
 - [[10_Knowledge/“ローファイ”によるAIへの抵抗]]
 - [[10_Knowledge/「AI軍拡競争」という物語が現実をつくる──元DeepMind幹部が警鐘]]
 - [[10_Knowledge/「美術館や映画館に通う高齢者ほど体は“若い”」という研究結果は、どこまで本当？]]
