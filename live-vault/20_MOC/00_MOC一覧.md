@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-19T19:09:16.089099+00:00
+updated_at: 2026-09-19T20:14:25.349187+00:00
 ---
 
 # MOC一覧
@@ -33,8 +33,8 @@ updated_at: 2026-09-19T19:09:16.089099+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 740
-- MOC未所属Markdown: 144
+- Markdown未昇格クラスタ: 739
+- MOC未所属Markdown: 145
 
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
 - [[10_Knowledge/24時間365日市場に必要なインフラ]]
@@ -137,6 +137,7 @@ updated_at: 2026-09-19T19:09:16.089099+00:00
 - [[10_Knowledge/Uberはなぜ、自律走行車の普及を遅らせる規制を求めるのか？]]
 - [[10_Knowledge/Undefined type Float8_e4m3fn on Apple Silicon BF16 and GGUF Workarounds for FP8]]
 - [[10_Knowledge/Understanding the recent DDoS attack against Read the Docs]]
+- [[10_Knowledge/Unlocking Gondwana's 120-million-year archive Karoo record refines timing of ext]]
 - [[10_Knowledge/We found a division by zero bug in FFmpeg with a vibecoded fuzzer]]
 - [[10_Knowledge/What Wallet Popups Don’t Tell You A Developer-Friendly Guide to Web3 Permissions]]
 - [[10_Knowledge/What Your Multisig Threshold Actually Protects]]
