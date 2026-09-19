@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-19T04:16:12.190986+00:00
+updated_at: 2026-09-19T05:17:21.571602+00:00
 ---
 
 # MOC一覧
@@ -25,13 +25,14 @@ updated_at: 2026-09-19T04:16:12.190986+00:00
 - [[20_MOC/MOC-015|Reviewing AI code from juniors i / The Extra Argument Is a Release ]] — 2ページ
 - [[20_MOC/MOC-016|Silent Failures, Not Crashes Wha / Silent success is worse than a l]] — 2ページ
 - [[20_MOC/MOC-017|Why I Built a 100% In-Browser, P / ファイアウォールはAIポリシー：主要18サイトを調査した記録]] — 2ページ
-- [[20_MOC/MOC-018|ブラックホールが“燃料切れ”しない理由が明らかになってきた / 観測史上“最古”のクエーサーが、立て続けに見つかったことの意味]] — 2ページ
-- [[20_MOC/MOC-019|眼底から“視野”を読み解き、緑内障の見逃しに挑む：DeepEye / 誰もが安定した質の手術を受けられる未来を目指して：アナウト]] — 2ページ
+- [[20_MOC/MOC-018|Zero-Budget Release Notes A Case / agent-usage 0.10.0 charts by age]] — 2ページ
+- [[20_MOC/MOC-019|ブラックホールが“燃料切れ”しない理由が明らかになってきた / 観測史上“最古”のクエーサーが、立て続けに見つかったことの意味]] — 2ページ
+- [[20_MOC/MOC-020|眼底から“視野”を読み解き、緑内障の見逃しに挑む：DeepEye / 誰もが安定した質の手術を受けられる未来を目指して：アナウト]] — 2ページ
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 746
-- MOC未所属Markdown: 136
+- Markdown未昇格クラスタ: 747
+- MOC未所属Markdown: 135
 
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
 - [[10_Knowledge/24時間365日市場に必要なインフラ]]
@@ -131,7 +132,6 @@ updated_at: 2026-09-19T04:16:12.190986+00:00
 - [[10_Knowledge/Your agent asked for approval. Where did the answer go]]
 - [[10_Knowledge/Your coding agent already learned this local-first memory with Graft]]
 - [[10_Knowledge/Your TTS shortlist is three shortlists, and they barely intersect]]
-- [[10_Knowledge/Zero-Budget Release Notes A Case Study in Free-Tier LLM Automation]]
 - [[10_Knowledge/Zettelkasten AI統合]]
 - [[10_Knowledge/« J'ai fini le tuto Node, et là je suis bloqué » — le mur dont personne ne parle]]
 - [[10_Knowledge/“ローファイ”によるAIへの抵抗]]
