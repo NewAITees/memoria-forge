@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-19T18:16:16.483196+00:00
+updated_at: 2026-09-19T19:09:16.089099+00:00
 ---
 
 # MOC一覧
@@ -33,8 +33,8 @@ updated_at: 2026-09-19T18:16:16.483196+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 741
-- MOC未所属Markdown: 143
+- Markdown未昇格クラスタ: 740
+- MOC未所属Markdown: 144
 
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
 - [[10_Knowledge/24時間365日市場に必要なインフラ]]
@@ -61,6 +61,7 @@ updated_at: 2026-09-19T18:16:16.483196+00:00
 - [[10_Knowledge/ChatGPT Connects to Health Records, Bringing AI Closer to Clinical Workflows]]
 - [[10_Knowledge/CLAUDE.md for an iOS Team What to Put In It (and What to Leave Out)]]
 - [[10_Knowledge/CSSアートのスムージーフードトラック]]
+- [[10_Knowledge/DataKernelBench Can LLMs Optimize Database Queries on GPUs]]
 - [[10_Knowledge/DeepSeek Harness el harness abierto que hace lo que Claude Code no te deja tocar]]
 - [[10_Knowledge/Designing Healthcare AI for Graceful Failure]]
 - [[10_Knowledge/Despite AI agents, why is StackOverflow still relevant]]
