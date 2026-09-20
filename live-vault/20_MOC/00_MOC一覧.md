@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-20T00:11:50.887505+00:00
+updated_at: 2026-09-20T01:10:43.227427+00:00
 ---
 
 # MOC一覧
@@ -14,31 +14,30 @@ updated_at: 2026-09-20T00:11:50.887505+00:00
 - [[20_MOC/MOC-004|A Practical Pattern for Giving A / Beyond Vibes Architecting Closed]] — 2ページ
 - [[20_MOC/MOC-005|AIはまだ赤ちゃんほど効率よく学べない / 自分らしいAIコンテンツファクトリーを構築した方法]] — 2ページ
 - [[20_MOC/MOC-006|AI要約の海に溺れないために｜デジタル世界の路上観察 / 最新検索実験結果解説]] — 2ページ
-- [[20_MOC/MOC-007|About Best in IT Practical AI, A / The Production AI Checklist That]] — 2ページ
-- [[20_MOC/MOC-008|ArbNetバグ修正：クラウド有効期限とデータベース接続障害 / Sentryを探る：ロード時間を短縮する方法]] — 2ページ
-- [[20_MOC/MOC-009|Building a CMS with AI Agents Yo / Why I don’t want AI agents execu]] — 2ページ
-- [[20_MOC/MOC-010|Claude Code自動モード：それでも人間が必要なこと / Show HN 1667, a terminal UI for ]] — 2ページ
-- [[20_MOC/MOC-011|CursorとClaude Code：Laravel開発者にはど / Why 75% of Developers Prefer Cla]] — 2ページ
-- [[20_MOC/MOC-012|DeepMind's WeatherNext model ach / DeepMindのWeatherNextモデルがサイクロン予測で]] — 2ページ
-- [[20_MOC/MOC-013|How I Simplified My Backend Arch / 高収益なウェブプラットフォームをバックエンドコードなしで構築した]] — 2ページ
-- [[20_MOC/MOC-014|How Should AI Agents Discover Ea / Serve Markdown to AI Agents with]] — 2ページ
-- [[20_MOC/MOC-015|Nobody Gets Hired for Knowing No / « J'ai fini le tuto Node, et là ]] — 2ページ
-- [[20_MOC/MOC-016|Reviewing AI code from juniors i / The Extra Argument Is a Release ]] — 2ページ
-- [[20_MOC/MOC-017|Silent Failures, Not Crashes Wha / Silent success is worse than a l]] — 2ページ
-- [[20_MOC/MOC-018|Why I Built a 100% In-Browser, P / ファイアウォールはAIポリシー：主要18サイトを調査した記録]] — 2ページ
-- [[20_MOC/MOC-019|Why XopProtector Is a Lightweigh / 开源 Android APK 加固项目横向对比]] — 2ページ
-- [[20_MOC/MOC-020|Zero-Budget Release Notes A Case / agent-usage 0.10.0 charts by age]] — 2ページ
-- [[20_MOC/MOC-021|ブラックホールが“燃料切れ”しない理由が明らかになってきた / 観測史上“最古”のクエーサーが、立て続けに見つかったことの意味]] — 2ページ
-- [[20_MOC/MOC-022|眼底から“視野”を読み解き、緑内障の見逃しに挑む：DeepEye / 誰もが安定した質の手術を受けられる未来を目指して：アナウト]] — 2ページ
+- [[20_MOC/MOC-007|ArbNetバグ修正：クラウド有効期限とデータベース接続障害 / Sentryを探る：ロード時間を短縮する方法]] — 2ページ
+- [[20_MOC/MOC-008|Claude Code自動モード：それでも人間が必要なこと / Show HN 1667, a terminal UI for ]] — 2ページ
+- [[20_MOC/MOC-009|CursorとClaude Code：Laravel開発者にはど / Why 75% of Developers Prefer Cla]] — 2ページ
+- [[20_MOC/MOC-010|DeepMind's WeatherNext model ach / DeepMindのWeatherNextモデルがサイクロン予測で]] — 2ページ
+- [[20_MOC/MOC-011|How I Simplified My Backend Arch / 高収益なウェブプラットフォームをバックエンドコードなしで構築した]] — 2ページ
+- [[20_MOC/MOC-012|I Built a Self-Hosted AI Enginee / Why I don’t want AI agents execu]] — 2ページ
+- [[20_MOC/MOC-013|Nobody Gets Hired for Knowing No / « J'ai fini le tuto Node, et là ]] — 2ページ
+- [[20_MOC/MOC-014|Reviewing AI code from juniors i / The Extra Argument Is a Release ]] — 2ページ
+- [[20_MOC/MOC-015|Silent Failures, Not Crashes Wha / Silent success is worse than a l]] — 2ページ
+- [[20_MOC/MOC-016|Why I Built a 100% In-Browser, P / ファイアウォールはAIポリシー：主要18サイトを調査した記録]] — 2ページ
+- [[20_MOC/MOC-017|Why XopProtector Is a Lightweigh / 开源 Android APK 加固项目横向对比]] — 2ページ
+- [[20_MOC/MOC-018|ブラックホールが“燃料切れ”しない理由が明らかになってきた / 観測史上“最古”のクエーサーが、立て続けに見つかったことの意味]] — 2ページ
+- [[20_MOC/MOC-019|眼底から“視野”を読み解き、緑内障の見逃しに挑む：DeepEye / 誰もが安定した質の手術を受けられる未来を目指して：アナウト]] — 2ページ
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 735
-- MOC未所属Markdown: 149
+- Markdown未昇格クラスタ: 733
+- MOC未所属Markdown: 156
 
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
 - [[10_Knowledge/24時間365日市場に必要なインフラ]]
+- [[10_Knowledge/About Best in IT Practical AI, Automation and Developer Tools]]
 - [[10_Knowledge/Academic social network developed to connect students through knowledge exchange]]
+- [[10_Knowledge/agent-usage 0.10.0 charts by agent, billing domain, and model]]
 - [[10_Knowledge/AI companies look to the ocean as a place to put more data centers]]
 - [[10_Knowledge/AI labs cutting off Cursor and Windsurf is the platform risk nobody priced in]]
 - [[10_Knowledge/AIツールをGoogle Earthに追加すると何十年も築いた地図への信頼が揺らいだ]]
@@ -54,6 +53,7 @@ updated_at: 2026-09-20T00:11:50.887505+00:00
 - [[10_Knowledge/AWS Serverless Patterns and Anti-Patterns What Works, What Breaks, and When to U]]
 - [[10_Knowledge/Blog #2 What I Learned After Building My First Real App]]
 - [[10_Knowledge/Bluffing in Scrabble]]
+- [[10_Knowledge/Building a CMS with AI Agents You Don't Write the Code, You Audit the Decisions]]
 - [[10_Knowledge/Building an Escalation Root-Cause Agent with Gemini and ADK]]
 - [[10_Knowledge/Canary Verdicts Do Not Belong on Free Inference]]
 - [[10_Knowledge/Catalyzing the community Chemists and Navajo leaders educate on clean water]]
@@ -76,6 +76,7 @@ updated_at: 2026-09-20T00:11:50.887505+00:00
 - [[10_Knowledge/Hot Chips 2026 CUDA Targets RISC-V – By Chester Lam]]
 - [[10_Knowledge/How can a cake be cut into two equal pieces]]
 - [[10_Knowledge/How LLMs Actually Work A Practical Guide for Product Managers]]
+- [[10_Knowledge/How Should AI Agents Discover Each Other]]
 - [[10_Knowledge/How to audit a free AI visibility score with six manual checks]]
 - [[10_Knowledge/How to Choose a Vector Database for AI and RAG Workloads Without Creating Ops De]]
 - [[10_Knowledge/How to Verify a 'Trained-From-Scratch' LLM in 2026 A Provenance and Fingerprinti]]
@@ -120,6 +121,7 @@ updated_at: 2026-09-20T00:11:50.887505+00:00
 - [[10_Knowledge/Rustを一緒に学ぼう]]
 - [[10_Knowledge/Scraping Ethically A Practical Guide to Respectful Web Crawling]]
 - [[10_Knowledge/Senate committee votes along party lines to hold Fauci in contempt of Congress]]
+- [[10_Knowledge/Serve Markdown to AI Agents with Accept Headers]]
 - [[10_Knowledge/Six curl CVEs after OpenAI and Anthropic came back with zero]]
 - [[10_Knowledge/SKILL.md is not a compiler]]
 - [[10_Knowledge/SOC 2, CRA, NIS2 they all ask your cluster the same five questions]]
@@ -134,6 +136,7 @@ updated_at: 2026-09-20T00:11:50.887505+00:00
 - [[10_Knowledge/The enum value that had never been written]]
 - [[10_Knowledge/The Headless Workspace How Antigravity CLI Lowers the Neovim Learning Curve]]
 - [[10_Knowledge/The money was already approved. It stopped at a sheet of paper nobody could read]]
+- [[10_Knowledge/The Production AI Checklist That Nobody Publishes]]
 - [[10_Knowledge/The Reply Looks Finished. Record the Finish Reason]]
 - [[10_Knowledge/Transfer Learning for Named Entity Recognition of Classical Latin through LLM Pr]]
 - [[10_Knowledge/Trumpが物議を醸すワクチン政策に回帰]]
@@ -150,6 +153,7 @@ updated_at: 2026-09-20T00:11:50.887505+00:00
 - [[10_Knowledge/Your coding agent already learned this local-first memory with Graft]]
 - [[10_Knowledge/Your Solana Wallet Is Holding Money You Forgot About — Here's the On-Chain Reaso]]
 - [[10_Knowledge/Your TTS shortlist is three shortlists, and they barely intersect]]
+- [[10_Knowledge/Zero-Budget Release Notes A Case Study in Free-Tier LLM Automation]]
 - [[10_Knowledge/Zettelkasten AI統合]]
 - [[10_Knowledge/“ローファイ”によるAIへの抵抗]]
 - [[10_Knowledge/「AI軍拡競争」という物語が現実をつくる──元DeepMind幹部が警鐘]]
