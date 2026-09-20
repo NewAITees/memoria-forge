@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-20T21:12:50.604507+00:00
+updated_at: 2026-09-20T22:11:35.430587+00:00
 ---
 
 # MOC一覧
@@ -33,7 +33,7 @@ updated_at: 2026-09-20T21:12:50.604507+00:00
 ## 未整理の境界
 
 - Markdown未昇格クラスタ: 726
-- MOC未所属Markdown: 172
+- MOC未所属Markdown: 173
 
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
 - [[10_Knowledge/24時間365日市場に必要なインフラ]]
@@ -96,6 +96,7 @@ updated_at: 2026-09-20T21:12:50.604507+00:00
 - [[10_Knowledge/Implementing Persistent AI Disclosure Without Killing the Persona Experience]]
 - [[10_Knowledge/iptables says your kernel needs upgrading. Upgrading the kernel is what broke it]]
 - [[10_Knowledge/It is a sign of the times that Amazon gets to call this fair use]]
+- [[10_Knowledge/It's Time to Rethink Agile. The Albatross Method Is the Advanced PM's Choice]]
 - [[10_Knowledge/Java Spring Bootのログ設定と本番運用]]
 - [[10_Knowledge/JavaScriptのブロックスコープ]]
 - [[10_Knowledge/JWT Authentication in Node.js A Practical Guide (with Express)]]
