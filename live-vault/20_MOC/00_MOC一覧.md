@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-20T05:09:38.234421+00:00
+updated_at: 2026-09-20T06:13:07.995177+00:00
 ---
 
 # MOC一覧
@@ -30,8 +30,8 @@ updated_at: 2026-09-20T05:09:38.234421+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 730
-- MOC未所属Markdown: 160
+- Markdown未昇格クラスタ: 728
+- MOC未所属Markdown: 161
 
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
 - [[10_Knowledge/24時間365日市場に必要なインフラ]]
@@ -92,6 +92,7 @@ updated_at: 2026-09-20T05:09:38.234421+00:00
 - [[10_Knowledge/Java Spring Bootのログ設定と本番運用]]
 - [[10_Knowledge/JavaScriptのブロックスコープ]]
 - [[10_Knowledge/JWT Authentication in Node.js A Practical Guide (with Express)]]
+- [[10_Knowledge/Laravel 13 A Practical Guide for PHP Developers]]
 - [[10_Knowledge/Lectures on piecewise distance-preserving maps]]
 - [[10_Knowledge/LLAMA LIMA A Living Meta-Analysis on the Effects of Generative AI on Learning Ma]]
 - [[10_Knowledge/Looking to Connect with Developers and Open-Source Communities]]
