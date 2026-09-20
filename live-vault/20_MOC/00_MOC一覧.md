@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-20T04:09:35.502695+00:00
+updated_at: 2026-09-20T05:09:38.234421+00:00
 ---
 
 # MOC一覧
@@ -30,8 +30,8 @@ updated_at: 2026-09-20T04:09:35.502695+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 729
-- MOC未所属Markdown: 159
+- Markdown未昇格クラスタ: 730
+- MOC未所属Markdown: 160
 
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
 - [[10_Knowledge/24時間365日市場に必要なインフラ]]
@@ -98,6 +98,7 @@ updated_at: 2026-09-20T04:09:35.502695+00:00
 - [[10_Knowledge/Luanti removed from Google Play due to baseless AI copyright notice]]
 - [[10_Knowledge/Many cities buried urban streams. Here's how to bring them back]]
 - [[10_Knowledge/Meme Monday]]
+- [[10_Knowledge/Mitigating Bias in Large Vision-Language Models via Counterfactual Ensemble Deco]]
 - [[10_Knowledge/Move in C++ without a stdmove]]
 - [[10_Knowledge/MY FIRST GITHUB PROJECT]]
 - [[10_Knowledge/New analysis reveals 'encouraging' global mangrove cover increase despite losses]]
