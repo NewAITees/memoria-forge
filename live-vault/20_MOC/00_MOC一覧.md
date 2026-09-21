@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-21T14:18:10.845006+00:00
+updated_at: 2026-09-21T15:10:44.761246+00:00
 ---
 
 # MOC一覧
@@ -33,9 +33,10 @@ updated_at: 2026-09-21T14:18:10.845006+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 731
-- MOC未所属Markdown: 187
+- Markdown未昇格クラスタ: 730
+- MOC未所属Markdown: 188
 
+- [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
 - [[10_Knowledge/24時間365日市場に必要なインフラ]]
 - [[10_Knowledge/42 commits em uma sessão e eu não revisei nenhum]]
