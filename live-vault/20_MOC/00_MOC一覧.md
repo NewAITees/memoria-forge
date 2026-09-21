@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-21T08:08:18.908283+00:00
+updated_at: 2026-09-21T09:26:01.754191+00:00
 ---
 
 # MOC一覧
@@ -33,8 +33,8 @@ updated_at: 2026-09-21T08:08:18.908283+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 727
-- MOC未所属Markdown: 181
+- Markdown未昇格クラスタ: 730
+- MOC未所属Markdown: 182
 
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
 - [[10_Knowledge/24時間365日市場に必要なインフラ]]
@@ -97,6 +97,7 @@ updated_at: 2026-09-21T08:08:18.908283+00:00
 - [[10_Knowledge/I found a $45 billion number that vanished from NVIDIA's SEC filings]]
 - [[10_Knowledge/I Let an AI Agent Run a SaaS Like a Solo Founder. It Made the Same Mistakes Huma]]
 - [[10_Knowledge/I Measured What Self-Hosted Chatwoot Actually Uses. 348,703 Messages, 1.8 GB of]]
+- [[10_Knowledge/I opened a live agent marketplace. The receipts were the product]]
 - [[10_Knowledge/I Ran 89,479 WhatsApp Messages Through WAHA. Twilio $604]]
 - [[10_Knowledge/I Spent Months Building My Product. Then I Realized Distribution Was the Hard Pa]]
 - [[10_Knowledge/Implementing Persistent AI Disclosure Without Killing the Persona Experience]]
