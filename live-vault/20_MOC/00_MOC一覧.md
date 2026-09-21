@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-21T10:13:50.604544+00:00
+updated_at: 2026-09-21T11:13:57.820652+00:00
 ---
 
 # MOC一覧
@@ -34,10 +34,11 @@ updated_at: 2026-09-21T10:13:50.604544+00:00
 ## 未整理の境界
 
 - Markdown未昇格クラスタ: 732
-- MOC未所属Markdown: 183
+- MOC未所属Markdown: 184
 
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
 - [[10_Knowledge/24時間365日市場に必要なインフラ]]
+- [[10_Knowledge/42 commits em uma sessão e eu não revisei nenhum]]
 - [[10_Knowledge/About Best in IT Practical AI, Automation and Developer Tools]]
 - [[10_Knowledge/Academic social network developed to connect students through knowledge exchange]]
 - [[10_Knowledge/agent-usage 0.10.0 charts by agent, billing domain, and model]]
