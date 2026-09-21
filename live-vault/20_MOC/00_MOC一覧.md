@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-21T16:10:44.027692+00:00
+updated_at: 2026-09-21T17:12:26.119667+00:00
 ---
 
 # MOC一覧
@@ -34,7 +34,7 @@ updated_at: 2026-09-21T16:10:44.027692+00:00
 ## 未整理の境界
 
 - Markdown未昇格クラスタ: 731
-- MOC未所属Markdown: 189
+- MOC未所属Markdown: 190
 
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
@@ -154,6 +154,7 @@ updated_at: 2026-09-21T16:10:44.027692+00:00
 - [[10_Knowledge/SOC 2, CRA, NIS2 they all ask your cluster the same five questions]]
 - [[10_Knowledge/Sony makes bold claim about game ownership]]
 - [[10_Knowledge/Splash-free urinals for global sustainability and accessibility]]
+- [[10_Knowledge/SQL Joins Made Simple]]
 - [[10_Knowledge/STAT+ FDAが2件を承認：新薬と新ワクチン]]
 - [[10_Knowledge/STAT+ MedicareがACCESSを推進する一方対応医療機関を患者に伝えず]]
 - [[10_Knowledge/Supercharge Git Flow Zsh Shortcuts, Automated SemVer & Claude Code Integration]]
