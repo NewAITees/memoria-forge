@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-21T02:18:24.195237+00:00
+updated_at: 2026-09-21T03:08:17.642225+00:00
 ---
 
 # MOC一覧
@@ -33,8 +33,8 @@ updated_at: 2026-09-21T02:18:24.195237+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 726
-- MOC未所属Markdown: 175
+- Markdown未昇格クラスタ: 727
+- MOC未所属Markdown: 176
 
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
 - [[10_Knowledge/24時間365日市場に必要なインフラ]]
@@ -128,6 +128,7 @@ updated_at: 2026-09-21T02:18:24.195237+00:00
 - [[10_Knowledge/Popaボットネットと上場イスラエル企業]]
 - [[10_Knowledge/Pythonでフリーランス業務を自動化する方法]]
 - [[10_Knowledge/Qantas Airbus A380 catastrophic engine failure in 2010 (2023)]]
+- [[10_Knowledge/Quantum Gaussian processes for prediction of channel observations]]
 - [[10_Knowledge/QuarkusとGitHub Actionsで大規模RunnerなしにCI時間を半減]]
 - [[10_Knowledge/Register the Heading What AI May Draft in Docs, and What a Human Must Own]]
 - [[10_Knowledge/Repost note Starlink 10-39 and the data trail after launch]]
