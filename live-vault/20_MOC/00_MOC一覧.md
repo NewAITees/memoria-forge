@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-21T03:08:17.642225+00:00
+updated_at: 2026-09-21T04:09:59.074028+00:00
 ---
 
 # MOC一覧
@@ -33,8 +33,8 @@ updated_at: 2026-09-21T03:08:17.642225+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 727
-- MOC未所属Markdown: 176
+- Markdown未昇格クラスタ: 729
+- MOC未所属Markdown: 177
 
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
 - [[10_Knowledge/24時間365日市場に必要なインフラ]]
@@ -75,6 +75,7 @@ updated_at: 2026-09-21T03:08:17.642225+00:00
 - [[10_Knowledge/Everything Claude Code costs 27,000 tokens before you type. I kept five pieces]]
 - [[10_Knowledge/FCバイエルン、Geminiを公式AIパートナーに指名]]
 - [[10_Knowledge/Four pull requests, four full suites, one answer]]
+- [[10_Knowledge/From Empty Folder to Live URL A Beginner's Full-Stack App on AWS Fargate]]
 - [[10_Knowledge/Genesis-Vault取引が映すオーストラリア金産業の成長戦略]]
 - [[10_Knowledge/Getting Started with Excel for Data Analytics From Basics to Data Cleaning]]
 - [[10_Knowledge/GitHub API Rate Limits an Unauthenticated 304 Still Costs You a Request]]
