@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-21T21:12:16.557430+00:00
+updated_at: 2026-09-21T22:12:39.197023+00:00
 ---
 
 # MOC一覧
@@ -33,8 +33,8 @@ updated_at: 2026-09-21T21:12:16.557430+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 729
-- MOC未所属Markdown: 194
+- Markdown未昇格クラスタ: 728
+- MOC未所属Markdown: 195
 
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
@@ -76,6 +76,7 @@ updated_at: 2026-09-21T21:12:16.557430+00:00
 - [[10_Knowledge/Designing Healthcare AI for Graceful Failure]]
 - [[10_Knowledge/Despite AI agents, why is StackOverflow still relevant]]
 - [[10_Knowledge/Eating more ultra-processed foods may raise prostate cancer risk by 30%]]
+- [[10_Knowledge/Email deliverability in CI what you can actually automate, and what you can't]]
 - [[10_Knowledge/Engineered bacteria offer a new way to accelerate rock weathering for carbon rem]]
 - [[10_Knowledge/Everything Claude Code costs 27,000 tokens before you type. I kept five pieces]]
 - [[10_Knowledge/FCバイエルン、Geminiを公式AIパートナーに指名]]
