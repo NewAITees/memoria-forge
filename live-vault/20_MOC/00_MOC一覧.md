@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-21T05:16:31.035166+00:00
+updated_at: 2026-09-21T06:08:22.609900+00:00
 ---
 
 # MOC一覧
@@ -34,7 +34,7 @@ updated_at: 2026-09-21T05:16:31.035166+00:00
 ## 未整理の境界
 
 - Markdown未昇格クラスタ: 727
-- MOC未所属Markdown: 178
+- MOC未所属Markdown: 179
 
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
 - [[10_Knowledge/24時間365日市場に必要なインフラ]]
@@ -88,6 +88,7 @@ updated_at: 2026-09-21T05:16:31.035166+00:00
 - [[10_Knowledge/How to audit a free AI visibility score with six manual checks]]
 - [[10_Knowledge/How To Develop Logic]]
 - [[10_Knowledge/How to Verify a 'Trained-From-Scratch' LLM in 2026 A Provenance and Fingerprinti]]
+- [[10_Knowledge/HTML is getting cool again Meet the Invoker Commands API]]
 - [[10_Knowledge/I asked astra to make playable 4D chess]]
 - [[10_Knowledge/I built a job-risk checker that never calls an LLM — it reads your GitHub instea]]
 - [[10_Knowledge/I built plugins for three editors. Everywhere, you're a guest in someone else's]]
