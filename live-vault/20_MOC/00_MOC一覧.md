@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-21T18:09:35.162555+00:00
+updated_at: 2026-09-21T19:16:46.681864+00:00
 ---
 
 # MOC一覧
@@ -34,7 +34,7 @@ updated_at: 2026-09-21T18:09:35.162555+00:00
 ## 未整理の境界
 
 - Markdown未昇格クラスタ: 733
-- MOC未所属Markdown: 191
+- MOC未所属Markdown: 192
 
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
@@ -88,6 +88,7 @@ updated_at: 2026-09-21T18:09:35.162555+00:00
 - [[10_Knowledge/Hash Chains Protect Every Record Except the One That Matters]]
 - [[10_Knowledge/Hot Chips 2026 CUDA Targets RISC-V – By Chester Lam]]
 - [[10_Knowledge/How can a cake be cut into two equal pieces]]
+- [[10_Knowledge/How Does Touch Lead To Pain Or Pleasure]]
 - [[10_Knowledge/How LLMs Actually Work A Practical Guide for Product Managers]]
 - [[10_Knowledge/How Should AI Agents Discover Each Other]]
 - [[10_Knowledge/How to audit a free AI visibility score with six manual checks]]
