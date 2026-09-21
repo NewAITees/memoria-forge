@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-21T15:10:44.761246+00:00
+updated_at: 2026-09-21T16:10:44.027692+00:00
 ---
 
 # MOC一覧
@@ -33,8 +33,8 @@ updated_at: 2026-09-21T15:10:44.761246+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 730
-- MOC未所属Markdown: 188
+- Markdown未昇格クラスタ: 731
+- MOC未所属Markdown: 189
 
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
@@ -98,6 +98,7 @@ updated_at: 2026-09-21T15:10:44.761246+00:00
 - [[10_Knowledge/I built a workflow builder that interviews you. Here is what broke]]
 - [[10_Knowledge/I built plugins for three editors. Everywhere, you're a guest in someone else's]]
 - [[10_Knowledge/I found a $45 billion number that vanished from NVIDIA's SEC filings]]
+- [[10_Knowledge/I Got 0 Reactions on dev.to, So I Measured 689 Articles to Find Out Why]]
 - [[10_Knowledge/I Let an AI Agent Run a SaaS Like a Solo Founder. It Made the Same Mistakes Huma]]
 - [[10_Knowledge/I Measured What Self-Hosted Chatwoot Actually Uses. 348,703 Messages, 1.8 GB of]]
 - [[10_Knowledge/I opened a live agent marketplace. The receipts were the product]]
