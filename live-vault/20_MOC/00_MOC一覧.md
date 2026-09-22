@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-22T02:19:16.508372+00:00
+updated_at: 2026-09-22T03:13:28.138083+00:00
 ---
 
 # MOC一覧
@@ -33,8 +33,8 @@ updated_at: 2026-09-22T02:19:16.508372+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 728
-- MOC未所属Markdown: 198
+- Markdown未昇格クラスタ: 727
+- MOC未所属Markdown: 199
 
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
@@ -152,6 +152,7 @@ updated_at: 2026-09-22T02:19:16.508372+00:00
 - [[10_Knowledge/Register the Heading What AI May Draft in Docs, and What a Human Must Own]]
 - [[10_Knowledge/Repost note Starlink 10-39 and the data trail after launch]]
 - [[10_Knowledge/Retries didn't make GitHub resilient. They DDoS'd it]]
+- [[10_Knowledge/Rolling out phishing-resistant multi-factor authentication]]
 - [[10_Knowledge/Rustを一緒に学ぼう]]
 - [[10_Knowledge/Scraping Ethically A Practical Guide to Respectful Web Crawling]]
 - [[10_Knowledge/Senate committee votes along party lines to hold Fauci in contempt of Congress]]
