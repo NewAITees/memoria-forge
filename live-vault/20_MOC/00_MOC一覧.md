@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-22T07:08:39.310063+00:00
+updated_at: 2026-09-22T08:12:12.226507+00:00
 ---
 
 # MOC一覧
@@ -34,7 +34,7 @@ updated_at: 2026-09-22T07:08:39.310063+00:00
 ## 未整理の境界
 
 - Markdown未昇格クラスタ: 723
-- MOC未所属Markdown: 202
+- MOC未所属Markdown: 203
 
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
@@ -82,6 +82,7 @@ updated_at: 2026-09-22T07:08:39.310063+00:00
 - [[10_Knowledge/EU AI Act in 2026 Five Checks for Product Teams]]
 - [[10_Knowledge/Everything Claude Code costs 27,000 tokens before you type. I kept five pieces]]
 - [[10_Knowledge/FCバイエルン、Geminiを公式AIパートナーに指名]]
+- [[10_Knowledge/Formalization of Sullivan's No Wandering Domains Theorem in Lean]]
 - [[10_Knowledge/Four pull requests, four full suites, one answer]]
 - [[10_Knowledge/From Empty Folder to Live URL A Beginner's Full-Stack App on AWS Fargate]]
 - [[10_Knowledge/Fzf - o que é, como instalar e onde usar no dia a dia]]
