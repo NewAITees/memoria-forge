@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-22T17:06:57.123711+00:00
+updated_at: 2026-09-22T18:09:12.150083+00:00
 ---
 
 # MOC一覧
@@ -35,8 +35,8 @@ updated_at: 2026-09-22T17:06:57.123711+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 717
-- MOC未所属Markdown: 205
+- Markdown未昇格クラスタ: 715
+- MOC未所属Markdown: 206
 
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
@@ -56,6 +56,7 @@ updated_at: 2026-09-22T17:06:57.123711+00:00
 - [[10_Knowledge/Ambient CSS v3 – Blender meets CSS]]
 - [[10_Knowledge/An anomalous return of the Odden ice tongue suggests unusual Arctic conditions]]
 - [[10_Knowledge/Another Better Lower Bound for N=17 Square Packing]]
+- [[10_Knowledge/APIC — The Desktop Image Toolkit I Wish Existed Before I Built It]]
 - [[10_Knowledge/Architectural Breakdown We fixed the eval platform we're competing on a TypeErro]]
 - [[10_Knowledge/Attention Is All You Need The Translation Problem That Led to ChatGPT]]
 - [[10_Knowledge/Automating the Workflow My Journey from Jenkins Freestyle Jobs to Declarative Pi]]
