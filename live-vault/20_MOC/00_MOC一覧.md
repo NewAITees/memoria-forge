@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-22T22:11:38.355001+00:00
+updated_at: 2026-09-22T23:16:33.125462+00:00
 ---
 
 # MOC一覧
@@ -36,7 +36,7 @@ updated_at: 2026-09-22T22:11:38.355001+00:00
 ## 未整理の境界
 
 - Markdown未昇格クラスタ: 711
-- MOC未所属Markdown: 209
+- MOC未所属Markdown: 210
 
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
@@ -159,6 +159,7 @@ updated_at: 2026-09-22T22:11:38.355001+00:00
 - [[10_Knowledge/Qantas Airbus A380 catastrophic engine failure in 2010 (2023)]]
 - [[10_Knowledge/Quantum Gaussian processes for prediction of channel observations]]
 - [[10_Knowledge/QuarkusとGitHub Actionsで大規模RunnerなしにCI時間を半減]]
+- [[10_Knowledge/Realtime from First Principles, Part 2 WebSocket and The WebSocket Protocol]]
 - [[10_Knowledge/Register the Heading What AI May Draft in Docs, and What a Human Must Own]]
 - [[10_Knowledge/Repost note Starlink 10-39 and the data trail after launch]]
 - [[10_Knowledge/Retries didn't make GitHub resilient. They DDoS'd it]]
