@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-22T12:19:37.083274+00:00
+updated_at: 2026-09-22T13:10:56.225947+00:00
 ---
 
 # MOC一覧
@@ -33,8 +33,8 @@ updated_at: 2026-09-22T12:19:37.083274+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 723
-- MOC未所属Markdown: 205
+- Markdown未昇格クラスタ: 720
+- MOC未所属Markdown: 206
 
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
@@ -120,6 +120,7 @@ updated_at: 2026-09-22T12:19:37.083274+00:00
 - [[10_Knowledge/It's Time to Rethink Agile. The Albatross Method Is the Advanced PM's Choice]]
 - [[10_Knowledge/Java Spring Bootのログ設定と本番運用]]
 - [[10_Knowledge/JWT Authentication in Node.js A Practical Guide (with Express)]]
+- [[10_Knowledge/Kafka Streams topologies you can draw and run]]
 - [[10_Knowledge/Laravel 13 A Practical Guide for PHP Developers]]
 - [[10_Knowledge/Lectures on piecewise distance-preserving maps]]
 - [[10_Knowledge/LLAMA LIMA A Living Meta-Analysis on the Effects of Generative AI on Learning Ma]]
