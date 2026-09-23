@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-23T06:11:33.771752+00:00
+updated_at: 2026-09-23T07:17:18.525483+00:00
 ---
 
 # MOC一覧
@@ -37,7 +37,7 @@ updated_at: 2026-09-23T06:11:33.771752+00:00
 ## 未整理の境界
 
 - Markdown未昇格クラスタ: 706
-- MOC未所属Markdown: 214
+- MOC未所属Markdown: 215
 
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
@@ -66,6 +66,7 @@ updated_at: 2026-09-23T06:11:33.771752+00:00
 - [[10_Knowledge/Blog #2 What I Learned After Building My First Real App]]
 - [[10_Knowledge/Bluffing in Scrabble]]
 - [[10_Knowledge/Building a CMS with AI Agents You Don't Write the Code, You Audit the Decisions]]
+- [[10_Knowledge/Building a Scalable, HIPAA‑Compliant Healthcare Document Processing Pipeline in]]
 - [[10_Knowledge/Building an Escalation Root-Cause Agent with Gemini and ADK]]
 - [[10_Knowledge/Building Bivack A Cloud Dev Sandbox for Coding Agents on AWS Lambda MicroVMs]]
 - [[10_Knowledge/Canary Verdicts Do Not Belong on Free Inference]]
