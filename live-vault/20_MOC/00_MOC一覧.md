@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-23T07:17:18.525483+00:00
+updated_at: 2026-09-23T08:18:14.480620+00:00
 ---
 
 # MOC一覧
@@ -36,8 +36,8 @@ updated_at: 2026-09-23T07:17:18.525483+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 706
-- MOC未所属Markdown: 215
+- Markdown未昇格クラスタ: 702
+- MOC未所属Markdown: 216
 
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
@@ -182,6 +182,7 @@ updated_at: 2026-09-23T07:17:18.525483+00:00
 - [[10_Knowledge/STAT+ FDAが2件を承認：新薬と新ワクチン]]
 - [[10_Knowledge/STAT+ MedicareがACCESSを推進する一方対応医療機関を患者に伝えず]]
 - [[10_Knowledge/Supercharge Git Flow Zsh Shortcuts, Automated SemVer & Claude Code Integration]]
+- [[10_Knowledge/Sustainable medical electronics can reduce environmental impact by up to 65%]]
 - [[10_Knowledge/T-PHANTOM OS the First Saudi Cybersecurity-Focused Linux Distribution T-PHANTOM]]
 - [[10_Knowledge/T. rexは6600万年前のこの噛み跡を残したのか]]
 - [[10_Knowledge/Tailwind CSS Crash Course for Beginners Build Modern UIs Faster]]
