@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-23T15:15:39.686664+00:00
+updated_at: 2026-09-23T16:07:35.741904+00:00
 ---
 
 # MOC一覧
@@ -37,8 +37,8 @@ updated_at: 2026-09-23T15:15:39.686664+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 702
-- MOC未所属Markdown: 219
+- Markdown未昇格クラスタ: 700
+- MOC未所属Markdown: 220
 
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
@@ -47,6 +47,7 @@ updated_at: 2026-09-23T15:15:39.686664+00:00
 - [[10_Knowledge/A Prompt Is a Specification, Not an Assignment]]
 - [[10_Knowledge/About Best in IT Practical AI, Automation and Developer Tools]]
 - [[10_Knowledge/Academic social network developed to connect students through knowledge exchange]]
+- [[10_Knowledge/After the View Details page loads, the application automatically redirects back]]
 - [[10_Knowledge/agent-usage 0.10.0 charts by agent, billing domain, and model]]
 - [[10_Knowledge/AI companies look to the ocean as a place to put more data centers]]
 - [[10_Knowledge/AI labs cutting off Cursor and Windsurf is the platform risk nobody priced in]]
