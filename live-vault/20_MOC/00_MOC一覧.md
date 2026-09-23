@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-23T12:16:29.923354+00:00
+updated_at: 2026-09-23T14:11:52.875730+00:00
 ---
 
 # MOC一覧
@@ -38,7 +38,7 @@ updated_at: 2026-09-23T12:16:29.923354+00:00
 ## 未整理の境界
 
 - Markdown未昇格クラスタ: 702
-- MOC未所属Markdown: 217
+- MOC未所属Markdown: 218
 
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
@@ -112,6 +112,7 @@ updated_at: 2026-09-23T12:16:29.923354+00:00
 - [[10_Knowledge/How To Develop Logic]]
 - [[10_Knowledge/How to Verify a 'Trained-From-Scratch' LLM in 2026 A Provenance and Fingerprinti]]
 - [[10_Knowledge/HTML is getting cool again Meet the Invoker Commands API]]
+- [[10_Knowledge/I Accidentally Deleted Our Production S3 Bucket — Here's What Happened in the Ne]]
 - [[10_Knowledge/I am 16 and built a local-first, zero-friction infinite canvas notebook (Astravi]]
 - [[10_Knowledge/I asked astra to make playable 4D chess]]
 - [[10_Knowledge/I Asked for a Portfolio but Got a Filing Cabinet]]
