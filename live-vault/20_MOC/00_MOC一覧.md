@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-23T03:21:45.639576+00:00
+updated_at: 2026-09-23T04:11:27.206628+00:00
 ---
 
 # MOC一覧
@@ -37,7 +37,7 @@ updated_at: 2026-09-23T03:21:45.639576+00:00
 ## 未整理の境界
 
 - Markdown未昇格クラスタ: 708
-- MOC未所属Markdown: 211
+- MOC未所属Markdown: 212
 
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
@@ -120,6 +120,7 @@ updated_at: 2026-09-23T03:21:45.639576+00:00
 - [[10_Knowledge/I opened a live agent marketplace. The receipts were the product]]
 - [[10_Knowledge/I Ran 89,479 WhatsApp Messages Through WAHA. Twilio $604]]
 - [[10_Knowledge/I Spent Months Building My Product. Then I Realized Distribution Was the Hard Pa]]
+- [[10_Knowledge/IaC além do Terraform - OpenTofu, o fork que virou alternativa séria]]
 - [[10_Knowledge/Implementing Persistent AI Disclosure Without Killing the Persona Experience]]
 - [[10_Knowledge/iptables says your kernel needs upgrading. Upgrading the kernel is what broke it]]
 - [[10_Knowledge/It is a sign of the times that Amazon gets to call this fair use]]
