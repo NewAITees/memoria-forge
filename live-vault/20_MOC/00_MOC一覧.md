@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-23T08:18:14.480620+00:00
+updated_at: 2026-09-23T09:09:11.631400+00:00
 ---
 
 # MOC一覧
@@ -36,8 +36,8 @@ updated_at: 2026-09-23T08:18:14.480620+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 702
-- MOC未所属Markdown: 216
+- Markdown未昇格クラスタ: 700
+- MOC未所属Markdown: 217
 
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
@@ -63,6 +63,7 @@ updated_at: 2026-09-23T08:18:14.480620+00:00
 - [[10_Knowledge/Automating the Workflow My Journey from Jenkins Freestyle Jobs to Declarative Pi]]
 - [[10_Knowledge/AWS Secrets Management Secrets Manager vs Parameter Store vs KMS — The Complete]]
 - [[10_Knowledge/AWS Serverless Patterns and Anti-Patterns What Works, What Breaks, and When to U]]
+- [[10_Knowledge/Beyond Pure Relational SQL Designing Hybrid Multi-Model Persistence with Postgre]]
 - [[10_Knowledge/Blog #2 What I Learned After Building My First Real App]]
 - [[10_Knowledge/Bluffing in Scrabble]]
 - [[10_Knowledge/Building a CMS with AI Agents You Don't Write the Code, You Audit the Decisions]]
