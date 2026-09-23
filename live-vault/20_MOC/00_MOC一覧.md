@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-23T11:09:07.407224+00:00
+updated_at: 2026-09-23T12:16:29.923354+00:00
 ---
 
 # MOC一覧
@@ -38,7 +38,7 @@ updated_at: 2026-09-23T11:09:07.407224+00:00
 ## 未整理の境界
 
 - Markdown未昇格クラスタ: 702
-- MOC未所属Markdown: 216
+- MOC未所属Markdown: 217
 
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
@@ -127,6 +127,7 @@ updated_at: 2026-09-23T11:09:07.407224+00:00
 - [[10_Knowledge/I Spent Months Building My Product. Then I Realized Distribution Was the Hard Pa]]
 - [[10_Knowledge/IaC além do Terraform - OpenTofu, o fork que virou alternativa séria]]
 - [[10_Knowledge/Implementing Persistent AI Disclosure Without Killing the Persona Experience]]
+- [[10_Knowledge/iOS Visual Regression Testing with simctl and Pixel Diffs]]
 - [[10_Knowledge/iptables says your kernel needs upgrading. Upgrading the kernel is what broke it]]
 - [[10_Knowledge/It is a sign of the times that Amazon gets to call this fair use]]
 - [[10_Knowledge/It's Time to Rethink Agile. The Albatross Method Is the Advanced PM's Choice]]
