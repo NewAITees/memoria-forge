@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-23T10:11:14.758122+00:00
+updated_at: 2026-09-23T11:09:07.407224+00:00
 ---
 
 # MOC一覧
@@ -28,16 +28,17 @@ updated_at: 2026-09-23T10:11:14.758122+00:00
 - [[20_MOC/MOC-018|Iron hydride enters an exotic st / 地球深部からのニュートリノがマントルの新たな姿を示す]] — 2ページ
 - [[20_MOC/MOC-019|Nobody Gets Hired for Knowing No / « J'ai fini le tuto Node, et là ]] — 2ページ
 - [[20_MOC/MOC-020|Reviewing AI code from juniors i / The Extra Argument Is a Release ]] — 2ページ
-- [[20_MOC/MOC-021|Silent Failures, Not Crashes Wha / Silent success is worse than a l]] — 2ページ
-- [[20_MOC/MOC-022|Why I Built a 100% In-Browser, P / ファイアウォールはAIポリシー：主要18サイトを調査した記録]] — 2ページ
-- [[20_MOC/MOC-023|Why XopProtector Is a Lightweigh / 开源 Android APK 加固项目横向对比]] — 2ページ
-- [[20_MOC/MOC-024|ブラックホールが“燃料切れ”しない理由が明らかになってきた / 観測史上“最古”のクエーサーが、立て続けに見つかったことの意味]] — 2ページ
-- [[20_MOC/MOC-025|眼底から“視野”を読み解き、緑内障の見逃しに挑む：DeepEye / 誰もが安定した質の手術を受けられる未来を目指して：アナウト]] — 2ページ
+- [[20_MOC/MOC-021|SOC 2, CRA, NIS2 they all ask yo / The EU Cyber Resilience Act's 24]] — 2ページ
+- [[20_MOC/MOC-022|Silent Failures, Not Crashes Wha / Silent success is worse than a l]] — 2ページ
+- [[20_MOC/MOC-023|Why I Built a 100% In-Browser, P / ファイアウォールはAIポリシー：主要18サイトを調査した記録]] — 2ページ
+- [[20_MOC/MOC-024|Why XopProtector Is a Lightweigh / 开源 Android APK 加固项目横向对比]] — 2ページ
+- [[20_MOC/MOC-025|ブラックホールが“燃料切れ”しない理由が明らかになってきた / 観測史上“最古”のクエーサーが、立て続けに見つかったことの意味]] — 2ページ
+- [[20_MOC/MOC-026|眼底から“視野”を読み解き、緑内障の見逃しに挑む：DeepEye / 誰もが安定した質の手術を受けられる未来を目指して：アナウト]] — 2ページ
 
 ## 未整理の境界
 
 - Markdown未昇格クラスタ: 702
-- MOC未所属Markdown: 217
+- MOC未所属Markdown: 216
 
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
@@ -175,7 +176,6 @@ updated_at: 2026-09-23T10:11:14.758122+00:00
 - [[10_Knowledge/Senate committee votes along party lines to hold Fauci in contempt of Congress]]
 - [[10_Knowledge/Serve Markdown to AI Agents with Accept Headers]]
 - [[10_Knowledge/SKILL.md is not a compiler]]
-- [[10_Knowledge/SOC 2, CRA, NIS2 they all ask your cluster the same five questions]]
 - [[10_Knowledge/Software Testing Interview Questions]]
 - [[10_Knowledge/Sony makes bold claim about game ownership]]
 - [[10_Knowledge/Splash-free urinals for global sustainability and accessibility]]
