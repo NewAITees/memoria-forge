@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-24T18:27:49.962900+00:00
+updated_at: 2026-09-24T19:19:51.348378+00:00
 ---
 
 # MOC一覧
@@ -38,8 +38,8 @@ updated_at: 2026-09-24T18:27:49.962900+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 699
-- MOC未所属Markdown: 226
+- Markdown未昇格クラスタ: 698
+- MOC未所属Markdown: 227
 
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
@@ -209,6 +209,7 @@ updated_at: 2026-09-24T18:27:49.962900+00:00
 - [[10_Knowledge/The money was already approved. It stopped at a sheet of paper nobody could read]]
 - [[10_Knowledge/The Production AI Checklist That Nobody Publishes]]
 - [[10_Knowledge/The Reply Looks Finished. Record the Finish Reason]]
+- [[10_Knowledge/The Systems-Design Reason Clinics Overhire for Admin Work]]
 - [[10_Knowledge/The ₹18 LPA that quietly became ₹1.1L a month]]
 - [[10_Knowledge/Transfer Learning for Named Entity Recognition of Classical Latin through LLM Pr]]
 - [[10_Knowledge/Trumpが物議を醸すワクチン政策に回帰]]
