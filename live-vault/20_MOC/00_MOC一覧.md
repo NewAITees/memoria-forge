@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-24T21:11:10.486534+00:00
+updated_at: 2026-09-24T22:17:40.795919+00:00
 ---
 
 # MOC一覧
@@ -39,8 +39,8 @@ updated_at: 2026-09-24T21:11:10.486534+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 695
-- MOC未所属Markdown: 227
+- Markdown未昇格クラスタ: 696
+- MOC未所属Markdown: 228
 
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
@@ -237,6 +237,7 @@ updated_at: 2026-09-24T21:11:10.486534+00:00
 - [[10_Knowledge/Zero-Budget Release Notes A Case Study in Free-Tier LLM Automation]]
 - [[10_Knowledge/Zettelkasten AI統合]]
 - [[10_Knowledge/“ローファイ”によるAIへの抵抗]]
+- [[10_Knowledge/⚡️ Leverage Go superpowers with PureScript! Native speed w- absolute type safety]]
 - [[10_Knowledge/「AI軍拡競争」という物語が現実をつくる──元DeepMind幹部が警鐘]]
 - [[10_Knowledge/「美術館や映画館に通う高齢者ほど体は“若い”」という研究結果は、どこまで本当？]]
 - [[10_Knowledge/すべて動いていたのにAWSが月額1665ドルを要求した]]
