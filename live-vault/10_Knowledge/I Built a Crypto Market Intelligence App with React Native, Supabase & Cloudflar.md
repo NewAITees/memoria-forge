@@ -1,0 +1,60 @@
+---
+title: 暗号通貨市場インテリジェンスアプリSignalWatchの開発実態
+type: knowledge
+status: draft
+created: 2026-09-24
+updated: 2026-09-24
+confidence: medium
+---
+
+# 暗号通貨市場インテリジェンスアプリSignalWatchの開発実態
+
+## 結論
+
+SignalWatchは、React Nativeをベースにした暗号通貨市場インテリジェンスアプリケーションであり、ユーザーが自然言語で質問を入力し、Cloudflare Workers AIを活用してリアルタイムデータから構造化された回答を生成する仕組みを備えている。このアプリはSupabaseをデータストレージとして利用し、JWTトークンによる認証とJWKSでの検証によりセキュリティを確保しており、BinanceやCoinMarketCapなどのデータソースから情報を取得して市場動向をリアルタイムで反映している。
+
+## テーマ概要
+
+React Nativeをベースにした暗号通貨市場インテリジェンスアプリは、ユーザーが100以上のコインをスキャンし、ユーザー定義の基準に基づいて信号をフィルタリングする機能を備えています。このアプリはSupabaseをデータストレージとして、Cloudflare Workers AIを用いてクエリ処理とデータ取得を行っています。ユーザーは自然言語で質問を入力し、Cloudflare Workerが意図を検出後、Supabaseからリアルタイムデータを取得し、Workers AIが構造化されたデータベースの回答を生成します。このアーキテクチャは、SupabaseのJWTトークンを用いてCloudflare Workerに認証し、トークンの検証をJWKSで行うことでセキュリティを確保しています。また、アプリはBinanceやCoinMarketCapからデータを取得し、市場の動向をリアルタイムで反映することで、競合との差別化を図っています。このプロジェクトは2026年8月22日に公開され、Google Playで配信されており、iOSへの展開も計画されています。暗号通貨市場の情報収集と分析が重要性を増す中、このようなリアルタイムで信頼性の高いインテリジェンスアプリは注目されています。
+
+## 共通して確認できる点
+
+複数の記事で共通して確認できた事実として、React Nativeをベースにした暗号通貨市場のインテリジェンスアプリケーションの開発が行われている。このアプリケーションは、Supabaseをデータストレージとして利用し、Cloudflare Workers AIを活用してユーザーの質問を処理し、データベースからリアルタイムで情報を取得して構造化された回答を生成している。また、アプリケーションはGoogle Playで公開されており、すべてのPro機能が無料で利用可能である。さらに、ユーザー認証にはSupabaseのJWTトークンが使用され、Cloudflare WorkersがそのトークンをJWKSで検証している。また、アプリケーションは100以上の通貨をスキャンし、ユーザーが定義した基準に応じて信号をフィルタリングする機能を持つ。
+
+## 記事ごとの差分・視点の違い
+
+記事「I Built a Crypto Market Intelligence App with React Native, Supabase & Cloudflare Workers AI」では、暗号通貨市場の情報検索と分析を目的としたアプリケーションの構築について詳細に記述されている。この記事では、React Nativeをフロントエンドとして使用し、Supabaseをデータベースとして、Cloudflare Workers AIをAI処理の実行環境として活用している点が強調されている。特に、ユーザーが自然言語で質問を入力し、その質問をもとにデータベースから情報を抽出し、AIが構造化された回答を生成する仕組みが注目されている。また、セキュリティ面では、SupabaseのJWTトークンをCloudflare Workersで検証する仕組みが導入されており、アプリケーション全体の信頼性が強調されている。  
+
+記事「FreeAIAppBuilderwithBackend:FastAPIMicroserviceGuide」では、無料で利用できるAIアプリケーションビルダーの活用方法について解説されている。この記事では、Cursor、Bolt、Lovableなどのプラットフォームが紹介され、それらが提供する無料のホスティング、データベース、認証機能について説明されている。また、これらのプラットフォームの無料枠の制限や、Pythonコンテナの冷起動 latency といった課題についても触れられており、実際の開発で遭遇する問題への対処法が示されている。  
+
+記事「# Building aPersonalNotesAssistant withRAG,AmazonBedrock...」では、RAG（Retrieval-Augmented Generation）技術を用いた個人ノートのアシスタントアプリケーションの構築が中心となっている。この記事では、ユーザーがアップロードしたノート情報をベクトルデータベース（Pinecone）にインデックス化し、AIモデル（Amazon Bedrock）がその情報をもとに質問に回答する仕組みが説明されている。また、セキュリティや情報の正確性を確保するための設計ポイントが強調されており、プライバシーを重視した情報検索システムの構築が注目されている。  
+
+記事「Application Performance Monitoring & Error Tracking Software | Sentry」では、アプリケーションのパフォーマンス監視とエラー追跡に関するツールとしてSentryが紹介されている。この記事では、Sentryが提供するSDKの導入方法や、コードレビュー機能、エラー予測機能などの特徴が説明されており、開発プロセスにおけるエラーの早期発見と修正を目的としたツールとしての価値が強調されている。  
+
+記事「r/FlutterDev on Reddit: Fast Flutter: Building an app with Flutter & FastAPI」では、FlutterとFastAPIを組み合わせてアプリケーションを構築する方法が議論されている。この記事では、FlutterでUIを構築し、FastAPIをバックエンドとして利用するアーキテクチャが紹介されており、SEOやページランクの観点からマーケティングサイトの重要性が指摘されている。また、Flutter Webアプリケーションのパフォーマンスや、Next.jsなどのフレームワークとの比較も行われている。
+
+## 深掘り調査で得られた知見
+
+SignalWatchは、暗号通貨市場のリアルタイム情報を取り扱うアプリケーションとして設計されており、ユーザーが定義した基準に基づいて100以上のコインをスキャンし、信号をフィルタリングする機能を備えています。このアプリはReact Nativeをフロントエンドとして、Supabaseをデータストレージとして、Cloudflare Workers AIをデータ処理とAIによる応答生成に利用しています。ユーザーは自然言語で質問を入力できるように設計されており、例えば「RSI < 30 かつボリュームスパイク > 100% のコインを表示」といった形式で検索が可能です。この質問はCloudflare Workerに送られ、意図を検出後、Supabaseからリアルタイムデータを取得し、Workers AIが構造化されたデータベースの回答を生成します。アプリはSupabaseのJWTトークンを使用してCloudflare Workerに認証し、トークンの検証はSupabaseのJWKSによって行われます。このプロセスでは、ES256とRS256の両方の署名アルゴリズムをサポートする必要があることが確認されています。また、アプリはBinanceやCoinMarketCapなどのデータソースから情報を取得し、ForexFactoryのニュースフィードではHTTP 403エラーが発生する場合、代替としてCoinMarketCapのニュースを表示するように設計されています。このアプリは2026年8月22日に公開され、Google Playで利用可能で、すべてのPro機能が無料で提供されています。iOSへの展開は次のステップとして計画されており、コードベースはExpoを使用しているため、実装は比較的簡単です。
+
+## 不確実な点・追加確認が必要な点
+
+記事間の食い違いや、資料からは断定できない点を具体的に挙げると、以下の通りです。
+
+まず、記事1では「SignalWatch」というアプリが2026年8月22日に公開され、Google Playで配信されていると明記されています。ただし、その公開日は記事の作成時点（2026年）での情報であり、実際の公開日が2026年であるかどうかは確認できません。また、iOSの配信は今後予定されているものの、現時点での情報は不明です。さらに、この記事ではCloudflare Workers AIがデータ処理とAI応答生成に使用されていると述べられていますが、その具体的な実装やAIモデルの種類については記述がありません。
+
+一方で、記事2では、FreeAIAppBuilderwithBackendというプラットフォームが紹介されており、Cursor、Bolt、LovableなどのツールがFree tierでFastAPIマイクロサービスを構築するための選択肢として提示されています。ただし、これらのツールの無料枠にはリソース制限があり、特にPythonコンテナの冷起動 latency が課題として挙げられています。また、これらのツールは「ノーコード」のAIアプリ構築を目的としているものの、Dockerfileを指定することでFastAPIアプリも実行可能であることが示されています。しかし、記事1の内容とは異なり、AIアプリの実装やアーキテクチャに関する具体的な技術的詳細は提供されていません。
+
+記事3では、RAG（Retrieval-Augmented Generation）技術を用いた個人ノートアシスタントの構築が説明されており、Amazon Bedrock、Pinecone、S3、Lambda、API GatewayなどのAWSサービスが利用されていることが明記されています。また、ノートのアップロードプロセスやベクトル検索の仕組みについても説明が含まれています。ただし、この記事は記事1のテーマとは異なるため、直接的な関連性は薄いです。
+
+記事4のSentryはアプリケーションのパフォーマンス監視やエラー追跡に特化したツールであり、記事1のアプリケーションとの関連性は明確ではありません。また、記事5のRedditのコメントは、FlutterとFastAPIを組み合わせたアプリケーション構築についての話題であり、記事1のテーマとは直接の関連性は見られません。
+
+したがって、記事1の内容は、React Native、Supabase、Cloudflare Workers AIを組み合わせた暗号通貨市場インテリジェンスアプリの構築についての詳細な技術的実装が記載されている一方で、他の記事はそれぞれ異なる技術テーマを扱っており、記事1のテーマと直接的な関連性は限定的です。また、記事1の公開日やiOS配信状況などについては、明確な情報が提供されていないため、追加の調査が必要です。
+
+## 元記事一覧
+
+- [I Built a Crypto Market Intelligence App with React Native, Supabase & Cloudflare Workers AI - DEV Community](https://dev.to/alligator_peach_developer/i-built-a-crypto-market-intelligence-app-with-react-native-supabase-cloudflare-workers-ai-4j0e)
+- [FreeAIAppBuilderwithBackend:FastAPIMicroserviceGuide](https://dev.to/ayush_kumar_085a0f2c54e3f/free-ai-app-builder-with-backend-fastapi-microservice-guide-1fdl)
+- [# Building aPersonalNotesAssistant withRAG,AmazonBedrock...](https://dev.to/d3vjamal/-building-a-personal-notes-assistant-with-rag-amazon-bedrock-and-pinecone-4jg3)
+- [Application Performance Monitoring & Error Tracking Software | Sentry](https://sentry.io/welcome/)
+- [r/FlutterDev on Reddit: Fast Flutter: Building an app with Flutter & FastAPI](https://www.reddit.com/r/FlutterDev/comments/o80tzx/fast_flutter_building_an_app_with_flutter_fastapi/)
