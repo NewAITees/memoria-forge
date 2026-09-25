@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-25T22:13:11.003346+00:00
+updated_at: 2026-09-25T23:15:00.663162+00:00
 ---
 
 # MOC一覧
@@ -41,7 +41,7 @@ updated_at: 2026-09-25T22:13:11.003346+00:00
 ## 未整理の境界
 
 - Markdown未昇格クラスタ: 680
-- MOC未所属Markdown: 249
+- MOC未所属Markdown: 250
 
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
 - [[10_Knowledge/2026年のエルニーニョ、観測史上最強となる可能性]]
@@ -78,6 +78,7 @@ updated_at: 2026-09-25T22:13:11.003346+00:00
 - [[10_Knowledge/Building an Escalation Root-Cause Agent with Gemini and ADK]]
 - [[10_Knowledge/Building Bivack A Cloud Dev Sandbox for Coding Agents on AWS Lambda MicroVMs]]
 - [[10_Knowledge/Building Local-First Web Apps Parsing HTML and PDFs to Markdown in the Browser]]
+- [[10_Knowledge/Building Scalable Microservices with NestJS Architecture, Communication & Best P]]
 - [[10_Knowledge/Canary Verdicts Do Not Belong on Free Inference]]
 - [[10_Knowledge/Catalyzing the community Chemists and Navajo leaders educate on clean water]]
 - [[10_Knowledge/Chain-of-Thoughtが役立つ時と害になる時：LLM推論のボトルネック]]
