@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-25T12:12:26.375542+00:00
+updated_at: 2026-09-25T13:12:55.003018+00:00
 ---
 
 # MOC一覧
@@ -40,8 +40,8 @@ updated_at: 2026-09-25T12:12:26.375542+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 687
-- MOC未所属Markdown: 239
+- Markdown未昇格クラスタ: 686
+- MOC未所属Markdown: 240
 
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
@@ -155,6 +155,7 @@ updated_at: 2026-09-25T12:12:26.375542+00:00
 - [[10_Knowledge/Melatonin impairs morning cognition in healthy young adults]]
 - [[10_Knowledge/Meme Monday]]
 - [[10_Knowledge/Memory as transformation LETHE, a self-referential gan-inspired architecture]]
+- [[10_Knowledge/Mental Health Workers Say Algorithmic Triage Is Hurting Patients]]
 - [[10_Knowledge/Mitigating Bias in Large Vision-Language Models via Counterfactual Ensemble Deco]]
 - [[10_Knowledge/MLOps for Developers Deploying, Monitoring, and Optimizing Machine Learning Mode]]
 - [[10_Knowledge/Move in C++ without a stdmove]]
