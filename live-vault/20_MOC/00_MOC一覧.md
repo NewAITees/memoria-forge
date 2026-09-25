@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-25T03:10:16.264736+00:00
+updated_at: 2026-09-25T04:11:53.372444+00:00
 ---
 
 # MOC一覧
@@ -41,7 +41,7 @@ updated_at: 2026-09-25T03:10:16.264736+00:00
 ## 未整理の境界
 
 - Markdown未昇格クラスタ: 694
-- MOC未所属Markdown: 230
+- MOC未所属Markdown: 231
 
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
@@ -209,6 +209,7 @@ updated_at: 2026-09-25T03:10:16.264736+00:00
 - [[10_Knowledge/The commit that fixed my only security advisory failed its security audit. The a]]
 - [[10_Knowledge/The enum value that had never been written]]
 - [[10_Knowledge/The Headless Workspace How Antigravity CLI Lowers the Neovim Learning Curve]]
+- [[10_Knowledge/The Local Dev Setup Cheat Sheet I Wish I Had When I Started 🐍⚡]]
 - [[10_Knowledge/The money was already approved. It stopped at a sheet of paper nobody could read]]
 - [[10_Knowledge/The Production AI Checklist That Nobody Publishes]]
 - [[10_Knowledge/The Reply Looks Finished. Record the Finish Reason]]
