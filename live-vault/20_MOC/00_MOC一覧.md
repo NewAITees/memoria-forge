@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-25T10:18:18.110323+00:00
+updated_at: 2026-09-25T11:12:30.616984+00:00
 ---
 
 # MOC一覧
@@ -40,8 +40,8 @@ updated_at: 2026-09-25T10:18:18.110323+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 687
-- MOC未所属Markdown: 237
+- Markdown未昇格クラスタ: 688
+- MOC未所属Markdown: 238
 
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
@@ -155,6 +155,7 @@ updated_at: 2026-09-25T10:18:18.110323+00:00
 - [[10_Knowledge/Meme Monday]]
 - [[10_Knowledge/Memory as transformation LETHE, a self-referential gan-inspired architecture]]
 - [[10_Knowledge/Mitigating Bias in Large Vision-Language Models via Counterfactual Ensemble Deco]]
+- [[10_Knowledge/MLOps for Developers Deploying, Monitoring, and Optimizing Machine Learning Mode]]
 - [[10_Knowledge/Move in C++ without a stdmove]]
 - [[10_Knowledge/MUI to Shadcn 7 Pitfalls We Hit (And the Fix for Each)]]
 - [[10_Knowledge/MY FIRST GITHUB PROJECT]]
