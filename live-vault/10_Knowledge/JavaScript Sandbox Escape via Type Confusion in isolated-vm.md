@@ -1,0 +1,62 @@
+---
+title: JavaScript Sandbox Escape における型混乱脆弱性
+type: knowledge
+status: draft
+created: 2026-09-26
+updated: 2026-09-26
+confidence: medium
+---
+
+# JavaScript Sandbox Escape における型混乱脆弱性
+
+## 結論
+
+isolated-vmライブラリにおけるJavaScript Sandbox Escape via Type Confusionの脆弱性は、2026年8月に公開された安全アドバイザリで明らかにされ、Node.jsプロセスのメモリを破壊し、リモートコード実行を可能にする深刻な問題である。この脆弱性は、isolated-vmバージョン7.0.1および6.2.0以降で修正され、信頼されていないJavaScriptコードを実行する環境では特に重大なリスクとなる。
+
+## テーマ概要
+
+JavaScript Sandbox Escape via Type Confusion in isolated-vm は、JavaScriptの実行環境を隔離するためのライブラリである isolated-vm に存在する深刻なセキュリティ脆弱性です。この脆弱性は、型の混同（Type Confusion）を悪用し、サンドボックスの境界を突破してホストプロセスの制御フローを乗っ取り、リモートコード実行（RCE）が可能になるという点で注目されています。この問題は、2026年8月に公開された安全アドバイザリーやパッチ情報から確認でき、isolated-vm のバージョン 7.0.1 や 6.2.0 以降に修正が行われました。特に、マルチテナントアプリケーションやAIエージェントプラットフォーム、ワークフローアウトソーシングシステムなど、信頼されていないJavaScriptコードを実行する環境では、この脆弱性が重大なリスクとなるため、現在のセキュリティ対策の中心となっています。
+
+## 共通して確認できる点
+
+JavaScript Sandbox Escape via Type Confusion in isolated-vm に関する調査では、isolated-vmライブラリに深刻な型混同（type confusion）の脆弱性が存在することが確認されました。この脆弱性は、JavaScriptのsandbox環境からホストプロセスへの制御フローの劫持を可能にするもので、Node.jsプロセスのメモリを破壊し、リモートコード実行（RCE）を引き起こす可能性があります。この脆弱性は、isolated-vmのバージョン7.0.1や6.2.0以前で発生し、2026年8月8日に修正が行われ、8月20日に詳細が公開されました。攻撃者は、JavaScriptのgetterで初期検証時に正規のArrayBufferを返すが、2回目のアクセス時に不正な型を返すことで、型混同状態を引き起こし、不正データをsandbox境界を越えて転送することが可能になります。この脆弱性は、マルチテナントアプリケーションやAIエージェントプラットフォーム、ワークフロー自動化システムなど、信頼されていないJavaScriptコードを実行する環境で特に深刻な影響を及ぼします。
+
+## 記事ごとの差分・視点の違い
+
+記事「JavaScriptSandboxEscapeviaTypeConfusioninisolated-vm」は、JavaScriptのサンドボックス逃逸の脆弱性に焦点を当てており、具体的にはisolated-vmライブラリにおける型の混同（type confusion）の問題を解説している。この記事は、攻撃者がJavaScriptコードを実行する際に、型の検証を2回行う際の不完全なチェックを悪用して、ホストプロセスのメモリを破壊し、制御フローを操作できる可能性があることを指摘している。特に、Node.js環境での脆弱性の影響範囲や、パッチの導入時期についても明記しており、技術的な詳細に詳しい。
+
+記事「YourIntegrityChecksAreWatchingtheWrongLayer」は、S3のAnnotations機能がセキュリティチェックの対象外になる可能性を示している。この記事では、ファイル自体は変更されていないにもかかわらず、メタデータのコンテキストを変更することで、セキュリティモニタリングツールが検出できない状況を作り出せる点に注目している。この機能は柔軟性が高いが、セキュリティリスクを生む可能性があるため、適切なアクセス制御と監視が求められるとしている。
+
+記事「Top Threats to Cloud Computing 2026 | CSA」は、クラウドセキュリティの主要な脅威を分析しており、AI関連の脅威が特に注目されている。この記事では、AIが攻撃方法や防御戦略の両方で影響を与えること、ゼロデイ脆弱性の発見が自動化されることなど、AIがもたらす新たな脅威の構造を説明している。また、セキュリティプロパティの検証方法や、スナップショットでの検証可能性についても言及している。
+
+記事「OneCallbackURLMisconfigurationLeaksEveryOAuthToken」は、OAuth 2.0のコールバックURLの誤設定がもたらす深刻なセキュリティリスクを指摘している。特に、、攻撃者がトークンを取得できる可能性がある点を強調している。この記事では、OWASPのTop 10にOAuthの誤設定が含まれていることや、バグバウニーで報酬される可能性についても言及しており、実際の攻撃手法や影響範囲を具体的に説明している。
+
+記事「The Auth Template That Trusted Its Caller: AccessKeyID Injection in EKS」は、AWS EKSにおける認証プロセスの問題点を指摘しており、特にAccessKeyIDのインジェクションによるセキュリティリスクを解説している。この記事では、テンプレートの置換処理がクライアントから取得した値を使用しているため、セキュリティリスクが生じる可能性がある点に注目している。また、修正のための具体的な手順や、CI/CDパイプラインでのリスクを指摘しており、実際の修正対応策も提示している。
+
+## 深掘り調査で得られた知見
+
+JavaScript Sandbox Escape via Type Confusion in isolated-vmの脆弱性は、2026年8月に公開された安全アドバイザリにおいて、isolated-vmライブラリの重大なセキュリティ問題として明らかにされた。この脆弱性は、JavaScriptのsandbox環境からホストプロセスへの制御フローの侵害を可能にするもので、特に多ターニングアプリケーションやAIエージェントプラットフォーム、ワークフロー自動化システムなど、信頼されていないJavaScriptコードを実行する環境において深刻な影響を及ぼす可能性がある。脆弱性は、isolated-vmのNative C++バインディングコードにおけるExternalCopy機能のtransferListオプションの処理ミスにより発生し、攻撃者はJavaScriptのgetterで初期の検証時にArrayBufferを返すが、2度目のアクセス時に不正な型を返すことで、型混乱を引き起こし、ホストメモリの破壊と制御フローの劫持を実現できる。この脆弱性は、isolated-vmのバージョン7.0.1および6.2.0以降で修正され、組織はこれらのバージョンへのアップグレードを強く推奨されている。また、この脆弱性の発見はEndor Labsによるもので、修正は2026年8月8日に実施され、詳細は8月20日に公開された。この脆弱性の存在は、JavaScriptランタイムのセキュリティ設計において重要な教訓となり、今後のsandbox技術の進化に影響を与える可能性がある。
+
+## 不確実な点・追加確認が必要な点
+
+記事間の食い違いや資料からは断定できない点について、以下のように整理されます。
+
+記事1では、isolated-vmライブラリに存在するtype confusionの脆弱性が、JavaScriptサンドボックスからの逃 esc とリモートコード実行（RCE）を可能にするものとして説明されています。この脆弱性は、ExternalCopy機能のtransferListオプションの処理における型検証の不備が原因であり、アタッカーがJavaScript getterを用いて型の変更を可能にすることで、ネイティブコードが未チェックで変換を行うことにより、型の混乱状態を生じさせます。この脆弱性は、2026年8月8日にパッチが適用され、8月20日にセキュリティアドバイザリが公開されました。対応として、isolated-vmの7.0.1や6.2.0へのアップグレードが推奨されています。
+
+一方、記事2では、AWSが2026年6月に導入したS3のAnnotations機能について説明されており、この機能はファイルの変更なしにメタデータを追加・変更可能で、AIエージェントや分析に最適化されているとされています。ただし、この機能はファイル自体の変更なしにコンテキストを変更できるため、セキュリティチェックの対象外となる可能性があると指摘されています。この機能の導入により、セキュリティモニタリングツールやバケットレベルのチェックが検出できない状況が生じる可能性があるとされています。
+
+記事3では、CSAが2026年8月に発表した「Top Threats to Cloud Computing 2026」についての分析が行われており、AI関連の脅威が特に注目されており、Inadequate Identity and Access Managementがトップにランク付けされています。AIが攻撃方法と防御戦略の両方で影響を及ぼしており、ゼロデイ脆弱性の発見が自動化され、攻撃者が新しい脆弱性を迅速に活用できるようになったとされています。
+
+記事4では、OAuth 2.0認証フローにおけるコールバックURLの誤設定が、すべてのOAuthトークンを漏らす脆弱性を引き起こす可能性があるとされています。特に、、攻撃者がこのURLを操作してトークンを取得できる可能性があります。OWASPのTop 10にオープンリダイレクトとOAuthの誤設定が含まれており、バグバウニーではコールバックURLの誤設定に関するレポートが頻繁に報酬されています。
+
+記事5では、AWS EKSの認証プロセスにおいて、AccessKeyIDのインジェクションが発見され、この問題はクライアントが提供するURLのクエリパラメータから取得されるため、セキュリティ上の脆弱性とされています。この問題は、Kubernetes HackerOne 1580493として公表され、修正にはテンプレートの置換をサーバーから取得した値に変更する必要があります。この問題は、CI/CDパイプラインでのIAMテンプレートインジェクションのリスクを指摘しており、修正のための具体的な手順が提示されています。ただし、AWSはこの問題をセキュリティバグとして考慮していないとし、彼らの評価では、この挙動は意図通りであり、セキュリティリスクとは見なしていないとされています。
+
+これらの記事は、それぞれ異なる分野のセキュリティ問題を扱っており、それぞれの脆弱性やリスクの詳細が異なるため、記事間での整合性や一貫性は求められていません。ただし、JavaScript Sandbox Escape via Type Confusion in isolated-vmの問題は、具体的な脆弱性の詳細と対応策が明記されており、他の記事と比べて情報量が豊富である点が特徴です。
+
+## 元記事一覧
+
+- [JavaScriptSandboxEscapeviaTypeConfusioninisolated-vm](https://dev.to/anoymask/javascript-sandbox-escape-via-type-confusion-in-isolated-vm-4op9)
+- [YourIntegrityChecksAreWatchingtheWrongLayer](https://mursalfk.vercel.app/blog/your-integrity-checks-are-watching-the-wrong-layer)
+- [Top Threats to Cloud Computing 2026 | CSA](https://cloudsecurityalliance.org/artifacts/top-threats-to-cloud-computing-2026)
+- [OneCallbackURLMisconfigurationLeaksEveryOAuthToken](https://dev.to/bala_paranj_059d338e44e7e/one-callback-url-misconfiguration-leaks-every-oauth-token-oo)
+- [The Auth Template That Trusted Its Caller: AccessKeyID Injection in EKS - DEV Community](https://dev.to/bala_paranj_059d338e44e7e/the-auth-template-that-trusted-its-caller-accesskeyid-injection-in-eks-5h6o)
