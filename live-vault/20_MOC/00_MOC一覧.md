@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-25T04:11:53.372444+00:00
+updated_at: 2026-09-25T05:17:54.671270+00:00
 ---
 
 # MOC一覧
@@ -40,8 +40,8 @@ updated_at: 2026-09-25T04:11:53.372444+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 694
-- MOC未所属Markdown: 231
+- Markdown未昇格クラスタ: 693
+- MOC未所属Markdown: 232
 
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
@@ -150,6 +150,7 @@ updated_at: 2026-09-25T04:11:53.372444+00:00
 - [[10_Knowledge/Luanti removed from Google Play due to baseless AI copyright notice]]
 - [[10_Knowledge/Major study challenges long-held fears about acetaminophen and ibuprofen use in]]
 - [[10_Knowledge/Many cities buried urban streams. Here's how to bring them back]]
+- [[10_Knowledge/Melatonin impairs morning cognition in healthy young adults]]
 - [[10_Knowledge/Meme Monday]]
 - [[10_Knowledge/Memory as transformation LETHE, a self-referential gan-inspired architecture]]
 - [[10_Knowledge/Mitigating Bias in Large Vision-Language Models via Counterfactual Ensemble Deco]]
