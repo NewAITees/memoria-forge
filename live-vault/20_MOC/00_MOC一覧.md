@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-25T20:10:36.873891+00:00
+updated_at: 2026-09-25T21:18:51.711852+00:00
 ---
 
 # MOC一覧
@@ -41,7 +41,7 @@ updated_at: 2026-09-25T20:10:36.873891+00:00
 ## 未整理の境界
 
 - Markdown未昇格クラスタ: 681
-- MOC未所属Markdown: 247
+- MOC未所属Markdown: 248
 
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
 - [[10_Knowledge/2026年のエルニーニョ、観測史上最強となる可能性]]
@@ -197,6 +197,7 @@ updated_at: 2026-09-25T20:10:36.873891+00:00
 - [[10_Knowledge/Retries didn't make GitHub resilient. They DDoS'd it]]
 - [[10_Knowledge/Rolling out phishing-resistant multi-factor authentication]]
 - [[10_Knowledge/Rustを一緒に学ぼう]]
+- [[10_Knowledge/Scientists reveal how much exercise you really need to protect your heart]]
 - [[10_Knowledge/Scraping Ethically A Practical Guide to Respectful Web Crawling]]
 - [[10_Knowledge/Senate committee votes along party lines to hold Fauci in contempt of Congress]]
 - [[10_Knowledge/Serve Markdown to AI Agents with Accept Headers]]
