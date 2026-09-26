@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-26T20:11:02.007841+00:00
+updated_at: 2026-09-26T21:14:01.779395+00:00
 ---
 
 # MOC一覧
@@ -42,8 +42,8 @@ updated_at: 2026-09-26T20:11:02.007841+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 684
-- MOC未所属Markdown: 266
+- Markdown未昇格クラスタ: 683
+- MOC未所属Markdown: 267
 
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
 - [[10_Knowledge/2026年のエルニーニョ、観測史上最強となる可能性]]
@@ -190,6 +190,7 @@ updated_at: 2026-09-26T20:11:02.007841+00:00
 - [[10_Knowledge/Officially farewell to Linear, Jira, and Trello 🚀]]
 - [[10_Knowledge/Ollama API A Practical Guide with Examples]]
 - [[10_Knowledge/Omarchy Any User Process Can Escalate to Root]]
+- [[10_Knowledge/One Design Fits All—Until It Doesn’t]]
 - [[10_Knowledge/Open Source AI Phone Assistant  Call & Chat]]
 - [[10_Knowledge/OpenAI buying Astral means uv now answers to a model company]]
 - [[10_Knowledge/OpenAI restores 5-hour Codex and Work limits for ChatGPT Plus users]]
