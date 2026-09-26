@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-26T16:20:33.759999+00:00
+updated_at: 2026-09-26T17:11:34.128964+00:00
 ---
 
 # MOC一覧
@@ -42,8 +42,8 @@ updated_at: 2026-09-26T16:20:33.759999+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 683
-- MOC未所属Markdown: 262
+- Markdown未昇格クラスタ: 682
+- MOC未所属Markdown: 263
 
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
 - [[10_Knowledge/2026年のエルニーニョ、観測史上最強となる可能性]]
@@ -198,6 +198,7 @@ updated_at: 2026-09-26T16:20:33.759999+00:00
 - [[10_Knowledge/Pentagon rescinds new testosterone screening policy without explanation]]
 - [[10_Knowledge/Phone Login Admin Operations — Exact Lookup, Profile Updates, and Controlled Del]]
 - [[10_Knowledge/Polyfill、Shim、ネイティブモジュール：React Nativeの教訓]]
+- [[10_Knowledge/Pompeii's destruction helps calibrate volcanic dating to within decades]]
 - [[10_Knowledge/Popaボットネットと上場イスラエル企業]]
 - [[10_Knowledge/Population-level measures of perceived food access reveal barriers beyond geogra]]
 - [[10_Knowledge/Python Polars Cheat Sheet Fast DataFrames for Busy Engineers]]
