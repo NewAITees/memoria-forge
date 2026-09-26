@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-26T03:10:38.500765+00:00
+updated_at: 2026-09-26T04:12:11.990257+00:00
 ---
 
 # MOC一覧
@@ -41,7 +41,7 @@ updated_at: 2026-09-26T03:10:38.500765+00:00
 ## 未整理の境界
 
 - Markdown未昇格クラスタ: 678
-- MOC未所属Markdown: 254
+- MOC未所属Markdown: 255
 
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
 - [[10_Knowledge/2026年のエルニーニョ、観測史上最強となる可能性]]
@@ -226,6 +226,7 @@ updated_at: 2026-09-26T03:10:38.500765+00:00
 - [[10_Knowledge/The ASN Pivot Playbook Routes, Upstreams, Downstreams]]
 - [[10_Knowledge/The biggest mistake i made with client contracts (and how i fixed scope creep)]]
 - [[10_Knowledge/The commit that fixed my only security advisory failed its security audit. The a]]
+- [[10_Knowledge/The darker side of being a doctor]]
 - [[10_Knowledge/The enum value that had never been written]]
 - [[10_Knowledge/The Headless Workspace How Antigravity CLI Lowers the Neovim Learning Curve]]
 - [[10_Knowledge/The Local Dev Setup Cheat Sheet I Wish I Had When I Started 🐍⚡]]
