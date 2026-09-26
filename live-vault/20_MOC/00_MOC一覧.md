@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-26T14:14:47.820830+00:00
+updated_at: 2026-09-26T15:11:00.647152+00:00
 ---
 
 # MOC一覧
@@ -43,7 +43,7 @@ updated_at: 2026-09-26T14:14:47.820830+00:00
 ## 未整理の境界
 
 - Markdown未昇格クラスタ: 683
-- MOC未所属Markdown: 260
+- MOC未所属Markdown: 261
 
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
 - [[10_Knowledge/2026年のエルニーニョ、観測史上最強となる可能性]]
@@ -60,6 +60,7 @@ updated_at: 2026-09-26T14:14:47.820830+00:00
 - [[10_Knowledge/Agents or a proxy the access-control decision you make before you compare any fe]]
 - [[10_Knowledge/AI companies look to the ocean as a place to put more data centers]]
 - [[10_Knowledge/AI labs cutting off Cursor and Windsurf is the platform risk nobody priced in]]
+- [[10_Knowledge/AI, Financial Market Analysis, and the Search for an Edge]]
 - [[10_Knowledge/AIツールをGoogle Earthに追加すると何十年も築いた地図への信頼が揺らいだ]]
 - [[10_Knowledge/AI検索はグローバルサイトのローカライズを翻訳以上のものにする]]
 - [[10_Knowledge/AI生成論文と学術誌の完全性]]
