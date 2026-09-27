@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-27T00:11:36.880607+00:00
+updated_at: 2026-09-27T01:16:50.973202+00:00
 ---
 
 # MOC一覧
@@ -42,8 +42,8 @@ updated_at: 2026-09-27T00:11:36.880607+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 685
-- MOC未所属Markdown: 270
+- Markdown未昇格クラスタ: 684
+- MOC未所属Markdown: 271
 
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
 - [[10_Knowledge/2026年のエルニーニョ、観測史上最強となる可能性]]
@@ -131,6 +131,7 @@ updated_at: 2026-09-27T00:11:36.880607+00:00
 - [[10_Knowledge/How LLMs Actually Work A Practical Guide for Product Managers]]
 - [[10_Knowledge/How Should AI Agents Discover Each Other]]
 - [[10_Knowledge/How to audit a free AI visibility score with six manual checks]]
+- [[10_Knowledge/How to Build a Local-Service Site That Can Answer ‘Can You Fix My RV Today’]]
 - [[10_Knowledge/How to Compress a Photo Under a Specific KB Limit on Android]]
 - [[10_Knowledge/How To Develop Logic]]
 - [[10_Knowledge/How to Track Stripe API Changes Automatically (Before They Break Your Code)]]
