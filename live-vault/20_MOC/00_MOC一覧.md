@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-27T07:26:45.748072+00:00
+updated_at: 2026-09-27T08:18:48.898744+00:00
 ---
 
 # MOC一覧
@@ -42,9 +42,10 @@ updated_at: 2026-09-27T07:26:45.748072+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 678
-- MOC未所属Markdown: 276
+- Markdown未昇格クラスタ: 679
+- MOC未所属Markdown: 277
 
+- [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
 - [[10_Knowledge/2026年のエルニーニョ、観測史上最強となる可能性]]
 - [[10_Knowledge/2026年の主要エンタープライズSCAツール：開発者向け比較]]
