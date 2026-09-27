@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-27T11:31:19.276551+00:00
+updated_at: 2026-09-27T12:29:42.573877+00:00
 ---
 
 # MOC一覧
@@ -43,8 +43,8 @@ updated_at: 2026-09-27T11:31:19.276551+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 680
-- MOC未所属Markdown: 277
+- Markdown未昇格クラスタ: 681
+- MOC未所属Markdown: 278
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -92,6 +92,7 @@ updated_at: 2026-09-27T11:31:19.276551+00:00
 - [[10_Knowledge/Building Bivack A Cloud Dev Sandbox for Coding Agents on AWS Lambda MicroVMs]]
 - [[10_Knowledge/Building CRUD REST APIs with Django REST Framework]]
 - [[10_Knowledge/Building Multi-Region Consensus Checks with Cloudflare Durable Objects]]
+- [[10_Knowledge/Building SAAS, worked on side projects too]]
 - [[10_Knowledge/Building Scalable Microservices with NestJS Architecture, Communication & Best P]]
 - [[10_Knowledge/Canary Verdicts Do Not Belong on Free Inference]]
 - [[10_Knowledge/Catalyzing the community Chemists and Navajo leaders educate on clean water]]
