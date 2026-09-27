@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-27T03:11:50.321244+00:00
+updated_at: 2026-09-27T04:14:25.307689+00:00
 ---
 
 # MOC一覧
@@ -42,8 +42,8 @@ updated_at: 2026-09-27T03:11:50.321244+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 682
-- MOC未所属Markdown: 272
+- Markdown未昇格クラスタ: 680
+- MOC未所属Markdown: 273
 
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
 - [[10_Knowledge/2026年のエルニーニョ、観測史上最強となる可能性]]
@@ -239,6 +239,7 @@ updated_at: 2026-09-27T03:11:50.321244+00:00
 - [[10_Knowledge/Tailwind CSS Crash Course for Beginners Build Modern UIs Faster]]
 - [[10_Knowledge/Technology Is Rarely the Only Constraint]]
 - [[10_Knowledge/Terpstra Keyboard]]
+- [[10_Knowledge/Text to speech on Windows the built-in voices, edge-tts, and why subtitle dubbin]]
 - [[10_Knowledge/The $11k cloud bill was mostly the tools you added to watch the cloud bill]]
 - [[10_Knowledge/The ASN Pivot Playbook Routes, Upstreams, Downstreams]]
 - [[10_Knowledge/The biggest mistake i made with client contracts (and how i fixed scope creep)]]
