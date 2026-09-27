@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-27T04:14:25.307689+00:00
+updated_at: 2026-09-27T05:19:43.153098+00:00
 ---
 
 # MOC一覧
@@ -42,8 +42,8 @@ updated_at: 2026-09-27T04:14:25.307689+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 680
-- MOC未所属Markdown: 273
+- Markdown未昇格クラスタ: 679
+- MOC未所属Markdown: 274
 
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
 - [[10_Knowledge/2026年のエルニーニョ、観測史上最強となる可能性]]
@@ -113,6 +113,7 @@ updated_at: 2026-09-27T04:14:25.307689+00:00
 - [[10_Knowledge/Email deliverability in CI what you can actually automate, and what you can't]]
 - [[10_Knowledge/Engineered bacteria offer a new way to accelerate rock weathering for carbon rem]]
 - [[10_Knowledge/EU AI Act in 2026 Five Checks for Product Teams]]
+- [[10_Knowledge/Every newsletter tool hands you an email address. That address is the lock-in]]
 - [[10_Knowledge/Everything Claude Code costs 27,000 tokens before you type. I kept five pieces]]
 - [[10_Knowledge/FCバイエルン、Geminiを公式AIパートナーに指名]]
 - [[10_Knowledge/Formalization of Sullivan's No Wandering Domains Theorem in Lean]]
