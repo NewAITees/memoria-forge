@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-28T09:17:00.952784+00:00
+updated_at: 2026-09-28T10:26:06.713143+00:00
 ---
 
 # MOC一覧
@@ -41,12 +41,13 @@ updated_at: 2026-09-28T09:17:00.952784+00:00
 - [[20_MOC/MOC-031|Why I Built a 100% In-Browser, P / ファイアウォールはAIポリシー：主要18サイトを調査した記録]] — 2ページ
 - [[20_MOC/MOC-032|Why XopProtector Is a Lightweigh / 开源 Android APK 加固项目横向对比]] — 2ページ
 - [[20_MOC/MOC-033|ブラックホールが“燃料切れ”しない理由が明らかになってきた / 観測史上“最古”のクエーサーが、立て続けに見つかったことの意味]] — 2ページ
-- [[20_MOC/MOC-034|眼底から“視野”を読み解き、緑内障の見逃しに挑む：DeepEye / 誰もが安定した質の手術を受けられる未来を目指して：アナウト]] — 2ページ
+- [[20_MOC/MOC-034|レストランは、人と土地の健康にどう向き合えるのか──レフェルヴェ / 自然を観測し、再生する次世代のAIスタートアップ15選──AI ]] — 2ページ
+- [[20_MOC/MOC-035|眼底から“視野”を読み解き、緑内障の見逃しに挑む：DeepEye / 誰もが安定した質の手術を受けられる未来を目指して：アナウト]] — 2ページ
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 675
-- MOC未所属Markdown: 293
+- Markdown未昇格クラスタ: 676
+- MOC未所属Markdown: 292
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -321,7 +322,6 @@ updated_at: 2026-09-28T09:17:00.952784+00:00
 - [[10_Knowledge/データ利他主義とプラネタリーヘルス：水野祐が考える新しい社会契約〔あるいはそれに代わる何か〕Vol]]
 - [[10_Knowledge/バックエンド学習プラットフォームを一人で作った記録]]
 - [[10_Knowledge/マイクを開いて安全な時とは：Twilioでリアルタイム音声エージェントを構築]]
-- [[10_Knowledge/レストランは、人と土地の健康にどう向き合えるのか──レフェルヴェソンス「Impact Report 2025」が記録する再生の実践]]
 - [[10_Knowledge/レスポンシブWebデザイン]]
 - [[10_Knowledge/中年期にテレビを見すぎると脳が縮む可能性]]
 - [[10_Knowledge/失語症の画像命名エラーから病変パラメータを復元する]]
