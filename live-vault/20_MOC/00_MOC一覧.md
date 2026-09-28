@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-27T23:11:09.630683+00:00
+updated_at: 2026-09-28T00:15:43.226218+00:00
 ---
 
 # MOC一覧
@@ -25,27 +25,28 @@ updated_at: 2026-09-27T23:11:09.630683+00:00
 - [[20_MOC/MOC-015|Claude Code自動モード：それでも人間が必要なこと / Show HN 1667, a terminal UI for ]] — 2ページ
 - [[20_MOC/MOC-016|Closure in javascript / JavaScriptのブロックスコープ]] — 2ページ
 - [[20_MOC/MOC-017|CursorとClaude Code：Laravel開発者にはど / Why 75% of Developers Prefer Cla]] — 2ページ
-- [[20_MOC/MOC-018|Four pull requests, four full su / My 369 Merged Pull Requests On G]] — 2ページ
-- [[20_MOC/MOC-019|GitHub API Rate Limits an Unauth / Your GitHub template repo is a o]] — 2ページ
-- [[20_MOC/MOC-020|How I Simplified My Backend Arch / 高収益なウェブプラットフォームをバックエンドコードなしで構築した]] — 2ページ
-- [[20_MOC/MOC-021|How to Build High-Performance Fl / Your Flutter App Is Hiding Its O]] — 2ページ
-- [[20_MOC/MOC-022|How to Choose a Vector Database  / Top Vector Databases for AI Agen]] — 2ページ
-- [[20_MOC/MOC-023|I Built a Self-Hosted AI Enginee / Why I don’t want AI agents execu]] — 2ページ
-- [[20_MOC/MOC-024|Iron hydride enters an exotic st / 地球深部からのニュートリノがマントルの新たな姿を示す]] — 2ページ
-- [[20_MOC/MOC-025|Nobody Gets Hired for Knowing No / « J'ai fini le tuto Node, et là ]] — 2ページ
-- [[20_MOC/MOC-026|Reviewing AI code from juniors i / The Extra Argument Is a Release ]] — 2ページ
-- [[20_MOC/MOC-027|SOC 2, CRA, NIS2 they all ask yo / The EU Cyber Resilience Act's 24]] — 2ページ
-- [[20_MOC/MOC-028|Silent Failures, Not Crashes Wha / Silent success is worse than a l]] — 2ページ
-- [[20_MOC/MOC-029|Turn chats into Skills, Skills i / n8n vs Custom Code for Engineeri]] — 2ページ
-- [[20_MOC/MOC-030|Why I Built a 100% In-Browser, P / ファイアウォールはAIポリシー：主要18サイトを調査した記録]] — 2ページ
-- [[20_MOC/MOC-031|Why XopProtector Is a Lightweigh / 开源 Android APK 加固项目横向对比]] — 2ページ
-- [[20_MOC/MOC-032|ブラックホールが“燃料切れ”しない理由が明らかになってきた / 観測史上“最古”のクエーサーが、立て続けに見つかったことの意味]] — 2ページ
-- [[20_MOC/MOC-033|眼底から“視野”を読み解き、緑内障の見逃しに挑む：DeepEye / 誰もが安定した質の手術を受けられる未来を目指して：アナウト]] — 2ページ
+- [[20_MOC/MOC-018|EU AI Act in 2026 Five Checks fo / EU Welcomes First IPCEI AI Desig]] — 2ページ
+- [[20_MOC/MOC-019|Four pull requests, four full su / My 369 Merged Pull Requests On G]] — 2ページ
+- [[20_MOC/MOC-020|GitHub API Rate Limits an Unauth / Your GitHub template repo is a o]] — 2ページ
+- [[20_MOC/MOC-021|How I Simplified My Backend Arch / 高収益なウェブプラットフォームをバックエンドコードなしで構築した]] — 2ページ
+- [[20_MOC/MOC-022|How to Build High-Performance Fl / Your Flutter App Is Hiding Its O]] — 2ページ
+- [[20_MOC/MOC-023|How to Choose a Vector Database  / Top Vector Databases for AI Agen]] — 2ページ
+- [[20_MOC/MOC-024|I Built a Self-Hosted AI Enginee / Why I don’t want AI agents execu]] — 2ページ
+- [[20_MOC/MOC-025|Iron hydride enters an exotic st / 地球深部からのニュートリノがマントルの新たな姿を示す]] — 2ページ
+- [[20_MOC/MOC-026|Nobody Gets Hired for Knowing No / « J'ai fini le tuto Node, et là ]] — 2ページ
+- [[20_MOC/MOC-027|Reviewing AI code from juniors i / The Extra Argument Is a Release ]] — 2ページ
+- [[20_MOC/MOC-028|SOC 2, CRA, NIS2 they all ask yo / The EU Cyber Resilience Act's 24]] — 2ページ
+- [[20_MOC/MOC-029|Silent Failures, Not Crashes Wha / Silent success is worse than a l]] — 2ページ
+- [[20_MOC/MOC-030|Turn chats into Skills, Skills i / n8n vs Custom Code for Engineeri]] — 2ページ
+- [[20_MOC/MOC-031|Why I Built a 100% In-Browser, P / ファイアウォールはAIポリシー：主要18サイトを調査した記録]] — 2ページ
+- [[20_MOC/MOC-032|Why XopProtector Is a Lightweigh / 开源 Android APK 加固项目横向对比]] — 2ページ
+- [[20_MOC/MOC-033|ブラックホールが“燃料切れ”しない理由が明らかになってきた / 観測史上“最古”のクエーサーが、立て続けに見つかったことの意味]] — 2ページ
+- [[20_MOC/MOC-034|眼底から“視野”を読み解き、緑内障の見逃しに挑む：DeepEye / 誰もが安定した質の手術を受けられる未来を目指して：アナウト]] — 2ページ
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 678
-- MOC未所属Markdown: 286
+- Markdown未昇格クラスタ: 676
+- MOC未所属Markdown: 285
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -116,7 +117,6 @@ updated_at: 2026-09-27T23:11:09.630683+00:00
 - [[10_Knowledge/Elementor Pro CVE-2026-32475 Active Exploitation of PHP Web Shell via Array Vali]]
 - [[10_Knowledge/Email deliverability in CI what you can actually automate, and what you can't]]
 - [[10_Knowledge/Engineered bacteria offer a new way to accelerate rock weathering for carbon rem]]
-- [[10_Knowledge/EU AI Act in 2026 Five Checks for Product Teams]]
 - [[10_Knowledge/Every newsletter tool hands you an email address. That address is the lock-in]]
 - [[10_Knowledge/Everything Claude Code costs 27,000 tokens before you type. I kept five pieces]]
 - [[10_Knowledge/FCバイエルン、Geminiを公式AIパートナーに指名]]
