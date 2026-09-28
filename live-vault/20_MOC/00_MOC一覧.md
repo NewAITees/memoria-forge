@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-28T16:18:11.511132+00:00
+updated_at: 2026-09-28T17:13:54.008855+00:00
 ---
 
 # MOC一覧
@@ -47,8 +47,8 @@ updated_at: 2026-09-28T16:18:11.511132+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 674
-- MOC未所属Markdown: 296
+- Markdown未昇格クラスタ: 673
+- MOC未所属Markdown: 297
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -185,6 +185,7 @@ updated_at: 2026-09-28T16:18:11.511132+00:00
 - [[10_Knowledge/Kafka Streams topologies you can draw and run]]
 - [[10_Knowledge/Laravel 13 A Practical Guide for PHP Developers]]
 - [[10_Knowledge/Lectures on piecewise distance-preserving maps]]
+- [[10_Knowledge/Lion-man – the oldest confirmed statue ever discovered]]
 - [[10_Knowledge/LLAMA LIMA A Living Meta-Analysis on the Effects of Generative AI on Learning Ma]]
 - [[10_Knowledge/Looking to Connect with Developers and Open-Source Communities]]
 - [[10_Knowledge/Luanti removed from Google Play due to baseless AI copyright notice]]
