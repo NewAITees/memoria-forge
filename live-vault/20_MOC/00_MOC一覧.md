@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-28T07:20:27.654127+00:00
+updated_at: 2026-09-28T08:28:42.649522+00:00
 ---
 
 # MOC一覧
@@ -46,7 +46,7 @@ updated_at: 2026-09-28T07:20:27.654127+00:00
 ## 未整理の境界
 
 - Markdown未昇格クラスタ: 677
-- MOC未所属Markdown: 291
+- MOC未所属Markdown: 292
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -294,6 +294,7 @@ updated_at: 2026-09-28T07:20:27.654127+00:00
 - [[10_Knowledge/When HTTP Retries Become Dangerous Idempotency in Symfony Without the Fairy Tale]]
 - [[10_Knowledge/Why AI-Agent Developers Are Turning to Signal House for SMS and Voice]]
 - [[10_Knowledge/Why End-to-End Crawler Testing Matters Beyond robots.txt for Website Visibility]]
+- [[10_Knowledge/Why I Chose Chi for My Go Backend]]
 - [[10_Knowledge/Windows PCが侵害された可能性を示す10の兆候と監視方法]]
 - [[10_Knowledge/Worst-case glacial lake flood scenarios in a transboundary Himalayan basin 2022]]
 - [[10_Knowledge/Your agent asked for approval. Where did the answer go]]
