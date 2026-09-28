@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-28T10:26:06.713143+00:00
+updated_at: 2026-09-28T11:21:43.676125+00:00
 ---
 
 # MOC一覧
@@ -47,7 +47,7 @@ updated_at: 2026-09-28T10:26:06.713143+00:00
 ## 未整理の境界
 
 - Markdown未昇格クラスタ: 676
-- MOC未所属Markdown: 292
+- MOC未所属Markdown: 293
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -261,6 +261,7 @@ updated_at: 2026-09-28T10:26:06.713143+00:00
 - [[10_Knowledge/The biggest mistake i made with client contracts (and how i fixed scope creep)]]
 - [[10_Knowledge/The commit that fixed my only security advisory failed its security audit. The a]]
 - [[10_Knowledge/The darker side of being a doctor]]
+- [[10_Knowledge/The doors don't lock on an AI agent. They congest]]
 - [[10_Knowledge/The enum value that had never been written]]
 - [[10_Knowledge/The Headless Workspace How Antigravity CLI Lowers the Neovim Learning Curve]]
 - [[10_Knowledge/The Local Dev Setup Cheat Sheet I Wish I Had When I Started 🐍⚡]]
