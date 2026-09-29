@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-29T04:27:57.512580+00:00
+updated_at: 2026-09-29T05:17:27.851253+00:00
 ---
 
 # MOC一覧
@@ -47,8 +47,8 @@ updated_at: 2026-09-29T04:27:57.512580+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 675
-- MOC未所属Markdown: 300
+- Markdown未昇格クラスタ: 672
+- MOC未所属Markdown: 301
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -78,6 +78,7 @@ updated_at: 2026-09-29T04:27:57.512580+00:00
 - [[10_Knowledge/An anomalous return of the Odden ice tongue suggests unusual Arctic conditions]]
 - [[10_Knowledge/Android 17 Adds OS-Wide ECH to Hide Website Visits From Network Providers]]
 - [[10_Knowledge/Another Better Lower Bound for N=17 Square Packing]]
+- [[10_Knowledge/Anthropic and Accenture Build a Claude Partnership to Move AI From Pilots to Pro]]
 - [[10_Knowledge/Apache Data Lakehouse Weekly August 19 to 26, 2026]]
 - [[10_Knowledge/APIC — The Desktop Image Toolkit I Wish Existed Before I Built It]]
 - [[10_Knowledge/Architectural Breakdown We fixed the eval platform we're competing on a TypeErro]]
