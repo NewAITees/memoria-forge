@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-29T08:14:01.622797+00:00
+updated_at: 2026-09-29T09:14:21.296348+00:00
 ---
 
 # MOC一覧
@@ -48,7 +48,7 @@ updated_at: 2026-09-29T08:14:01.622797+00:00
 ## 未整理の境界
 
 - Markdown未昇格クラスタ: 674
-- MOC未所属Markdown: 302
+- MOC未所属Markdown: 303
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -186,6 +186,7 @@ updated_at: 2026-09-29T08:14:01.622797+00:00
 - [[10_Knowledge/JavaScript Sandbox Escape via Type Confusion in isolated-vm]]
 - [[10_Knowledge/JWT Authentication in Node.js A Practical Guide (with Express)]]
 - [[10_Knowledge/Kafka Streams topologies you can draw and run]]
+- [[10_Knowledge/Keeping a 3D overlay light enough to leave running all day]]
 - [[10_Knowledge/Laravel 13 A Practical Guide for PHP Developers]]
 - [[10_Knowledge/Lectures on piecewise distance-preserving maps]]
 - [[10_Knowledge/Lion-man – the oldest confirmed statue ever discovered]]
