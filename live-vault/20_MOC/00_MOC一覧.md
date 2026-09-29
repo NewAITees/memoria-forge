@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-29T09:14:21.296348+00:00
+updated_at: 2026-09-29T10:17:43.371885+00:00
 ---
 
 # MOC一覧
@@ -48,7 +48,7 @@ updated_at: 2026-09-29T09:14:21.296348+00:00
 ## 未整理の境界
 
 - Markdown未昇格クラスタ: 674
-- MOC未所属Markdown: 303
+- MOC未所属Markdown: 304
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -316,6 +316,7 @@ updated_at: 2026-09-29T09:14:21.296348+00:00
 - [[10_Knowledge/Your Solana Wallet Is Holding Money You Forgot About — Here's the On-Chain Reaso]]
 - [[10_Knowledge/Your TTS shortlist is three shortlists, and they barely intersect]]
 - [[10_Knowledge/Zero-Budget Release Notes A Case Study in Free-Tier LLM Automation]]
+- [[10_Knowledge/Zero-Copy, Multi-Protocol Storage The Architecture Pattern Data Pipelines Are Mi]]
 - [[10_Knowledge/Zettelkasten AI統合]]
 - [[10_Knowledge/“ローファイ”によるAIへの抵抗]]
 - [[10_Knowledge/⚡️ Leverage Go superpowers with PureScript! Native speed w- absolute type safety]]
