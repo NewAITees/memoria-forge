@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-29T10:17:43.371885+00:00
+updated_at: 2026-09-29T11:17:38.545039+00:00
 ---
 
 # MOC一覧
@@ -48,7 +48,7 @@ updated_at: 2026-09-29T10:17:43.371885+00:00
 ## 未整理の境界
 
 - Markdown未昇格クラスタ: 674
-- MOC未所属Markdown: 304
+- MOC未所属Markdown: 305
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -82,6 +82,7 @@ updated_at: 2026-09-29T10:17:43.371885+00:00
 - [[10_Knowledge/Apache Data Lakehouse Weekly August 19 to 26, 2026]]
 - [[10_Knowledge/APIC — The Desktop Image Toolkit I Wish Existed Before I Built It]]
 - [[10_Knowledge/Architectural Breakdown We fixed the eval platform we're competing on a TypeErro]]
+- [[10_Knowledge/Arquitetura de Software pós-graduação quando “aprender o framework” não é sufici]]
 - [[10_Knowledge/Attention Is All You Need The Translation Problem That Led to ChatGPT]]
 - [[10_Knowledge/Autofixture con entidades inmutables]]
 - [[10_Knowledge/Automating the Workflow My Journey from Jenkins Freestyle Jobs to Declarative Pi]]
