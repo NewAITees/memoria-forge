@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-30T00:15:29.455554+00:00
+updated_at: 2026-09-30T01:14:25.919618+00:00
 ---
 
 # MOC一覧
@@ -48,8 +48,8 @@ updated_at: 2026-09-30T00:15:29.455554+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 664
-- MOC未所属Markdown: 314
+- Markdown未昇格クラスタ: 662
+- MOC未所属Markdown: 315
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -84,6 +84,7 @@ updated_at: 2026-09-30T00:15:29.455554+00:00
 - [[10_Knowledge/Anthropic and Accenture Build a Claude Partnership to Move AI From Pilots to Pro]]
 - [[10_Knowledge/Apache Data Lakehouse Weekly August 19 to 26, 2026]]
 - [[10_Knowledge/Architectural Breakdown We fixed the eval platform we're competing on a TypeErro]]
+- [[10_Knowledge/Are websites still relevant today for the average person]]
 - [[10_Knowledge/Arquitetura de Software pós-graduação quando “aprender o framework” não é sufici]]
 - [[10_Knowledge/Attention Is All You Need The Translation Problem That Led to ChatGPT]]
 - [[10_Knowledge/Autofixture con entidades inmutables]]
