@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-30T08:15:44.304633+00:00
+updated_at: 2026-09-30T09:19:12.123138+00:00
 ---
 
 # MOC一覧
@@ -23,33 +23,34 @@ updated_at: 2026-09-30T08:15:44.304633+00:00
 - [[20_MOC/MOC-013|Architectural Breakdown i built  / Implementing Persistent AI Discl]] — 2ページ
 - [[20_MOC/MOC-014|Blog #2 What I Learned After Bui / The Feature Worked. Then the Bus]] — 2ページ
 - [[20_MOC/MOC-015|Building Local-First Web Apps Pa / Why I built 43+ PDF tools to pro]] — 2ページ
-- [[20_MOC/MOC-016|Claude Code自動モード：それでも人間が必要なこと / Show HN 1667, a terminal UI for ]] — 2ページ
-- [[20_MOC/MOC-017|Closure in javascript / JavaScriptのブロックスコープ]] — 2ページ
-- [[20_MOC/MOC-018|Cpynet a pastebin you talk to wi / Why I Built a 100% In-Browser, P]] — 2ページ
-- [[20_MOC/MOC-019|CursorとClaude Code：Laravel開発者にはど / Why 75% of Developers Prefer Cla]] — 2ページ
-- [[20_MOC/MOC-020|EU AI Act in 2026 Five Checks fo / EU Welcomes First IPCEI AI Desig]] — 2ページ
-- [[20_MOC/MOC-021|Four pull requests, four full su / My 369 Merged Pull Requests On G]] — 2ページ
-- [[20_MOC/MOC-022|GitHub API Rate Limits an Unauth / Your GitHub template repo is a o]] — 2ページ
-- [[20_MOC/MOC-023|How I Simplified My Backend Arch / 高収益なウェブプラットフォームをバックエンドコードなしで構築した]] — 2ページ
-- [[20_MOC/MOC-024|How to Build High-Performance Fl / Talking to Native FFI, Pigeon, a]] — 2ページ
-- [[20_MOC/MOC-025|How to Choose a Vector Database  / Top Vector Databases for AI Agen]] — 2ページ
-- [[20_MOC/MOC-026|I Built a Self-Hosted AI Enginee / Why I don’t want AI agents execu]] — 2ページ
-- [[20_MOC/MOC-027|Iron hydride enters an exotic st / 地球深部からのニュートリノがマントルの新たな姿を示す]] — 2ページ
-- [[20_MOC/MOC-028|Nobody Gets Hired for Knowing No / « J'ai fini le tuto Node, et là ]] — 2ページ
-- [[20_MOC/MOC-029|Quantum Gaussian processes for p / 【特集】来たるべき“量子時代”に備えよ！]] — 2ページ
-- [[20_MOC/MOC-030|Reviewing AI code from juniors i / The Extra Argument Is a Release ]] — 2ページ
-- [[20_MOC/MOC-031|SOC 2, CRA, NIS2 they all ask yo / The EU Cyber Resilience Act's 24]] — 2ページ
-- [[20_MOC/MOC-032|Silent Failures, Not Crashes Wha / Silent success is worse than a l]] — 2ページ
-- [[20_MOC/MOC-033|Turn chats into Skills, Skills i / n8n vs Custom Code for Engineeri]] — 2ページ
-- [[20_MOC/MOC-034|Why XopProtector Is a Lightweigh / 开源 Android APK 加固项目横向对比]] — 2ページ
-- [[20_MOC/MOC-035|ブラックホールが“燃料切れ”しない理由が明らかになってきた / 観測史上“最古”のクエーサーが、立て続けに見つかったことの意味]] — 2ページ
-- [[20_MOC/MOC-036|レストランは、人と土地の健康にどう向き合えるのか──レフェルヴェ / 自然を観測し、再生する次世代のAIスタートアップ15選──AI ]] — 2ページ
-- [[20_MOC/MOC-037|眼底から“視野”を読み解き、緑内障の見逃しに挑む：DeepEye / 誰もが安定した質の手術を受けられる未来を目指して：アナウト]] — 2ページ
+- [[20_MOC/MOC-016|Building a Choose-Your-Own-Adven / NestJS for Express Developers A ]] — 2ページ
+- [[20_MOC/MOC-017|Claude Code自動モード：それでも人間が必要なこと / Show HN 1667, a terminal UI for ]] — 2ページ
+- [[20_MOC/MOC-018|Closure in javascript / JavaScriptのブロックスコープ]] — 2ページ
+- [[20_MOC/MOC-019|Cpynet a pastebin you talk to wi / Why I Built a 100% In-Browser, P]] — 2ページ
+- [[20_MOC/MOC-020|CursorとClaude Code：Laravel開発者にはど / Why 75% of Developers Prefer Cla]] — 2ページ
+- [[20_MOC/MOC-021|EU AI Act in 2026 Five Checks fo / EU Welcomes First IPCEI AI Desig]] — 2ページ
+- [[20_MOC/MOC-022|Four pull requests, four full su / My 369 Merged Pull Requests On G]] — 2ページ
+- [[20_MOC/MOC-023|GitHub API Rate Limits an Unauth / Your GitHub template repo is a o]] — 2ページ
+- [[20_MOC/MOC-024|How I Simplified My Backend Arch / 高収益なウェブプラットフォームをバックエンドコードなしで構築した]] — 2ページ
+- [[20_MOC/MOC-025|How to Build High-Performance Fl / Talking to Native FFI, Pigeon, a]] — 2ページ
+- [[20_MOC/MOC-026|How to Choose a Vector Database  / Top Vector Databases for AI Agen]] — 2ページ
+- [[20_MOC/MOC-027|I Built a Self-Hosted AI Enginee / Why I don’t want AI agents execu]] — 2ページ
+- [[20_MOC/MOC-028|Iron hydride enters an exotic st / 地球深部からのニュートリノがマントルの新たな姿を示す]] — 2ページ
+- [[20_MOC/MOC-029|Nobody Gets Hired for Knowing No / « J'ai fini le tuto Node, et là ]] — 2ページ
+- [[20_MOC/MOC-030|Quantum Gaussian processes for p / 【特集】来たるべき“量子時代”に備えよ！]] — 2ページ
+- [[20_MOC/MOC-031|Reviewing AI code from juniors i / The Extra Argument Is a Release ]] — 2ページ
+- [[20_MOC/MOC-032|SOC 2, CRA, NIS2 they all ask yo / The EU Cyber Resilience Act's 24]] — 2ページ
+- [[20_MOC/MOC-033|Silent Failures, Not Crashes Wha / Silent success is worse than a l]] — 2ページ
+- [[20_MOC/MOC-034|Turn chats into Skills, Skills i / n8n vs Custom Code for Engineeri]] — 2ページ
+- [[20_MOC/MOC-035|Why XopProtector Is a Lightweigh / 开源 Android APK 加固项目横向对比]] — 2ページ
+- [[20_MOC/MOC-036|ブラックホールが“燃料切れ”しない理由が明らかになってきた / 観測史上“最古”のクエーサーが、立て続けに見つかったことの意味]] — 2ページ
+- [[20_MOC/MOC-037|レストランは、人と土地の健康にどう向き合えるのか──レフェルヴェ / 自然を観測し、再生する次世代のAIスタートアップ15選──AI ]] — 2ページ
+- [[20_MOC/MOC-038|眼底から“視野”を読み解き、緑内障の見逃しに挑む：DeepEye / 誰もが安定した質の手術を受けられる未来を目指して：アナウト]] — 2ページ
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 663
-- MOC未所属Markdown: 321
+- Markdown未昇格クラスタ: 661
+- MOC未所属Markdown: 320
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -221,7 +222,6 @@ updated_at: 2026-09-30T08:15:44.304633+00:00
 - [[10_Knowledge/My AI agent found 129 resolving subdomains. The Actor classified 98 as wildcard-]]
 - [[10_Knowledge/My AI feature was failing 26% of the time. Nothing looked broken]]
 - [[10_Knowledge/MY FIRST GITHUB PROJECT]]
-- [[10_Knowledge/NestJS for Express Developers A Practical Guide, With Prisma ORM]]
 - [[10_Knowledge/Networking Fundamentals The Thing Everyone Skips and Shouldn't]]
 - [[10_Knowledge/Never trust a client-supplied tenant ID]]
 - [[10_Knowledge/New analysis reveals 'encouraging' global mangrove cover increase despite losses]]
