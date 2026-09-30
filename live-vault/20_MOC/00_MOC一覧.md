@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-30T18:19:10.531188+00:00
+updated_at: 2026-09-30T19:18:03.438231+00:00
 ---
 
 # MOC一覧
@@ -52,7 +52,7 @@ updated_at: 2026-09-30T18:19:10.531188+00:00
 ## 未整理の境界
 
 - Markdown未昇格クラスタ: 657
-- MOC未所属Markdown: 323
+- MOC未所属Markdown: 324
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -152,6 +152,7 @@ updated_at: 2026-09-30T18:19:10.531188+00:00
 - [[10_Knowledge/How can a cake be cut into two equal pieces]]
 - [[10_Knowledge/How Does Touch Lead To Pain Or Pleasure]]
 - [[10_Knowledge/How I built a fully automated anime streaming platform with 2,733 episodes on $0]]
+- [[10_Knowledge/How I Built a Wedding Planning Suite with Supabase in 3 Months]]
 - [[10_Knowledge/How I Built a Zero-Latency Open Graph & SERP Previewer with Next.js]]
 - [[10_Knowledge/How I stopped fearing the 3 AM pager by forcing idempotency everywhere]]
 - [[10_Knowledge/How LLMs Actually Work A Practical Guide for Product Managers]]
