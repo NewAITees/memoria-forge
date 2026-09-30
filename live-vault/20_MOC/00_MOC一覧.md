@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-30T13:08:38.581371+00:00
+updated_at: 2026-09-30T15:08:32.953591+00:00
 ---
 
 # MOC一覧
@@ -50,8 +50,8 @@ updated_at: 2026-09-30T13:08:38.581371+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 659
-- MOC未所属Markdown: 321
+- Markdown未昇格クラスタ: 661
+- MOC未所属Markdown: 322
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -190,6 +190,7 @@ updated_at: 2026-09-30T13:08:38.581371+00:00
 - [[10_Knowledge/I opened a live agent marketplace. The receipts were the product]]
 - [[10_Knowledge/I Ran 89,479 WhatsApp Messages Through WAHA. Twilio $604]]
 - [[10_Knowledge/I Spent Months Building My Product. Then I Realized Distribution Was the Hard Pa]]
+- [[10_Knowledge/I taught my hand gestures to run an AI coding agent]]
 - [[10_Knowledge/IaC além do Terraform - OpenTofu, o fork que virou alternativa séria]]
 - [[10_Knowledge/Image Upload Gatekeeping 4 Metadata Checks for Early Express Rejection]]
 - [[10_Knowledge/Implementing Validated Mental Health Screeners (Like PHQ-9) on the Web Scoring,]]
