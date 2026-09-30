@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-30T05:25:09.154072+00:00
+updated_at: 2026-09-30T06:23:04.354683+00:00
 ---
 
 # MOC一覧
@@ -48,8 +48,8 @@ updated_at: 2026-09-30T05:25:09.154072+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 666
-- MOC未所属Markdown: 318
+- Markdown未昇格クラスタ: 665
+- MOC未所属Markdown: 319
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -58,6 +58,7 @@ updated_at: 2026-09-30T05:25:09.154072+00:00
 - [[10_Knowledge/24時間365日市場に必要なインフラ]]
 - [[10_Knowledge/42 commits em uma sessão e eu não revisei nenhum]]
 - [[10_Knowledge/48-Hour Field Notes curl Looked Instant. Python Paid a Handshake on Every Call]]
+- [[10_Knowledge/6 Best Stock Market MCP Servers in 2026 Real-Time & SEC Data]]
 - [[10_Knowledge/A Portable Agent Contract Cannot Link to a Local Plan]]
 - [[10_Knowledge/A Prompt Is a Specification, Not an Assignment]]
 - [[10_Knowledge/A scheduled job can be healthy while its work is overdue]]
