@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-30T03:13:39.673144+00:00
+updated_at: 2026-09-30T04:22:43.153057+00:00
 ---
 
 # MOC一覧
@@ -49,7 +49,7 @@ updated_at: 2026-09-30T03:13:39.673144+00:00
 ## 未整理の境界
 
 - Markdown未昇格クラスタ: 664
-- MOC未所属Markdown: 317
+- MOC未所属Markdown: 318
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -217,6 +217,7 @@ updated_at: 2026-09-30T03:13:39.673144+00:00
 - [[10_Knowledge/mRNAで免疫細胞を再びがんと闘う味方に。新たな治療の可能性]]
 - [[10_Knowledge/MUI to Shadcn 7 Pitfalls We Hit (And the Fix for Each)]]
 - [[10_Knowledge/My AI agent found 129 resolving subdomains. The Actor classified 98 as wildcard-]]
+- [[10_Knowledge/My AI feature was failing 26% of the time. Nothing looked broken]]
 - [[10_Knowledge/MY FIRST GITHUB PROJECT]]
 - [[10_Knowledge/NestJS for Express Developers A Practical Guide, With Prisma ORM]]
 - [[10_Knowledge/Networking Fundamentals The Thing Everyone Skips and Shouldn't]]
