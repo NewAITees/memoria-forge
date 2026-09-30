@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-30T01:14:25.919618+00:00
+updated_at: 2026-09-30T02:26:58.477812+00:00
 ---
 
 # MOC一覧
@@ -48,8 +48,8 @@ updated_at: 2026-09-30T01:14:25.919618+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 662
-- MOC未所属Markdown: 315
+- Markdown未昇格クラスタ: 663
+- MOC未所属Markdown: 316
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -176,6 +176,7 @@ updated_at: 2026-09-30T01:14:25.919618+00:00
 - [[10_Knowledge/I Built a Retry Library Because I Kept Losing Failed API Calls]]
 - [[10_Knowledge/I built a workflow builder that interviews you. Here is what broke]]
 - [[10_Knowledge/I Built an AI Security Assistant That Remembers Previous Investigations]]
+- [[10_Knowledge/I Built Five npm Packages to Solve the Five Problems Every Next.js Backend Ignor]]
 - [[10_Knowledge/I built plugins for three editors. Everywhere, you're a guest in someone else's]]
 - [[10_Knowledge/I found a $45 billion number that vanished from NVIDIA's SEC filings]]
 - [[10_Knowledge/I Got 0 Reactions on dev.to, So I Measured 689 Articles to Find Out Why]]
