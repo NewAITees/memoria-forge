@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-30T22:11:08.173519+00:00
+updated_at: 2026-09-30T23:13:05.880149+00:00
 ---
 
 # MOC一覧
@@ -38,21 +38,22 @@ updated_at: 2026-09-30T22:11:08.173519+00:00
 - [[20_MOC/MOC-028|How to Choose a Vector Database  / Top Vector Databases for AI Agen]] — 2ページ
 - [[20_MOC/MOC-029|I Built a Self-Hosted AI Enginee / Why I don’t want AI agents execu]] — 2ページ
 - [[20_MOC/MOC-030|Iron hydride enters an exotic st / 地球深部からのニュートリノがマントルの新たな姿を示す]] — 2ページ
-- [[20_MOC/MOC-031|Nobody Gets Hired for Knowing No / « J'ai fini le tuto Node, et là ]] — 2ページ
-- [[20_MOC/MOC-032|Quantum Gaussian processes for p / 【特集】来たるべき“量子時代”に備えよ！]] — 2ページ
-- [[20_MOC/MOC-033|Reviewing AI code from juniors i / The Extra Argument Is a Release ]] — 2ページ
-- [[20_MOC/MOC-034|SOC 2, CRA, NIS2 they all ask yo / The EU Cyber Resilience Act's 24]] — 2ページ
-- [[20_MOC/MOC-035|Silent Failures, Not Crashes Wha / Silent success is worse than a l]] — 2ページ
-- [[20_MOC/MOC-036|Turn chats into Skills, Skills i / n8n vs Custom Code for Engineeri]] — 2ページ
-- [[20_MOC/MOC-037|Why XopProtector Is a Lightweigh / 开源 Android APK 加固项目横向对比]] — 2ページ
-- [[20_MOC/MOC-038|ブラックホールが“燃料切れ”しない理由が明らかになってきた / 観測史上“最古”のクエーサーが、立て続けに見つかったことの意味]] — 2ページ
-- [[20_MOC/MOC-039|レストランは、人と土地の健康にどう向き合えるのか──レフェルヴェ / 自然を観測し、再生する次世代のAIスタートアップ15選──AI ]] — 2ページ
-- [[20_MOC/MOC-040|眼底から“視野”を読み解き、緑内障の見逃しに挑む：DeepEye / 誰もが安定した質の手術を受けられる未来を目指して：アナウト]] — 2ページ
+- [[20_MOC/MOC-031|Let AI Write the Mac OS App With / Local AI on a 16GB M4 Mac 62 sec]] — 2ページ
+- [[20_MOC/MOC-032|Nobody Gets Hired for Knowing No / « J'ai fini le tuto Node, et là ]] — 2ページ
+- [[20_MOC/MOC-033|Quantum Gaussian processes for p / 【特集】来たるべき“量子時代”に備えよ！]] — 2ページ
+- [[20_MOC/MOC-034|Reviewing AI code from juniors i / The Extra Argument Is a Release ]] — 2ページ
+- [[20_MOC/MOC-035|SOC 2, CRA, NIS2 they all ask yo / The EU Cyber Resilience Act's 24]] — 2ページ
+- [[20_MOC/MOC-036|Silent Failures, Not Crashes Wha / Silent success is worse than a l]] — 2ページ
+- [[20_MOC/MOC-037|Turn chats into Skills, Skills i / n8n vs Custom Code for Engineeri]] — 2ページ
+- [[20_MOC/MOC-038|Why XopProtector Is a Lightweigh / 开源 Android APK 加固项目横向对比]] — 2ページ
+- [[20_MOC/MOC-039|ブラックホールが“燃料切れ”しない理由が明らかになってきた / 観測史上“最古”のクエーサーが、立て続けに見つかったことの意味]] — 2ページ
+- [[20_MOC/MOC-040|レストランは、人と土地の健康にどう向き合えるのか──レフェルヴェ / 自然を観測し、再生する次世代のAIスタートアップ15選──AI ]] — 2ページ
+- [[20_MOC/MOC-041|眼底から“視野”を読み解き、緑内障の見逃しに挑む：DeepEye / 誰もが安定した質の手術を受けられる未来を目指して：アナウト]] — 2ページ
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 653
-- MOC未所属Markdown: 327
+- Markdown未昇格クラスタ: 650
+- MOC未所属Markdown: 326
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -206,7 +207,6 @@ updated_at: 2026-09-30T22:11:08.173519+00:00
 - [[10_Knowledge/Keeping a 3D overlay light enough to leave running all day]]
 - [[10_Knowledge/Laravel 13 A Practical Guide for PHP Developers]]
 - [[10_Knowledge/Lectures on piecewise distance-preserving maps]]
-- [[10_Knowledge/Let AI Write the Mac OS App Without Learning Swift]]
 - [[10_Knowledge/Lion-man – the oldest confirmed statue ever discovered]]
 - [[10_Knowledge/LLAMA LIMA A Living Meta-Analysis on the Effects of Generative AI on Learning Ma]]
 - [[10_Knowledge/Looking to Connect with Developers and Open-Source Communities]]
