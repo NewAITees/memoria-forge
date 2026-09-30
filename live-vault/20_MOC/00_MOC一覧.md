@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-30T19:18:03.438231+00:00
+updated_at: 2026-09-30T20:13:27.385906+00:00
 ---
 
 # MOC一覧
@@ -51,8 +51,8 @@ updated_at: 2026-09-30T19:18:03.438231+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 657
-- MOC未所属Markdown: 324
+- Markdown未昇格クラスタ: 656
+- MOC未所属Markdown: 325
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -292,6 +292,7 @@ updated_at: 2026-09-30T19:18:03.438231+00:00
 - [[10_Knowledge/The ASN Pivot Playbook Routes, Upstreams, Downstreams]]
 - [[10_Knowledge/The biggest mistake i made with client contracts (and how i fixed scope creep)]]
 - [[10_Knowledge/The commit that fixed my only security advisory failed its security audit. The a]]
+- [[10_Knowledge/The Complete Guide to SVG Icon Optimization for Web Performance]]
 - [[10_Knowledge/The darker side of being a doctor]]
 - [[10_Knowledge/The doors don't lock on an AI agent. They congest]]
 - [[10_Knowledge/The enum value that had never been written]]
