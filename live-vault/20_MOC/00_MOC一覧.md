@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-09-30T09:19:12.123138+00:00
+updated_at: 2026-09-30T11:17:01.735429+00:00
 ---
 
 # MOC一覧
@@ -50,7 +50,7 @@ updated_at: 2026-09-30T09:19:12.123138+00:00
 ## 未整理の境界
 
 - Markdown未昇格クラスタ: 661
-- MOC未所属Markdown: 320
+- MOC未所属Markdown: 321
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -74,6 +74,7 @@ updated_at: 2026-09-30T09:19:12.123138+00:00
 - [[10_Knowledge/AI companies look to the ocean as a place to put more data centers]]
 - [[10_Knowledge/AI labs cutting off Cursor and Windsurf is the platform risk nobody priced in]]
 - [[10_Knowledge/AI, Financial Market Analysis, and the Search for an Edge]]
+- [[10_Knowledge/AIoT in Practice Bridging IoT Data and AI Insights for Industrial Use Cases]]
 - [[10_Knowledge/AIツールをGoogle Earthに追加すると何十年も築いた地図への信頼が揺らいだ]]
 - [[10_Knowledge/AI検索はグローバルサイトのローカライズを翻訳以上のものにする]]
 - [[10_Knowledge/AI生成論文と学術誌の完全性]]
