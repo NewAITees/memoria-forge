@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-10-01T00:12:33.580969+00:00
+updated_at: 2026-10-01T01:21:35.797319+00:00
 ---
 
 # MOC一覧
@@ -52,8 +52,8 @@ updated_at: 2026-10-01T00:12:33.580969+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 649
-- MOC未所属Markdown: 327
+- Markdown未昇格クラスタ: 648
+- MOC未所属Markdown: 328
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -100,6 +100,7 @@ updated_at: 2026-10-01T00:12:33.580969+00:00
 - [[10_Knowledge/AWS Serverless Patterns and Anti-Patterns What Works, What Breaks, and When to U]]
 - [[10_Knowledge/Before I Call GPT Image 2, I Validate These 7 Things]]
 - [[10_Knowledge/Bluffing in Scrabble]]
+- [[10_Knowledge/Build a restaurant homepage with Webbit, a free Windows website editor]]
 - [[10_Knowledge/Building a CMS with AI Agents You Don't Write the Code, You Audit the Decisions]]
 - [[10_Knowledge/Building a Deal Intelligence Agent with Persistent Memory]]
 - [[10_Knowledge/Building a Full-Stack Social Media Platform with React, Django REST Framework &]]
