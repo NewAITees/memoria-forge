@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-10-01T08:21:32.263541+00:00
+updated_at: 2026-10-01T09:20:20.777189+00:00
 ---
 
 # MOC一覧
@@ -53,8 +53,8 @@ updated_at: 2026-10-01T08:21:32.263541+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 642
-- MOC未所属Markdown: 332
+- Markdown未昇格クラスタ: 641
+- MOC未所属Markdown: 333
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -137,6 +137,7 @@ updated_at: 2026-10-01T08:21:32.263541+00:00
 - [[10_Knowledge/Email deliverability in CI what you can actually automate, and what you can't]]
 - [[10_Knowledge/Engineered bacteria offer a new way to accelerate rock weathering for carbon rem]]
 - [[10_Knowledge/Every deploy said green. The scheduler was two weeks behind]]
+- [[10_Knowledge/Every LLM framework rebuilt the same tool object]]
 - [[10_Knowledge/Every newsletter tool hands you an email address. That address is the lock-in]]
 - [[10_Knowledge/Everything Claude Code costs 27,000 tokens before you type. I kept five pieces]]
 - [[10_Knowledge/FCバイエルン、Geminiを公式AIパートナーに指名]]
