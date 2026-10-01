@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-10-01T11:11:18.345560+00:00
+updated_at: 2026-10-01T12:12:02.294085+00:00
 ---
 
 # MOC一覧
@@ -53,8 +53,8 @@ updated_at: 2026-10-01T11:11:18.345560+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 642
-- MOC未所属Markdown: 335
+- Markdown未昇格クラスタ: 643
+- MOC未所属Markdown: 336
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -176,6 +176,7 @@ updated_at: 2026-10-01T11:11:18.345560+00:00
 - [[10_Knowledge/HTML is getting cool again Meet the Invoker Commands API]]
 - [[10_Knowledge/Hybrid search in one file with nodesqlite, FTS5 and zero dependencies]]
 - [[10_Knowledge/I Accidentally Deleted Our Production S3 Bucket — Here's What Happened in the Ne]]
+- [[10_Knowledge/I Added AI Lead Classification to My Form Tool Without Slowing Down Submissions]]
 - [[10_Knowledge/I Added Cryptographic Receipts to MCP Tool Calls in 20 Lines of Code]]
 - [[10_Knowledge/I am 16 and built a local-first, zero-friction infinite canvas notebook (Astravi]]
 - [[10_Knowledge/I asked astra to make playable 4D chess]]
