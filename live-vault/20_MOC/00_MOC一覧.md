@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-10-01T13:12:48.249909+00:00
+updated_at: 2026-10-01T14:14:11.805341+00:00
 ---
 
 # MOC一覧
@@ -54,8 +54,8 @@ updated_at: 2026-10-01T13:12:48.249909+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 643
-- MOC未所属Markdown: 335
+- Markdown未昇格クラスタ: 642
+- MOC未所属Markdown: 336
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -72,6 +72,7 @@ updated_at: 2026-10-01T13:12:48.249909+00:00
 - [[10_Knowledge/A transcript is not a wall of text timecodes, speaker labels and the formats wor]]
 - [[10_Knowledge/About Best in IT Practical AI, Automation and Developer Tools]]
 - [[10_Knowledge/Academic social network developed to connect students through knowledge exchange]]
+- [[10_Knowledge/ADAM-PS5]]
 - [[10_Knowledge/Adobe Commerce Added an MCP Layer Your Catalog Is Now an Agent's Tool]]
 - [[10_Knowledge/After the View Details page loads, the application automatically redirects back]]
 - [[10_Knowledge/agent-usage 0.10.0 charts by agent, billing domain, and model]]
