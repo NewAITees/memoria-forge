@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-10-02T08:10:42.205963+00:00
+updated_at: 2026-10-02T09:08:08.001066+00:00
 ---
 
 # MOC一覧
@@ -56,7 +56,7 @@ updated_at: 2026-10-02T08:10:42.205963+00:00
 ## 未整理の境界
 
 - Markdown未昇格クラスタ: 638
-- MOC未所属Markdown: 349
+- MOC未所属Markdown: 350
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -189,6 +189,7 @@ updated_at: 2026-10-02T08:10:42.205963+00:00
 - [[10_Knowledge/I am 16 and built a local-first, zero-friction infinite canvas notebook (Astravi]]
 - [[10_Knowledge/I asked astra to make playable 4D chess]]
 - [[10_Knowledge/I Asked for a Portfolio but Got a Filing Cabinet]]
+- [[10_Knowledge/I built a chat that spins up Oracle Cloud sandboxes and deletes them when you're]]
 - [[10_Knowledge/I Built a Crypto Market Intelligence App with React Native, Supabase & Cloudflar]]
 - [[10_Knowledge/I built a free Chrome extension for people with 50+ tabs open]]
 - [[10_Knowledge/I built a job-risk checker that never calls an LLM — it reads your GitHub instea]]
