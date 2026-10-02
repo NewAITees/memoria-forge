@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-10-02T12:12:48.611884+00:00
+updated_at: 2026-10-02T13:10:38.791181+00:00
 ---
 
 # MOC一覧
@@ -55,8 +55,8 @@ updated_at: 2026-10-02T12:12:48.611884+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 636
-- MOC未所属Markdown: 353
+- Markdown未昇格クラスタ: 635
+- MOC未所属Markdown: 354
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -162,6 +162,7 @@ updated_at: 2026-10-02T12:12:48.611884+00:00
 - [[10_Knowledge/Giving the agent a real browser, indexed by element — AIClaw 3.5 browser tools]]
 - [[10_Knowledge/GLP-1s Are Being Linked to Fewer Serious Infections, Including TB]]
 - [[10_Knowledge/Google Search Goto Redirects Could Complicate GA4 Organic Attribution Reporting]]
+- [[10_Knowledge/GPT-6.1 Sol replaces GPT-6 Sol after just 7 days, with near-Astra intelligence]]
 - [[10_Knowledge/GraphSentinel- Agentic fraud investigation]]
 - [[10_Knowledge/Hackers Had a Live Feed of Every ID Verification Company Scanned for over a Year]]
 - [[10_Knowledge/Hash Chains Protect Every Record Except the One That Matters]]
