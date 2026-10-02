@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-10-02T03:12:08.860686+00:00
+updated_at: 2026-10-02T04:25:06.264433+00:00
 ---
 
 # MOC一覧
@@ -55,8 +55,8 @@ updated_at: 2026-10-02T03:12:08.860686+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 634
-- MOC未所属Markdown: 346
+- Markdown未昇格クラスタ: 635
+- MOC未所属Markdown: 347
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -148,6 +148,7 @@ updated_at: 2026-10-02T03:12:08.860686+00:00
 - [[10_Knowledge/Every LLM framework rebuilt the same tool object]]
 - [[10_Knowledge/Every newsletter tool hands you an email address. That address is the lock-in]]
 - [[10_Knowledge/Everything Claude Code costs 27,000 tokens before you type. I kept five pieces]]
+- [[10_Knowledge/Exposed GitLab Incoming Email Tokens Allow Unauthorized Code Modifications and C]]
 - [[10_Knowledge/FCバイエルン、Geminiを公式AIパートナーに指名]]
 - [[10_Knowledge/Footguns with Postgres at time zone 'UTC']]
 - [[10_Knowledge/Formalization of Sullivan's No Wandering Domains Theorem in Lean]]
