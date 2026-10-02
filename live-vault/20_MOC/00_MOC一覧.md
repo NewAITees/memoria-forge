@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-10-02T07:05:54.464357+00:00
+updated_at: 2026-10-02T08:10:42.205963+00:00
 ---
 
 # MOC一覧
@@ -56,7 +56,7 @@ updated_at: 2026-10-02T07:05:54.464357+00:00
 ## 未整理の境界
 
 - Markdown未昇格クラスタ: 638
-- MOC未所属Markdown: 348
+- MOC未所属Markdown: 349
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -323,6 +323,7 @@ updated_at: 2026-10-02T07:05:54.464357+00:00
 - [[10_Knowledge/The money was already approved. It stopped at a sheet of paper nobody could read]]
 - [[10_Knowledge/The Production AI Checklist That Nobody Publishes]]
 - [[10_Knowledge/The Reply Looks Finished. Record the Finish Reason]]
+- [[10_Knowledge/The Siren Call of Silicon Leviathan Reflections on blowup and Aufkl-arungsd-amme]]
 - [[10_Knowledge/The Systems-Design Reason Clinics Overhire for Admin Work]]
 - [[10_Knowledge/The three-state dark mode toggle is the correct answer]]
 - [[10_Knowledge/The ₹18 LPA that quietly became ₹1.1L a month]]
