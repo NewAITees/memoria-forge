@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-10-02T10:12:37.731758+00:00
+updated_at: 2026-10-02T11:09:43.071620+00:00
 ---
 
 # MOC一覧
@@ -30,7 +30,7 @@ updated_at: 2026-10-02T10:12:37.731758+00:00
 - [[20_MOC/MOC-020|Cpynet a pastebin you talk to wi / Why I Built a 100% In-Browser, P]] — 2ページ
 - [[20_MOC/MOC-021|CursorとClaude Code：Laravel開発者にはど / Why 75% of Developers Prefer Cla]] — 2ページ
 - [[20_MOC/MOC-022|Database Performance for Develop / Why the index I added made my qu]] — 2ページ
-- [[20_MOC/MOC-023|EU AI Act in 2026 Five Checks fo / EU Welcomes First IPCEI AI Desig]] — 2ページ
+- [[20_MOC/MOC-023|EU AI Act in 2026 Five Checks fo / EU AI Content Labeling Code Offe]] — 2ページ
 - [[20_MOC/MOC-024|Four pull requests, four full su / My 369 Merged Pull Requests On G]] — 2ページ
 - [[20_MOC/MOC-025|GitHub API Rate Limits an Unauth / Your GitHub template repo is a o]] — 2ページ
 - [[20_MOC/MOC-026|How I Simplified My Backend Arch / 高収益なウェブプラットフォームをバックエンドコードなしで構築した]] — 2ページ
@@ -55,8 +55,8 @@ updated_at: 2026-10-02T10:12:37.731758+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 638
-- MOC未所属Markdown: 351
+- Markdown未昇格クラスタ: 637
+- MOC未所属Markdown: 352
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -145,6 +145,7 @@ updated_at: 2026-10-02T10:12:37.731758+00:00
 - [[10_Knowledge/Email deliverability in CI what you can actually automate, and what you can't]]
 - [[10_Knowledge/Engineered bacteria offer a new way to accelerate rock weathering for carbon rem]]
 - [[10_Knowledge/Enhancing Extubation Failure Prediction with LLM-Derived Features from Respirato]]
+- [[10_Knowledge/EU Welcomes First IPCEI AI Design, Building a Cross-Border AI Sovereignty Push]]
 - [[10_Knowledge/Every deploy said green. The scheduler was two weeks behind]]
 - [[10_Knowledge/Every LLM framework rebuilt the same tool object]]
 - [[10_Knowledge/Every newsletter tool hands you an email address. That address is the lock-in]]
