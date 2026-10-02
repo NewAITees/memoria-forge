@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-10-02T20:15:07.266112+00:00
+updated_at: 2026-10-02T21:08:25.930330+00:00
 ---
 
 # MOC一覧
@@ -55,8 +55,8 @@ updated_at: 2026-10-02T20:15:07.266112+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 634
-- MOC未所属Markdown: 361
+- Markdown未昇格クラスタ: 633
+- MOC未所属Markdown: 362
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -293,6 +293,7 @@ updated_at: 2026-10-02T20:15:07.266112+00:00
 - [[10_Knowledge/Rolling out phishing-resistant multi-factor authentication]]
 - [[10_Knowledge/Rustを一緒に学ぼう]]
 - [[10_Knowledge/Scalable Guardrail Service ASP.NET Core Kubernetes Architecture, Code, and Ops]]
+- [[10_Knowledge/Schopenhauer in the Standup 7 Rules to Neutralize a Toxic Boss]]
 - [[10_Knowledge/Scraping Ethically A Practical Guide to Respectful Web Crawling]]
 - [[10_Knowledge/Self-Supervised Pretraining of Molecular Graph Encoders with LeJEPA]]
 - [[10_Knowledge/Senate committee votes along party lines to hold Fauci in contempt of Congress]]
