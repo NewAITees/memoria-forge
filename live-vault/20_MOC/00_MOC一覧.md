@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-10-01T23:13:14.163865+00:00
+updated_at: 2026-10-02T00:10:26.149271+00:00
 ---
 
 # MOC一覧
@@ -54,8 +54,8 @@ updated_at: 2026-10-01T23:13:14.163865+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 635
-- MOC未所属Markdown: 344
+- Markdown未昇格クラスタ: 634
+- MOC未所属Markdown: 345
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -292,6 +292,7 @@ updated_at: 2026-10-01T23:13:14.163865+00:00
 - [[10_Knowledge/Splash-free urinals for global sustainability and accessibility]]
 - [[10_Knowledge/SQL Execution Order Internals Why WHERE Fails on Aliases but ORDER BY Succeeds]]
 - [[10_Knowledge/SQL Joins Made Simple]]
+- [[10_Knowledge/Startups ask for the cheapest option first. It is not a question about price]]
 - [[10_Knowledge/STAT+ ADA review of members’ expulsion denies group censored opinions, called in]]
 - [[10_Knowledge/STAT+ FDAが2件を承認：新薬と新ワクチン]]
 - [[10_Knowledge/STAT+ MedicareがACCESSを推進する一方対応医療機関を患者に伝えず]]
