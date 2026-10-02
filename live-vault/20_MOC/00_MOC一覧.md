@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-10-02T21:08:25.930330+00:00
+updated_at: 2026-10-02T22:09:08.902854+00:00
 ---
 
 # MOC一覧
@@ -55,8 +55,8 @@ updated_at: 2026-10-02T21:08:25.930330+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 633
-- MOC未所属Markdown: 362
+- Markdown未昇格クラスタ: 632
+- MOC未所属Markdown: 363
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -73,6 +73,7 @@ updated_at: 2026-10-02T21:08:25.930330+00:00
 - [[10_Knowledge/A scheduled job can be healthy while its work is overdue]]
 - [[10_Knowledge/A ticker is not an identity]]
 - [[10_Knowledge/A transcript is not a wall of text timecodes, speaker labels and the formats wor]]
+- [[10_Knowledge/A-B testing how to test your test]]
 - [[10_Knowledge/About Best in IT Practical AI, Automation and Developer Tools]]
 - [[10_Knowledge/Academic social network developed to connect students through knowledge exchange]]
 - [[10_Knowledge/ADAM-PS5]]
