@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-10-02T15:09:44.921404+00:00
+updated_at: 2026-10-02T16:08:52.299051+00:00
 ---
 
 # MOC一覧
@@ -55,8 +55,8 @@ updated_at: 2026-10-02T15:09:44.921404+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 633
-- MOC未所属Markdown: 356
+- Markdown未昇格クラスタ: 635
+- MOC未所属Markdown: 357
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -300,6 +300,7 @@ updated_at: 2026-10-02T15:09:44.921404+00:00
 - [[10_Knowledge/SKILL.md is not a compiler]]
 - [[10_Knowledge/Software Testing Interview Questions]]
 - [[10_Knowledge/Sony makes bold claim about game ownership]]
+- [[10_Knowledge/Soul in Motion — 922 PM  2026-09-01]]
 - [[10_Knowledge/Splash-free urinals for global sustainability and accessibility]]
 - [[10_Knowledge/SQL Execution Order Internals Why WHERE Fails on Aliases but ORDER BY Succeeds]]
 - [[10_Knowledge/SQL Joins Made Simple]]
