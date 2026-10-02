@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-10-02T17:08:47.144139+00:00
+updated_at: 2026-10-02T18:08:54.325051+00:00
 ---
 
 # MOC一覧
@@ -56,7 +56,7 @@ updated_at: 2026-10-02T17:08:47.144139+00:00
 ## 未整理の境界
 
 - Markdown未昇格クラスタ: 636
-- MOC未所属Markdown: 358
+- MOC未所属Markdown: 359
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -243,6 +243,7 @@ updated_at: 2026-10-02T17:08:47.144139+00:00
 - [[10_Knowledge/Mitigating Bias in Large Vision-Language Models via Counterfactual Ensemble Deco]]
 - [[10_Knowledge/MLOps for Developers Deploying, Monitoring, and Optimizing Machine Learning Mode]]
 - [[10_Knowledge/Moist-Electric Wallpaper for Indoor Energy Harvesting and Humidity Management]]
+- [[10_Knowledge/Monolith vs. Microservices Which Architecture Should You Actually Build]]
 - [[10_Knowledge/Move in C++ without a stdmove]]
 - [[10_Knowledge/mRNAで免疫細胞を再びがんと闘う味方に。新たな治療の可能性]]
 - [[10_Knowledge/MUI to Shadcn 7 Pitfalls We Hit (And the Fix for Each)]]
