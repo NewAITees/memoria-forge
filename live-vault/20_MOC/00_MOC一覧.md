@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-10-03T12:16:01.556126+00:00
+updated_at: 2026-10-03T13:07:48.802914+00:00
 ---
 
 # MOC一覧
@@ -57,8 +57,8 @@ updated_at: 2026-10-03T12:16:01.556126+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 629
-- MOC未所属Markdown: 371
+- Markdown未昇格クラスタ: 630
+- MOC未所属Markdown: 372
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -294,6 +294,7 @@ updated_at: 2026-10-03T12:16:01.556126+00:00
 - [[10_Knowledge/Register the Heading What AI May Draft in Docs, and What a Human Must Own]]
 - [[10_Knowledge/Repost note Starlink 10-39 and the data trail after launch]]
 - [[10_Knowledge/Retries didn't make GitHub resilient. They DDoS'd it]]
+- [[10_Knowledge/RISC-V is now officially supported by CPython]]
 - [[10_Knowledge/Rolling out phishing-resistant multi-factor authentication]]
 - [[10_Knowledge/Rustを一緒に学ぼう]]
 - [[10_Knowledge/Scalable Guardrail Service ASP.NET Core Kubernetes Architecture, Code, and Ops]]
