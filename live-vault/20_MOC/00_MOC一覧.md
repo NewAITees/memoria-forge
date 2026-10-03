@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-10-03T10:15:16.504808+00:00
+updated_at: 2026-10-03T11:14:01.889938+00:00
 ---
 
 # MOC一覧
@@ -56,8 +56,8 @@ updated_at: 2026-10-03T10:15:16.504808+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 632
-- MOC未所属Markdown: 371
+- Markdown未昇格クラスタ: 630
+- MOC未所属Markdown: 372
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -364,6 +364,7 @@ updated_at: 2026-10-03T10:15:16.504808+00:00
 - [[10_Knowledge/What Happens When 20,000 People Click the Same Seat]]
 - [[10_Knowledge/What I learned from my Internet of Things Course]]
 - [[10_Knowledge/What Is Cross-Site Scripting (XSS) Understanding a Critical Web Security Vulnera]]
+- [[10_Knowledge/What Is Privilege Escalation How Can a Low-Privilege User Become Root]]
 - [[10_Knowledge/What Wallet Popups Don’t Tell You A Developer-Friendly Guide to Web3 Permissions]]
 - [[10_Knowledge/What Your Multisig Threshold Actually Protects]]
 - [[10_Knowledge/When a silent failure hit you, what did it actually cost]]
