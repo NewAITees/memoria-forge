@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-10-03T15:07:48.771176+00:00
+updated_at: 2026-10-03T16:12:26.247671+00:00
 ---
 
 # MOC一覧
@@ -57,8 +57,8 @@ updated_at: 2026-10-03T15:07:48.771176+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 628
-- MOC未所属Markdown: 374
+- Markdown未昇格クラスタ: 629
+- MOC未所属Markdown: 375
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -122,6 +122,7 @@ updated_at: 2026-10-03T15:07:48.771176+00:00
 - [[10_Knowledge/Building a TikTok Downloader Streaming, Expiring URLs, Slideshows and MP3]]
 - [[10_Knowledge/Building an Escalation Root-Cause Agent with Gemini and ADK]]
 - [[10_Knowledge/Building Bivack A Cloud Dev Sandbox for Coding Agents on AWS Lambda MicroVMs]]
+- [[10_Knowledge/Building Cross-Framework Messaging with Quarkus, Micronaut, and RabbitMQ]]
 - [[10_Knowledge/Building CRUD REST APIs with Django REST Framework]]
 - [[10_Knowledge/Building Multi-Region Consensus Checks with Cloudflare Durable Objects]]
 - [[10_Knowledge/Building SAAS, worked on side projects too]]
