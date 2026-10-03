@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-10-03T20:13:09.830842+00:00
+updated_at: 2026-10-03T21:08:52.379656+00:00
 ---
 
 # MOC一覧
@@ -57,8 +57,8 @@ updated_at: 2026-10-03T20:13:09.830842+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 629
-- MOC未所属Markdown: 379
+- Markdown未昇格クラスタ: 630
+- MOC未所属Markdown: 380
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -95,6 +95,7 @@ updated_at: 2026-10-03T20:13:09.830842+00:00
 - [[10_Knowledge/Algebraic and analytic structure of Morikawa's sangaku problem]]
 - [[10_Knowledge/AliExpress runs silent WebAudio fingerprinting that breaks Bluetooth multipoint]]
 - [[10_Knowledge/Ambient CSS v3 – Blender meets CSS]]
+- [[10_Knowledge/An agent used DNS to reach an external chatbot]]
 - [[10_Knowledge/An anomalous return of the Odden ice tongue suggests unusual Arctic conditions]]
 - [[10_Knowledge/Android 17 Adds OS-Wide ECH to Hide Website Visits From Network Providers]]
 - [[10_Knowledge/Another Better Lower Bound for N=17 Square Packing]]
