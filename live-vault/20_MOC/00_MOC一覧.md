@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-10-03T14:08:29.335397+00:00
+updated_at: 2026-10-03T15:07:48.771176+00:00
 ---
 
 # MOC一覧
@@ -57,8 +57,8 @@ updated_at: 2026-10-03T14:08:29.335397+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 629
-- MOC未所属Markdown: 373
+- Markdown未昇格クラスタ: 628
+- MOC未所属Markdown: 374
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -327,6 +327,7 @@ updated_at: 2026-10-03T14:08:29.335397+00:00
 - [[10_Knowledge/Terraform vs AWS CDK vs CloudFormation The Definitive IaC Decision Guide for 202]]
 - [[10_Knowledge/Text to speech on Windows the built-in voices, edge-tts, and why subtitle dubbin]]
 - [[10_Knowledge/The $11k cloud bill was mostly the tools you added to watch the cloud bill]]
+- [[10_Knowledge/The 21 Setup That Paid Out at 0.751]]
 - [[10_Knowledge/The ASN Pivot Playbook Routes, Upstreams, Downstreams]]
 - [[10_Knowledge/The biggest mistake i made with client contracts (and how i fixed scope creep)]]
 - [[10_Knowledge/The commit that fixed my only security advisory failed its security audit. The a]]
