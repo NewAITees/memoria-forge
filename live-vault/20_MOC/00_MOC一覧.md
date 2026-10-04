@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-10-03T23:10:19.475216+00:00
+updated_at: 2026-10-04T00:10:23.511401+00:00
 ---
 
 # MOC一覧
@@ -14,7 +14,7 @@ updated_at: 2026-10-03T23:10:19.475216+00:00
 - [[20_MOC/MOC-004|205 Million Agent Payments Just  / Is Your AI Account Hacked Quick ]] — 2ページ
 - [[20_MOC/MOC-005|24GB GPUがローカルLLMに24GBを与えるわけではない理 / A GPU Is Two Things, and Only On]] — 2ページ
 - [[20_MOC/MOC-006|3 minutes of sprinting does some / Scientists reveal how much exerc]] — 2ページ
-- [[20_MOC/MOC-007|A Practical Pattern for Giving A / Beyond Vibes Architecting Closed]] — 2ページ
+- [[20_MOC/MOC-007|A Practical Pattern for Giving A / Day 6 I connected my coding agen]] — 2ページ
 - [[20_MOC/MOC-008|A Prompt Injection Turned Into a / Six curl CVEs after OpenAI and A]] — 2ページ
 - [[20_MOC/MOC-009|AIはまだ赤ちゃんほど効率よく学べない / 自分らしいAIコンテンツファクトリーを構築した方法]] — 2ページ
 - [[20_MOC/MOC-010|AI要約の海に溺れないために｜デジタル世界の路上観察 / 最新検索実験結果解説]] — 2ページ
@@ -57,8 +57,8 @@ updated_at: 2026-10-03T23:10:19.475216+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 629
-- MOC未所属Markdown: 382
+- Markdown未昇格クラスタ: 628
+- MOC未所属Markdown: 383
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -114,6 +114,7 @@ updated_at: 2026-10-03T23:10:19.475216+00:00
 - [[10_Knowledge/Before I Call GPT Image 2, I Validate These 7 Things]]
 - [[10_Knowledge/Before you give a Polymarket bot your private key a 15-minute checklist]]
 - [[10_Knowledge/Beyond Pure Relational SQL Designing Hybrid Multi-Model Persistence with Postgre]]
+- [[10_Knowledge/Beyond Vibes Architecting Closed-Loop AI Agents with Local SLMs, Deterministic E]]
 - [[10_Knowledge/Bluffing in Scrabble]]
 - [[10_Knowledge/Build a restaurant homepage with Webbit, a free Windows website editor]]
 - [[10_Knowledge/Building a CMS with AI Agents You Don't Write the Code, You Audit the Decisions]]
