@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-10-04T18:12:16.383005+00:00
+updated_at: 2026-10-04T19:11:04.388458+00:00
 ---
 
 # MOC一覧
@@ -57,8 +57,8 @@ updated_at: 2026-10-04T18:12:16.383005+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 619
-- MOC未所属Markdown: 397
+- Markdown未昇格クラスタ: 616
+- MOC未所属Markdown: 398
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -193,6 +193,7 @@ updated_at: 2026-10-04T18:12:16.383005+00:00
 - [[10_Knowledge/How Should AI Agents Discover Each Other]]
 - [[10_Knowledge/How to Ask Questions About a PDF on Android in 2026 Without Internet]]
 - [[10_Knowledge/How to Build a Local-Service Site That Can Answer ‘Can You Fix My RV Today’]]
+- [[10_Knowledge/How to Build a Zero-Knowledge AI Prompt Anonymizer in Pure JavaScript (Two-Way P]]
 - [[10_Knowledge/How to Catch Android UI Layout Bugs in Seconds (Without Constant Screenshots)]]
 - [[10_Knowledge/How to Compress a Photo Under a Specific KB Limit on Android]]
 - [[10_Knowledge/How to Debug Go PDF Image Conversion — 4 Redaction Signals]]
