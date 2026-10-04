@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-10-04T12:12:32.771692+00:00
+updated_at: 2026-10-04T13:11:10.798844+00:00
 ---
 
 # MOC一覧
@@ -32,7 +32,7 @@ updated_at: 2026-10-04T12:12:32.771692+00:00
 - [[20_MOC/MOC-022|CursorとClaude Code：Laravel開発者にはど / Why 75% of Developers Prefer Cla]] — 2ページ
 - [[20_MOC/MOC-023|Database Performance for Develop / Why the index I added made my qu]] — 2ページ
 - [[20_MOC/MOC-024|EU AI Act in 2026 Five Checks fo / EU AI Content Labeling Code Offe]] — 2ページ
-- [[20_MOC/MOC-025|Four pull requests, four full su / My 369 Merged Pull Requests On G]] — 2ページ
+- [[20_MOC/MOC-025|Four pull requests, four full su / When Your Impact Is No Longer Me]] — 2ページ
 - [[20_MOC/MOC-026|GitHub API Rate Limits an Unauth / Your GitHub template repo is a o]] — 2ページ
 - [[20_MOC/MOC-027|How I Simplified My Backend Arch / 高収益なウェブプラットフォームをバックエンドコードなしで構築した]] — 2ページ
 - [[20_MOC/MOC-028|How LLMs Actually Work A Practic / Lets talk about llms]] — 2ページ
@@ -58,7 +58,7 @@ updated_at: 2026-10-04T12:12:32.771692+00:00
 ## 未整理の境界
 
 - Markdown未昇格クラスタ: 626
-- MOC未所属Markdown: 393
+- MOC未所属Markdown: 394
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -264,6 +264,7 @@ updated_at: 2026-10-04T12:12:32.771692+00:00
 - [[10_Knowledge/Move in C++ without a stdmove]]
 - [[10_Knowledge/mRNAで免疫細胞を再びがんと闘う味方に。新たな治療の可能性]]
 - [[10_Knowledge/MUI to Shadcn 7 Pitfalls We Hit (And the Fix for Each)]]
+- [[10_Knowledge/My 369 Merged Pull Requests On GitHub, Every Single One Linked And Verified]]
 - [[10_Knowledge/My AI agent found 129 resolving subdomains. The Actor classified 98 as wildcard-]]
 - [[10_Knowledge/My AI feature was failing 26% of the time. Nothing looked broken]]
 - [[10_Knowledge/My board never scored an outage as a regression. My evidence couldn't prove it]]
