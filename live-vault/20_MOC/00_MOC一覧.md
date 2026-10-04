@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-10-04T13:11:10.798844+00:00
+updated_at: 2026-10-04T14:14:36.399000+00:00
 ---
 
 # MOC一覧
@@ -57,8 +57,8 @@ updated_at: 2026-10-04T13:11:10.798844+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 626
-- MOC未所属Markdown: 394
+- Markdown未昇格クラスタ: 622
+- MOC未所属Markdown: 395
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -294,6 +294,7 @@ updated_at: 2026-10-04T13:11:10.798844+00:00
 - [[10_Knowledge/OpenBSD Stories Strange Medieval Devices]]
 - [[10_Knowledge/Ownership, and Making This Template Your Own (Part 5)]]
 - [[10_Knowledge/Pentagon rescinds new testosterone screening policy without explanation]]
+- [[10_Knowledge/pgvector Without Embeddings When a Feature Vector Beats Semantic Search]]
 - [[10_Knowledge/Phone Login Admin Operations — Exact Lookup, Profile Updates, and Controlled Del]]
 - [[10_Knowledge/Polyfill、Shim、ネイティブモジュール：React Nativeの教訓]]
 - [[10_Knowledge/Pompeii's destruction helps calibrate volcanic dating to within decades]]
