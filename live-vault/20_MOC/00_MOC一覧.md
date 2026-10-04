@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-10-04T14:14:36.399000+00:00
+updated_at: 2026-10-04T15:07:42.200876+00:00
 ---
 
 # MOC一覧
@@ -57,8 +57,8 @@ updated_at: 2026-10-04T14:14:36.399000+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 622
-- MOC未所属Markdown: 395
+- Markdown未昇格クラスタ: 619
+- MOC未所属Markdown: 396
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -381,6 +381,7 @@ updated_at: 2026-10-04T14:14:36.399000+00:00
 - [[10_Knowledge/We found a division by zero bug in FFmpeg with a vibecoded fuzzer]]
 - [[10_Knowledge/We open-sourced a court for AI agents, not another chat protocol]]
 - [[10_Knowledge/We stopped letting the AI write code. We let it write an AST instead]]
+- [[10_Knowledge/Week-6, 7, 8]]
 - [[10_Knowledge/What Building a Social Platform Taught Me About Software Discovery]]
 - [[10_Knowledge/What Does a Production RAG System Need Vector Search, Chunking, Guardrails, and]]
 - [[10_Knowledge/What Happens After the Fifth Retry Escalating Stuck Payments Instead of Looping]]
