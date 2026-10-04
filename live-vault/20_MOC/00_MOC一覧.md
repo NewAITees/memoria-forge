@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-10-04T22:10:23.402168+00:00
+updated_at: 2026-10-04T23:11:41.973145+00:00
 ---
 
 # MOC一覧
@@ -57,8 +57,8 @@ updated_at: 2026-10-04T22:10:23.402168+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 612
-- MOC未所属Markdown: 400
+- Markdown未昇格クラスタ: 614
+- MOC未所属Markdown: 401
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -184,6 +184,7 @@ updated_at: 2026-10-04T22:10:23.402168+00:00
 - [[10_Knowledge/Hash Chains Protect Every Record Except the One That Matters]]
 - [[10_Knowledge/Honey bees can serve as sentinels for environmental health]]
 - [[10_Knowledge/Hot Chips 2026 CUDA Targets RISC-V – By Chester Lam]]
+- [[10_Knowledge/How AI Is Making Restaurant Menus Easier to Navigate]]
 - [[10_Knowledge/How can a cake be cut into two equal pieces]]
 - [[10_Knowledge/How Does Touch Lead To Pain Or Pleasure]]
 - [[10_Knowledge/How I Built 5 Developer Tool APIs on a Raspberry Pi (And Listed Them on RapidAPI]]
