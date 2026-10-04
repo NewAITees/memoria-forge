@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-10-04T17:16:26.619807+00:00
+updated_at: 2026-10-04T18:12:16.383005+00:00
 ---
 
 # MOC一覧
@@ -57,7 +57,7 @@ updated_at: 2026-10-04T17:16:26.619807+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 618
+- Markdown未昇格クラスタ: 619
 - MOC未所属Markdown: 397
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
