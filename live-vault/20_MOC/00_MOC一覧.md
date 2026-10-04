@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-10-04T03:08:37.693696+00:00
+updated_at: 2026-10-04T04:15:14.434245+00:00
 ---
 
 # MOC一覧
@@ -58,7 +58,7 @@ updated_at: 2026-10-04T03:08:37.693696+00:00
 ## 未整理の境界
 
 - Markdown未昇格クラスタ: 627
-- MOC未所属Markdown: 386
+- MOC未所属Markdown: 387
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -201,6 +201,7 @@ updated_at: 2026-10-04T03:08:37.693696+00:00
 - [[10_Knowledge/How to Track Stripe API Changes Automatically (Before They Break Your Code)]]
 - [[10_Knowledge/How to Verify a 'Trained-From-Scratch' LLM in 2026 A Provenance and Fingerprinti]]
 - [[10_Knowledge/HTML is getting cool again Meet the Invoker Commands API]]
+- [[10_Knowledge/Hub-and-spoke Azure networking checklist (DNS, routing, NSGs, firewalls)]]
 - [[10_Knowledge/Human brain is two separate organs, Stanford Medicine-led research finds]]
 - [[10_Knowledge/Hybrid search in one file with nodesqlite, FTS5 and zero dependencies]]
 - [[10_Knowledge/I Accidentally Deleted Our Production S3 Bucket — Here's What Happened in the Ne]]
