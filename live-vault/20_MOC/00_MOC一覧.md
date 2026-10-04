@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-10-04T19:11:04.388458+00:00
+updated_at: 2026-10-04T20:08:23.088622+00:00
 ---
 
 # MOC一覧
@@ -57,8 +57,8 @@ updated_at: 2026-10-04T19:11:04.388458+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 616
-- MOC未所属Markdown: 398
+- Markdown未昇格クラスタ: 614
+- MOC未所属Markdown: 399
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -140,6 +140,7 @@ updated_at: 2026-10-04T19:11:04.388458+00:00
 - [[10_Knowledge/Cisco's two exploited flaws and CISA's patch clock]]
 - [[10_Knowledge/CLAUDE.md for an iOS Team What to Put In It (and What to Leave Out)]]
 - [[10_Knowledge/CLI tools have always had a problem]]
+- [[10_Knowledge/Clip Architect MoneyPrinterTurbo as a Windows Desktop App]]
 - [[10_Knowledge/Comparing Caddy, nginx and Apache Configuration]]
 - [[10_Knowledge/Criei uma linguagem de programação batizada de RydenScript]]
 - [[10_Knowledge/CSSアートのスムージーフードトラック]]
