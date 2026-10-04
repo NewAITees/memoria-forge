@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-10-04T09:09:15.102607+00:00
+updated_at: 2026-10-04T10:07:43.656103+00:00
 ---
 
 # MOC一覧
@@ -57,8 +57,8 @@ updated_at: 2026-10-04T09:09:15.102607+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 628
-- MOC未所属Markdown: 390
+- Markdown未昇格クラスタ: 627
+- MOC未所属Markdown: 391
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -349,6 +349,7 @@ updated_at: 2026-10-04T09:09:15.102607+00:00
 - [[10_Knowledge/The Complete Guide to SVG Icon Optimization for Web Performance]]
 - [[10_Knowledge/The darker side of being a doctor]]
 - [[10_Knowledge/The doors don't lock on an AI agent. They congest]]
+- [[10_Knowledge/The End of Scattered Apps Why You Need a Digital Workspace Kernel]]
 - [[10_Knowledge/The enum value that had never been written]]
 - [[10_Knowledge/The Failure Message Had a Checkmark. LANG=C Refused to Print It]]
 - [[10_Knowledge/The Headless Workspace How Antigravity CLI Lowers the Neovim Learning Curve]]
