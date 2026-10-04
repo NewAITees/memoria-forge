@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-10-04T02:12:19.182763+00:00
+updated_at: 2026-10-04T03:08:37.693696+00:00
 ---
 
 # MOC一覧
@@ -58,7 +58,7 @@ updated_at: 2026-10-04T02:12:19.182763+00:00
 ## 未整理の境界
 
 - Markdown未昇格クラスタ: 627
-- MOC未所属Markdown: 385
+- MOC未所属Markdown: 386
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -111,6 +111,7 @@ updated_at: 2026-10-04T02:12:19.182763+00:00
 - [[10_Knowledge/AWS Certified Generative AI Developer – Professional (AIP-C01) the exam, explain]]
 - [[10_Knowledge/AWS Secrets Management Secrets Manager vs Parameter Store vs KMS — The Complete]]
 - [[10_Knowledge/AWS Serverless Patterns and Anti-Patterns What Works, What Breaks, and When to U]]
+- [[10_Knowledge/Bean Validation (@Valid) + binding errors]]
 - [[10_Knowledge/Before I Call GPT Image 2, I Validate These 7 Things]]
 - [[10_Knowledge/Before you give a Polymarket bot your private key a 15-minute checklist]]
 - [[10_Knowledge/Beyond Pure Relational SQL Designing Hybrid Multi-Model Persistence with Postgre]]
