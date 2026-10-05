@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-10-05T06:12:16.918623+00:00
+updated_at: 2026-10-05T07:10:20.182716+00:00
 ---
 
 # MOC一覧
@@ -58,8 +58,8 @@ updated_at: 2026-10-05T06:12:16.918623+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 607
-- MOC未所属Markdown: 406
+- Markdown未昇格クラスタ: 606
+- MOC未所属Markdown: 407
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -328,6 +328,7 @@ updated_at: 2026-10-05T06:12:16.918623+00:00
 - [[10_Knowledge/Self-Supervised Pretraining of Molecular Graph Encoders with LeJEPA]]
 - [[10_Knowledge/Senate committee votes along party lines to hold Fauci in contempt of Congress]]
 - [[10_Knowledge/Serve Markdown to AI Agents with Accept Headers]]
+- [[10_Knowledge/Server-Sent Events Across Multiple Pods Redis Pub-Sub + Spring WebFlux]]
 - [[10_Knowledge/Shift Left was how ops got fired and devs got the pager]]
 - [[10_Knowledge/Six ways I leaked data through correct RLS policies]]
 - [[10_Knowledge/SKILL.md is not a compiler]]
