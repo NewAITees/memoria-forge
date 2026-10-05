@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-10-05T02:15:59.930492+00:00
+updated_at: 2026-10-05T03:17:25.760702+00:00
 ---
 
 # MOC一覧
@@ -58,8 +58,8 @@ updated_at: 2026-10-05T02:15:59.930492+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 613
-- MOC未所属Markdown: 402
+- Markdown未昇格クラスタ: 612
+- MOC未所属Markdown: 403
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -429,6 +429,7 @@ updated_at: 2026-10-05T02:15:59.930492+00:00
 - [[10_Knowledge/⚡️ Leverage Go superpowers with PureScript! Native speed w- absolute type safety]]
 - [[10_Knowledge/「AI俳優」ティリー・ノーウッドと実のある会話はできるのか？]]
 - [[10_Knowledge/「AI軍拡競争」という物語が現実をつくる──元DeepMind幹部が警鐘]]
+- [[10_Knowledge/「悪玉コレステロール」より見るべき重要な数値がある]]
 - [[10_Knowledge/「美術館や映画館に通う高齢者ほど体は“若い”」という研究結果は、どこまで本当？]]
 - [[10_Knowledge/すべて動いていたのにAWSが月額1665ドルを要求した]]
 - [[10_Knowledge/ようやくシャドウバンから解放された]]
