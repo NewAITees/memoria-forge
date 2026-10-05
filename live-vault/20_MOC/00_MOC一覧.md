@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-10-04T23:11:41.973145+00:00
+updated_at: 2026-10-05T00:17:56.816194+00:00
 ---
 
 # MOC一覧
@@ -58,7 +58,7 @@ updated_at: 2026-10-04T23:11:41.973145+00:00
 ## 未整理の境界
 
 - Markdown未昇格クラスタ: 614
-- MOC未所属Markdown: 401
+- MOC未所属Markdown: 402
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -403,6 +403,7 @@ updated_at: 2026-10-04T23:11:41.973145+00:00
 - [[10_Knowledge/Why AI-Agent Developers Are Turning to Signal House for SMS and Voice]]
 - [[10_Knowledge/Why End-to-End Crawler Testing Matters Beyond robots.txt for Website Visibility]]
 - [[10_Knowledge/Why I Chose Chi for My Go Backend]]
+- [[10_Knowledge/Why OpenCut Is Pulling 1,040 GitHub Stars Today]]
 - [[10_Knowledge/Why should request state survive after the request is finished]]
 - [[10_Knowledge/Why We Built MicroLeague Sports Vol. 3]]
 - [[10_Knowledge/Why We Replaced WordPress with Next.js 16 for High-Traffic E-Commerce in Morocco]]
