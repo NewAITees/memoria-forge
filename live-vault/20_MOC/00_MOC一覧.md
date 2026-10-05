@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-10-05T01:14:13.455544+00:00
+updated_at: 2026-10-05T02:15:59.930492+00:00
 ---
 
 # MOC一覧
@@ -58,8 +58,8 @@ updated_at: 2026-10-05T01:14:13.455544+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 615
-- MOC未所属Markdown: 401
+- Markdown未昇格クラスタ: 613
+- MOC未所属Markdown: 402
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -172,6 +172,7 @@ updated_at: 2026-10-05T01:14:13.455544+00:00
 - [[10_Knowledge/Footguns with Postgres at time zone 'UTC']]
 - [[10_Knowledge/Formalization of Sullivan's No Wandering Domains Theorem in Lean]]
 - [[10_Knowledge/From Empty Folder to Live URL A Beginner's Full-Stack App on AWS Fargate]]
+- [[10_Knowledge/From Pixels to Prescriptions Building a Smart Pill Reminder with YOLOv8 and Rasp]]
 - [[10_Knowledge/Fzf - o que é, como instalar e onde usar no dia a dia]]
 - [[10_Knowledge/Gemini 3.8 Flash vs 3.7 Flash  Nouveautés et faut-il mettre à jour]]
 - [[10_Knowledge/Genesis-Vault取引が映すオーストラリア金産業の成長戦略]]
