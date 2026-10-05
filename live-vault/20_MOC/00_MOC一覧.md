@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-10-05T03:17:25.760702+00:00
+updated_at: 2026-10-05T04:08:50.897756+00:00
 ---
 
 # MOC一覧
@@ -59,7 +59,7 @@ updated_at: 2026-10-05T03:17:25.760702+00:00
 ## 未整理の境界
 
 - Markdown未昇格クラスタ: 612
-- MOC未所属Markdown: 403
+- MOC未所属Markdown: 404
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -119,6 +119,7 @@ updated_at: 2026-10-05T03:17:25.760702+00:00
 - [[10_Knowledge/Beyond Pure Relational SQL Designing Hybrid Multi-Model Persistence with Postgre]]
 - [[10_Knowledge/Beyond Vibes Architecting Closed-Loop AI Agents with Local SLMs, Deterministic E]]
 - [[10_Knowledge/Bluffing in Scrabble]]
+- [[10_Knowledge/BrainShot — Turn Your Camera Roll Into a Document Library]]
 - [[10_Knowledge/Build a restaurant homepage with Webbit, a free Windows website editor]]
 - [[10_Knowledge/Building a CMS with AI Agents You Don't Write the Code, You Audit the Decisions]]
 - [[10_Knowledge/Building a Deal Intelligence Agent with Persistent Memory]]
