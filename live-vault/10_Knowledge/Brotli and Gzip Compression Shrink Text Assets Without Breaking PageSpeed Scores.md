@@ -1,0 +1,58 @@
+---
+title: BrotliとGzipでテキストアセットを圧縮し、PageSpeedスコアを落とさずにパフォーマンス向上
+type: knowledge
+status: draft
+created: 2026-10-05
+updated: 2026-10-05
+confidence: medium
+---
+
+# BrotliとGzipでテキストアセットを圧縮し、PageSpeedスコアを落とさずにパフォーマンス向上
+
+## 結論
+
+BrotliとGzipの両方を有効化し、テキストベースのアセットを圧縮することで、ページの読み込み時間を短縮し、PageSpeedスコアを低下させずにパフォーマンスを向上させることができる。ただし、圧縮設定の整合性を保ち、LighthouseやPageSpeed Insightsの測定対象URLとContent-Encodingの適用層を一致させることが重要である。また、Brotliは高い圧縮率を提供する一方で、Gzipは広くサポートされており、フォールバックとしての役割を果たすため、両者の併用が推奨される。
+
+## テーマ概要
+
+BrotliとGzipは、HTML、CSS、JavaScriptなどのテキストベースのアセットを圧縮し、ページの読み込み時間を短縮するためのアルゴリズムです。BrotliはGzipよりも高い圧縮率を達成し、特にテキストファイルの圧縮において優れていますが、Gzipは1992年に登場し、広くサポートされており、古くからのクライアントにも対応可能です。現代のブラウザはBrotliをサポートしており、クライアントがBrotliをサポートしている場合、それを優先的に使用します。一方で、Gzipは依然として多くの環境で利用され、Brotliが利用できない場合のフォールバックとしての役割を果たしています。このテーマは、BrotliとGzipの両方を有効化し、テキストアセットを圧縮しながらPageSpeedスコアを低下させずにページパフォーマンスを向上させる方法について注目されています。特に、LighthouseやPageSpeed Insightsなどのツールが圧縮の有無を評価するため、適切な設定が求められます。また、圧縮は帯域幅とデコードのトレードオフであり、他のパフォーマンス最適化技術と併用することが推奨されています。
+
+## 共通して確認できる点
+
+BrotliとGzipは、HTML、CSS、JavaScriptなどのテキストベースのアセットを圧縮してサイズを小さくするアルゴリズムであり、ページのロード時間を改善する効果があります。BrotliはGzipに比べて同等の品質設定でテキストの圧縮率が高く、特にHTML、CSS、JavaScriptの圧縮に効果的です。一方、Gzipは1992年に登場し、広くサポートされており、古いブラウザや環境では依然として信頼性の高い選択肢です。現代のブラウザはBrotliをサポートしている場合、優先的に使用しますが、Brotliが利用できない場合はGzipにフォールバックします。このため、Brotliを有効化しつつGzipをフォールバックとして設定することが推奨されています。HTTP圧縮は、レスポンスのボディをネットワーク経由で送信する前に圧縮し、転送サイズを減らす一方で、パーサーが必要とする未圧縮のサイズは変化しません。クライアントはAccept-Encodingヘッダーでサポートする圧縮形式を通知し、サーバーやCDNが適切な形式を選択してContent-Encodingヘッダーで指定します。LighthouseやPageSpeed Insightsは圧縮が不足している場合に警告を出すことがありますが、これは圧縮対象のレスポンス、Content-Encodingの適用層、および測定対象のURLとの整合性が原因であることが多くあります。圧縮はテキストレスポンスの帯域幅とデコードのトレードオフであり、キャッシュやリソース優先順位などの他のパフォーマンス最適化と併用することが望ましいです。BrotliとGzipのどちらがより効果的かについては、一概に結論を出すことはできませんが、BrotliはIETF RFCで標準化されており、その導入が増加しています。また、Brotliの圧縮率はGzipに比べて高い傾向にあるものの、どちらがより高速に圧縮・解圧するかについては明確な合意は得られていません。Core Web Vitalsへの影響についても、ダウンロード時間の短縮には寄与する可能性があるものの、オリジンクエリの遅延や大容量のLCP画像などの問題には影響を与えないという意見が示されています。
+
+## 記事ごとの差分・視点の違い
+
+記事「Brotli and Gzip Compression: Shrink Text Assets Without Breaking PageSpeed Scores」では、BrotliとGzipの両方をサポートする方法について説明されており、特にHTML、CSS、JavaScriptなどのテキスト資産を圧縮してサイズを減らすことが目的としている。この記事では、Brotliを優先的に使用し、Gzipをバックアップとして利用することで、PageSpeedスコアを崩さずにパフォーマンスを向上させる方法が提案されている。また、LighthouseやPageSpeed Insightsの測定結果に影響を与える要因として、圧縮が適用されたレスポンスと、測定対象URLの一致が重要であると指摘されている。
+
+記事「Brotli vs. GZIP: Improve PageSpeed With HTTP Compression」では、GZIPとBrotliの違いと、それぞれの特徴を比較している。GZIPは1992年に登場し、広くサポートされており、コスト効率が高い一方で、Brotliは2013年に登場し、より高い圧縮率を提供している。この記事では、BrotliがGZIPよりも優れている点を強調しつつ、ブラウザのサポート状況や、サーバー設定での実装方法についても説明している。
+
+記事「Adding Amazon’s Cloudfront CDN to your WordPress site...」では、WordPressサイトにCloudfront CDNを導入する際の注意点や、設定のポイントが記載されている。特に、SEOプラグインとCloudFrontのキャッシュキー設定の組み合わせによるリダイレクトループの問題が取り上げられており、この問題を解決するための設定方法が提案されている。
+
+記事「Cloudfront SSL issue on WordPress. Too many redirects」では、CloudfrontとWordPressのSSL設定に関する問題が取り上げられており、リダイレクトが発生する原因と、それを解決するための設定手順が説明されている。この記事では、リダイレクトの原因がSSL設定とDNS設定にある可能性が指摘されており、具体的な解決策が提示されている。
+
+記事「CORSдля собеседований и работы」では、CORS（Cross-Origin Resource Sharing）の仕組みと、その設定方法が説明されている。CORSは、異なるドメイン間でのリソース共有を制御する仕組みであり、セキュリティ保護のためのポリシーとして機能している。この記事では、CORSの基本的な動作と、プリフライトリクエストの仕組み、そしてCORSの設定に必要なヘッダーについて詳しく解説されている。
+
+## 深掘り調査で得られた知見
+
+BrotliとGzipは、HTML、CSS、JavaScriptなどのテキストベースのアセットを圧縮するアルゴリズムであり、ページの読み込み時間を短縮する効果があります。Brotliは、同等の品質設定でGzipに比べて、特にHTML、CSS、JavaScriptにおいてより小さなテキストパケットを生成します。一方で、Gzipは1992年に登場し、広くサポートされており、中程度のレベルで圧縮する際にはコストが低く、信頼性が高いとされています。現代のブラウザはBrotliをサポートしている場合、その使用を優先します。Brotliを有効化し、Gzipをバックアップとして使用することで、互換性を保ちながら圧縮のメリットを最大限に活用できます。HTTP圧縮は、応答のボディをネットワーク経由で送る前にサイズを小さくし、転送サイズを減らしますが、パーサーが必要とする未圧縮サイズは変更されません。クライアントはAccept-Encodingヘッダーでサポートしている圧縮形式を通知し、サーバーやCDNが適切なエンコーディングを選択してContent-Encodingヘッダーで返します。LighthouseやPageSpeed Insightsは圧縮の不足を警告することがありますが、問題の多くは、どの応答が圧縮されているか、Content-Encodingがどのレイヤーで適用されているか、そしてLighthouseがどのURLを測定しているかの不一致に起因しています。圧縮はテキスト応答における帯域幅とデコードのトレードオフであり、キャッシュやリソース優先順位などの他のパフォーマンス最適化と併用することが推奨されます。BrotliとGzipのどちらが圧縮効率が高いかについては、一部のソースではBrotliが優れているとされていますが、他のソースでは明確な結論が示されていません。圧縮レベルの最適化については、一貫した合意はなく、一部のソースではGzipがBrotliの代替として安全な選択肢であると指摘しています。BrotliはIETF RFC標準化により最近注目を浴びており、サーバーやCDNのドキュメンテーションで利用されることが増加しています。Gzipは広くサポートされており、Brotliが利用できない場合の安全な選択肢として扱われています。圧縮がCore Web Vitalsに与える影響については、一貫した合意がなく、一部のソースではダウンロード時間を短縮する効果があるとされていますが、遅いオリジンクエリやオーバーサイズのLCP画像などの問題には影響しないとされています。
+
+## 不確実な点・追加確認が必要な点
+
+BrotliとGzipの圧縮アルゴリズムの比較において、記事間で一致しない点が見られる。記事1では、BrotliがGzipよりも小さなテキストペイロードを生成するとされ、Gzipは古いアルゴリズムであり、エンコードコストが比較的低く、古いクライアントとの互換性を保つためのフォールバックとして推奨されている。一方、記事2では、Brotliが2013年にリリースされ、Gzipよりも優れた圧縮率を提供していると述べており、ブラウザ間でのサポート率は96%であるとされている。ただし、IE11はBrotliをサポートしていない。これらの情報は、BrotliとGzipのどちらがより優れているかという点では、異なる主張を含んでいる。
+
+また、記事1では、LighthouseやPageSpeed Insightsが圧縮を欠いていると警告する場合があるが、これは測定対象のURLや層でのContent-Encodingの適用、Lighthouseが実際に測定する内容との不一致が原因である可能性が高い。このため、圧縮の有無を判断する際には、測定対象の設定に注意が必要である。
+
+一方で、記事3と記事4は、WordPressとCloudFrontの設定に関連する問題を扱っており、BrotliやGzipの圧縮技術と直接的な関係は見られない。記事3では、WordPressのリダイレクト動作とCloudFrontの設定が衝突する可能性があり、記事4ではSSL設定とリダイレクトループの問題が取り上げられている。これらは、圧縮技術とは異なる技術的課題であり、BrotliやGzipの圧縮アルゴリズムの選択とは関係が薄い。
+
+さらに、記事5はCORS（Cross-Origin Resource Sharing）に関する内容であり、BrotliやGzipの圧縮技術とは関連性が少ない。CORSは、異なるドメイン間でのリソース共有を制御する仕組みであり、セキュリティポリシーの一環として機能する。記事5では、CORSの設定やリクエストの処理方法が説明されており、圧縮技術とは別の技術的トピックである。
+
+以上のように、BrotliとGzipの圧縮技術に関する記事は、技術的背景や実装方法、そしてその影響範囲について異なる視点から説明されている。そのため、記事間で一貫した結論には至っておらず、今後の検証や補完が必要である。
+
+## 元記事一覧
+
+- [BrotliandGzipCompression: Shrink Text Assets... - DEV Community](https://dev.to/apogeewatcher/brotli-and-gzip-compression-shrink-text-assets-without-breaking-pagespeed-scores-6e3)
+- [Brotlivs.GZIP: ImprovePageSpeedWith HTTPCompression](https://www.debugbear.com/blog/http-compression-gzip-brotli)
+- [Adding Amazon’sCloudfrontCDN to yourWordpresssite... | Medium](https://medium.com/@bill-112358/adding-amazons-cloudfront-cdn-to-your-wordpress-site-for-free-a02640fb3a8b)
+- [CloudfrontSSL issue onwordpress. Too manyredirects](https://stackoverflow.com/questions/55024367/cloudfront-ssl-issue-on-wordpress-too-many-redirects)
+- [CORSдля собеседований и работы / Хабр](https://habr.com/ru/articles/935636/)
