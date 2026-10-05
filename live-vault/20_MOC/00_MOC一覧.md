@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-10-05T11:15:45.337046+00:00
+updated_at: 2026-10-05T12:09:10.893853+00:00
 ---
 
 # MOC一覧
@@ -59,8 +59,8 @@ updated_at: 2026-10-05T11:15:45.337046+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 605
-- MOC未所属Markdown: 407
+- Markdown未昇格クラスタ: 603
+- MOC未所属Markdown: 408
 
 - [[10_Knowledge/10,000 Users. One Live Price. How Stale Is Too Stale]]
 - [[10_Knowledge/13 Attacks, 0 Vulnerabilities Building a Security Toolkit — With Zero Dependenci]]
@@ -324,6 +324,7 @@ updated_at: 2026-10-05T11:15:45.337046+00:00
 - [[10_Knowledge/RISC-V is now officially supported by CPython]]
 - [[10_Knowledge/Rolling out phishing-resistant multi-factor authentication]]
 - [[10_Knowledge/Rustを一緒に学ぼう]]
+- [[10_Knowledge/Same question, same database, two callers]]
 - [[10_Knowledge/Scalable Guardrail Service ASP.NET Core Kubernetes Architecture, Code, and Ops]]
 - [[10_Knowledge/Schopenhauer in the Standup 7 Rules to Neutralize a Toxic Boss]]
 - [[10_Knowledge/Self-Supervised Pretraining of Molecular Graph Encoders with LeJEPA]]
