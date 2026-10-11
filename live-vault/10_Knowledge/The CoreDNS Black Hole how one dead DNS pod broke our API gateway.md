@@ -1,0 +1,46 @@
+---
+title: KubernetesにおけるCoreDNS Black Hole問題の実態
+type: knowledge
+status: draft
+created: 2026-10-12
+updated: 2026-10-12
+confidence: medium
+---
+
+# KubernetesにおけるCoreDNS Black Hole問題の実態
+
+## 結論
+
+Kubernetes環境において、CoreDNSの設定やネットワークポリシーとの相互作用が、DNS解決の異常を引き起こし、APIゲートウェイの可用性に深刻な影響を与える可能性がある。特に、削除されたCoreDNSポッドにDNSクエリが引き続き送信され、Ciliumなどのネットワークレイヤーとの相互作用により、古いソケットが回復しなくなることで、クラスタ全体の可用性が低下するケースが確認されている。この問題は、DNS設定とネットワーク構成の組み合わせによって引き起こされるため、適切な対応と監視が不可欠である。
+
+## テーマ概要
+
+Kubernetes環境におけるDNS解決の異常が、APIゲートウェイの可用性に深刻な影響を与えるという事例が注目されている。具体的には、CoreDNSというDNS解決サービスを担当するPodが異常終了した後、NGINXなどのアプリケーションがそのPodに向けたDNSクエリを引き続き送信し続け、Ciliumなどのネットワークレイヤーとの相互作用により、古いソケットが回復しなくなった。これにより、APIゲートウェイがバックエンドに接続できず、503エラーが発生した。この問題は、KarpenterによるPodの削除やネットワークポリシーの設定など、複数の要素が絡み合い、意図せず長期にわたって発生するブラックホール状態を引き起こした。このようなDNS関連の障害は、クラスタ全体の可用性に深刻な影響を及ぼす可能性があるため、今注目されている。
+
+## 共通して確認できる点
+
+CoreDNSはKubernetesクラスタ内のDNS解決を担当しており、すべてのサービスがCoreDNSに依存している。ある記事では、CoreDNSのDNSクエリがタイムアウトし、NGINXがバックエンドに接続できず、503エラーが発生したという記録がある。これは、Karpenterによって削除されたCoreDNSポッドにNGIN、XがDNSクエリを送信し続け、Ciliumの設定により古いソケットが回復しなかったためである。また、ndots:5の設定により、DNSクエリが過剰に生成され、CoreDNSのCPU使用率が高くなり、応答が遅くなったという記録も見られる。さらに、CoreDNSのキャッシュとプリフェッチ機能の導入により、DNSクエリの負荷が軽減され、クラスタ全体の可用性が向上した。KEDAによるCoreDNSの自動スケーリングも、DNSクエリの負荷を分散し、クラスタ全体の可用性を向上させた。これらの事象は、CoreDNSの設定やクラスタ内のネットワーク構成によって引き起こされ、適切な対応が必要である。
+
+## 記事ごとの差分・視点の違い
+
+記事「The CoreDNS Black Hole: how one dead DNS pod broke our API gateway」では、KarpenterによるCoreDNSポッドの削除後にNGINXがDNSクエリを送信し続け、Ciliumの設定により古いソケットが回復しなかったことが原因でAPIゲートウェイがクラッシュした問題を詳述している。この記事では、ネットワークの仕組みとDNSの挙動の組み合わせが生じたブラックホール状態を具体的な例で説明し、問題の本質を明らかにしている。  
+記事「The CoreDNS Black Hole: how one dead DNS pod broke our API gateway」（LinkedIn）では、NGINXが削除されたCoreDNSポッドにDNSクエリを送信し続け、Ciliumの挙動によりソケットが回復しなかったことが原因でエラーが発生したことを再確認し、問題の再現と検証の結果を共有している。この記事では、実際のテストケースとその結果をもとに、問題の原因と対策を具体的に説明している。  
+記事「PushgatewayHeartbeatGotcha:WhenndotsandNetworkPolicy...」では、ndots:5のDNS設定とnamespace-scoped NetworkPolicyの組み合わせにより、Pushgatewayへの通信が遮断され、監視インフラが問題を検出できなくなった問題を明らかにしている。この記事では、監視の失敗が監視インフラ自体が原因であるため、ユーザーに通知されない点に注目し、監視設計における注意点を強調している。  
+記事「Heartbeat| TeckDeck.io」では、Pushgatewayのハートビートメトリックが更新されない原因として、DNS設定とネットワークポリシーの組み合わせが挙げられている。この記事では、監視インフラの設計においてDNSとネットワークポリシーの組み合わせを考慮する必要があると指摘し、監視失敗の検出方法についても触れている。  
+記事「Debugging DNS Resolution - Kubernetes」では、Kubernetesクラスタ内のDNS解決のトラブルを診断する方法について説明しており、CoreDNSの設定やネットワークの問題がDNS解決の失敗の原因であることを確認している。この記事では、DNSのトラブルを検出するための具体的な手順を示し、CoreDNSの状態確認やログの確認が重要であると強調している。
+
+## 深掘り調査で得られた知見
+
+Kubernetes環境におけるDNSトラブルは、特にCoreDNSの設定やネットワークポリシーとの相互作用で深刻な影響を及ぼす可能性がある。記事1と記事2では、KarpenterによるCoreDNSポッドの削除後、NGINXがそのポッドにDNSクエリを送信し続け、Ciliumの設定により古いソケットが回復しなかったことが原因でAPIゲートウェイが503エラーを発生したケースが報告されている。この問題は、DNSクエリがタイムアウトし、バックエンドへの接続が失われるという現象を引き起こした。また、ndots:5の設定により、DNSクエリが過剰に生成され、CoreDNSのCPU使用率が高くなり、応答が遅くなったという事例も確認されている。さらに、CoreDNSのキャッシュとプリフェッチ機能の導入により、DNSクエリの負荷が軽減され、クラスタ全体の可用性が向上したという情報も得られている。KEDAによるCoreDNSの自動スケーリングも、DNSクエリの負荷を分散し、クラスタの可用性を向上させた。これらの事象は、CoreDNSの設定やクラスタ内のネットワーク構成によって引き起こされ、適切な対応が必要である。また、記事3では、ndots:5のDNS動作とnamespace-scoped NetworkPolicyの組み合わせが、Pushgatewayのハートビートメトリックが更新されない原因となった例が紹介されている。DNSのndots:5設定により、フルケーションドドメイン名が相対名として扱われ、ワイルドカードDNSレコードが誤って解決される可能性がある。ネットワークポリシーがデフォルトで拒否するため、Pushgatewayへの通信が遮断され、監視インフラが問題を検出できない。監視の失敗は、監視インフラ自体が原因となるため、ユーザーに通知されない。監視を実装する際、DNS設定とネットワークポリシーの組み合わせを考慮する必要がある。記事4では、Heartbeatに関する情報が掲載されており、監視インフラの設定やDNS設定の組み合わせが監視失敗の原因となる可能性があることが示されている。記事5では、KubernetesのDNSトラブルの検出方法について説明されており、アプリケーションのログにDNS解決の失敗が記録されていない場合でも、RedisのログからDNS解決の失敗が検出されることがあるという情報が提供されている。これにより、DNS解決の失敗を検出するためには、Pod内でのnslookupや他のDNSツールの使用が推奨されている。これらの情報は、Kubernetes環境におけるDNSトラブルの原因と対応策を理解する上で重要である。
+
+## 不確実な点・追加確認が必要な点
+
+記事間では、CoreDNSの問題が異なる観点から取り上げられている点が確認できる。記事1と記事2では、KarpenterによるCoreDNSポッドの削除後に、NGINXがDNSクエリを送信し続け、Ciliumの設定により古いソケットが回復しなかったことが原因でAPIゲートウェイが破綻したとされている。一方、記事3と記事4では、ndots:5の設定とnamespace-scoped NetworkPolicyの組み合わせが、Pushgatewayのハートビートメトリックが更新されない原因となったとされている。また、記事5では、CoreDNSの設定やネットワークの問題がDNS解決の失敗を引き起こす可能性があると指摘されており、その検出方法についても述べられている。これらの記事は、CoreDNSの設定やネットワーク構成の影響を示しているが、それぞれの原因や解決策が異なり、一概に断定することはできない。
+
+## 元記事一覧
+
+- [The CoreDNS Black Hole: how one dead DNS pod broke our API ...](https://dev.to/akarshan/the-coredns-black-hole-how-one-dead-dns-pod-broke-our-api-gateway-4hh3)
+- [The CoreDNS Black Hole: how one dead DNS pod broke our API ...](https://www.linkedin.com/posts/akarshan96_the-coredns-black-hole-how-one-dead-dns-activity-7508176923928252417-qL7t)
+- [PushgatewayHeartbeatGotcha:WhenndotsandNetworkPolicy...](https://dev.to/futhgar/pushgateway-heartbeat-gotcha-when-ndots-and-networkpolicy-silently-eat-your-alerts-3908)
+- [Heartbeat| TeckDeck.io](https://teckdeck.io/tags/tag-heartbeat)
+- [Debugging DNS Resolution - Kubernetes](https://kubernetes.io/docs/tasks/administer-cluster/dns-debugging-resolution/)
