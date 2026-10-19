@@ -1,0 +1,42 @@
+---
+title: Pythonで売上ダッシュボードを構築・デプロイする方法
+type: knowledge
+status: draft
+created: 2026-10-19
+updated: 2026-10-19
+confidence: medium
+---
+
+# Pythonで売上ダッシュボードを構築・デプロイする方法
+
+## 結論
+
+Pythonを用いた売上分析用ダッシュボードの構築において、StreamlitとPlotlyは実践的な開発において広く採用されており、特にStreamlitはPythonスクリプトをWebアプリケーションに変換する簡易なフレームワークとして注目されている。また、GitHubとStreamlit Community Cloudを活用した自動デプロイ機能により、開発者やデータサイエンティストがコードの共有と更新を効率的に行える仕組みが確立されている。
+
+## テーマ概要
+
+Python、Streamlit、Plotlyを組み合わせて、売上分析用のインタラクティブなダッシュボードを構築・デプロイする方法が注目されています。このテーマは、データサイエンティストやAI/MLエンジニアが、簡潔なコードでWebアプリケーションを迅速に開発できるStreamlitというフレームワークを活用し、視覚的で使いやすいインターフェースを提供する技術の実践例として、特にデータ可視化や分析の現場で求められるスキルとして注目されています。また、Plotlyによる動的なグラフ表示や、Pandasを用いたデータ処理が組み合わさることで、ユーザーがリアルタイムでデータを操作しながら分析を行うことが可能となり、業務効率の向上につながる点も特徴です。さらに、GitHubとStreamlit Community Cloudを活用した自動デプロイや、リポジトリ管理の仕組みも、開発プロセスの効率化に寄与しています。
+
+## 共通して確認できる点
+
+複数の記事で共通して確認できた事実として、Pythonを活用したインタラクティブなダッシュボードの構築において、StreamlitとPlotlyが広く利用されていることが挙げられます。これらのツールは、データ分析の可視化を簡易化し、ユーザーが直感的に操作できるインターフェースを提供します。特に、StreamlitはPythonスクリプトをWebアプリケーションに変換し、HTMLやJavaScriptの知識がなくても利用可能です。また、Plotlyは動的なグラフの作成をサポートし、ダッシュボードの視覚的な表現を豊かにします。さらに、多くのプロジェクトではGitHubを用いてコードの管理を行い、Streamlit Community Cloudでアプリケーションをホストする方法が採用されています。これにより、開発者やデータサイエンティストがコードの共有や自動更新を効率的に行うことが可能となっています。
+
+## 記事ごとの差分・視点の違い
+
+記事「CreaunDashboardProfesionalconPython(Streamlit+Plotly)」は、特定のビジネスコンテキストにおける売上分析に焦点を当てた実践的なプロジェクトを紹介しており、StreamlitとPlotlyを用いたダッシュボードの構築手順を詳細に説明しています。一方、「DashboardinteractivoconPythonyStreamlit| Coderhouse」は、初心者向けのチュートリアルとして、Streamlitの基本的な使い方や、データの読み込み、フィルタリング、キャッシュ処理といった実装技法に重点を置いている点が特徴です。また、「DataBank Error Page」は、World Bankのデータベースにアクセスする際の技術的な障害を示しており、実際のデータ取得プロセスにおける課題を浮き彫りにしています。さらに、「Streamlit • A faster way tobuildand sharedataapps」は、Streamlitフレームワーク自体の概要と、その利用シーン、特徴を紹介しており、技術的な背景を理解する上で重要な情報源となっています。最後に、「Matplotlib-Session2- DEV Community」は、Matplotlibの機能とその使用法について解説しており、データ可視化の別のアプローチとしての価値を提示しています。各記事は、それぞれの視点からダッシュボード開発に関連する技術や実践に触れています。
+
+## 深掘り調査で得られた知見
+
+Pythonを用いた売上ダッシュボードの構築とデプロイにおいて、StreamlitとPlotlyが広く採用されていることが確認されました。特に、StreamlitはPythonスクリプトをWebアプリケーションに変換し、フィルターやグラフ、テーブルを含むインタラクティブなインターフェースを簡単に構築できる点が特徴です。このため、データ分析の実践的なスキルを習得するための学習者にとって、学習コストが低く、実装が迅速であることが大きな利点となっています。また、Streamlit Community Cloudを活用することで、デプロイされたアプリケーションはGitHubにリンクされ、自動的に更新され、公開アクセスが可能になります。これにより、ポートフォリオの構築や成果の共有が容易になります。一方で、データソースとしてWorld BankのDataBank APIが利用不可であることが確認され、代替として、仮想データやCSVファイルを用いたプロジェクトが多数見られます。このような状況は、データの可視化に必要なツールとしてはMatplotlibも活用され、特にpandasとの連携が強みとして挙げられています。グラフの作成やカスタマイズが可能であり、データ分析のプロセスにおいて重要な役割を果たしています。
+
+## 不確実な点・追加確認が必要な点
+
+記事間で確認できた情報には、Sales Dashboardの構築にPython、Streamlit、Plotlyが利用されているという点は一致していますが、具体的な実装方法やデータソースについては一貫性がありません。記事1では、ダッシュボードがStreamlit Community Cloudでホストされ、GitHubに公開されていることが明記されており、自動更新機能が備わっているとされています。一方で、記事2では、Streamlitの基本的な使用法や、`st.cache_data`などの最適化技術が紹介されており、実際のコード例も含まれています。ただし、データソースについては、記事1では「ficticios」のデータが使用されている一方で、記事2ではユーザー自身がCSVファイルを提供する必要があるとされています。また、記事3のWorld Bank DataBank APIは現在利用不可であり、代替手段として他のデータソースが使用されている可能性があります。記事4のStreamlit公式サイトでは、フレームワークの概要と特徴が説明されていますが、具体的なダッシュボード構築の手順は含まれていません。記事5のMatplotlibに関する情報は、PlotlyやStreamlitとの関連性には触れていないため、Sales Dashboardの技術スタックと直接的な関連性は明確ではありません。これらの違いから、各記事が異なる目的や対象読者層を想定している可能性があります。
+
+## 元記事一覧
+
+- [CreaunDashboardProfesionalconPython(Streamlit+Plotly)](https://www.youtube.com/watch?v=kUbLhVI6Lms)
+- [DashboardinteractivoconPythonyStreamlit| Coderhouse](https://www.coderhouse.com/co/coderlibrary/tutorial-dashboard-interactivo-python-streamlit)
+- [DataBank Error Page](https://databank.worldbank.org/ddperror.aspx?aspxerrorpath=/reports.aspx)
+- [Streamlit • A faster way tobuildand sharedataapps](https://streamlit.io/)
+- [Matplotlib-Session2- DEV Community](https://dev.to/rsbalaji/matplotlib-session-2-2dpf)
