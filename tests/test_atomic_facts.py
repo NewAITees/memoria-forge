@@ -281,6 +281,24 @@ def test_render_grounded_page_has_small_readable_structure_and_fact_links() -> N
     assert "根拠引用" in page
 
 
+def test_render_grounded_page_never_lists_the_same_fact_twice() -> None:
+    # Observed live in live-vault/10_Knowledge/Sandboxing Python RestrictedPython vs
+    # Docker vs Pyodide.md: the same fact_id appeared twice in "確認できた事実" and
+    # twice in "出典" with identical text. Whatever upstream step let a duplicate
+    # fact_id reach this function (a stale pre-dedup extraction, a future pipeline
+    # change), the rendered page itself must never show one fact twice.
+    fact = _fact()
+    page = render_grounded_page(
+        "EKSのHPA負荷試験",
+        [fact, fact],
+        implications="これは検証済み事実から分けた解釈です。",
+        uncertainties="他の構成で同じ結果になるかは未確認です。",
+    )
+
+    assert page.count("[^fact-1]") == 2  # one body reference, one footnote definition
+    assert page.count("根拠引用") == 1
+
+
 def test_evidence_material_includes_urls_and_snippets() -> None:
     sources = [SearchResult("HPA test", "https://example.com/hpa", "scale from 2 to 6")]
 

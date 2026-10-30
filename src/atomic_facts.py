@@ -496,6 +496,17 @@ def render_grounded_page(
     overview: str = "",
     implication_fact_ids: list[str] | None = None,
 ) -> str:
+    # Defend against a duplicate fact_id reaching this function (seen live from a
+    # stale pre-dedup extraction): never render the same fact twice.
+    deduped: list[AtomicFact] = []
+    seen_ids: set[str] = set()
+    for fact in facts:
+        if fact.fact_id in seen_ids:
+            continue
+        seen_ids.add(fact.fact_id)
+        deduped.append(fact)
+    facts = deduped
+
     overview = (
         overview.strip()
         or f"このページでは、調査資料から直接確認できた{len(facts)}件の事実を整理する。"
