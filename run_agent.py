@@ -3,8 +3,10 @@ import argparse
 import hashlib
 import json
 import multiprocessing
+import os
 import tempfile
 import time
+from dataclasses import asdict
 
 from experiments.visualize_clusters import generate as generate_cluster_visualization
 from src.discord_notify import notify_rejection_streak, notify_run, read_webhook_url
@@ -96,17 +98,81 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=Path, default=Path("config.json"))
     parser.add_argument("--once", action="store_true", help="run one cycle and exit")
+    parser.add_argument(
+        "--dream-once", action="store_true", help="process one local memory Dreaming job"
+    )
+    parser.add_argument(
+        "--dream-batch", action="store_true", help="process a bounded batch of Dreaming jobs"
+    )
+    parser.add_argument(
+        "--dream-limit",
+        type=int,
+        default=10,
+        help="maximum jobs per --dream-batch run (default: 10)",
+    )
+    parser.add_argument(
+        "--dream-retry-only",
+        action="store_true",
+        help="claim only ready retry jobs in --dream-batch",
+    )
     parser.add_argument("--scheduled", action="store_true", help="use the per-vault process lock")
     parser.add_argument("--interval-hours", type=float, default=24.0)
     parser.add_argument(
         "--status", action="store_true", help="print a health report and exit without running"
     )
     args = parser.parse_args()
+    if args.dream_once and args.dream_batch:
+        parser.error("--dream-once and --dream-batch are mutually exclusive")
+    if args.dream_retry_only and not args.dream_batch:
+        parser.error("--dream-retry-only requires --dream-batch")
+    if (args.dream_once or args.dream_batch) and (args.once or args.scheduled or args.status):
+        parser.error("Dreaming modes cannot be combined with --once, --scheduled, or --status")
+    if args.dream_batch and args.dream_limit < 1:
+        parser.error("--dream-limit must be positive")
     config = Config.load(args.config)
+    if args.dream_once or args.dream_batch:
+        from src.dream_worker import run_dream_batch, run_dream_once
+        from src.memory_store import MemoryStore
+        from src.wiki_agent import create_client, create_reviewer_client
+
+        writer = create_client(config)
+        reviewer = create_reviewer_client(config)
+        with MemoryStore(config.vault_path / ".memory-engine.sqlite3") as store:
+            if args.dream_batch:
+                output = asdict(
+                    run_dream_batch(
+                        store,
+                        f"dream-{os.getpid()}",
+                        extractor=writer,
+                        fact_reviewer=reviewer,
+                        translator=writer,
+                        localization_reviewer=reviewer,
+                        relation_evaluator=reviewer,
+                        max_jobs=args.dream_limit,
+                        retry_only=args.dream_retry_only,
+                    )
+                )
+            else:
+                output = asdict(
+                    run_dream_once(
+                        store,
+                        f"dream-{os.getpid()}",
+                        extractor=writer,
+                        fact_reviewer=reviewer,
+                        translator=writer,
+                        localization_reviewer=reviewer,
+                        relation_evaluator=reviewer,
+                    )
+                )
+        print(json.dumps(output, ensure_ascii=False, indent=2), flush=True)
+        return
     if args.status:
         vault = Vault(config.vault_path)
         db = StateDB(vault.root / ".agent-state.sqlite3")
-        print(json.dumps(db.status_summary(config.stale_days), ensure_ascii=False, indent=2), flush=True)
+        print(
+            json.dumps(db.status_summary(config.stale_days), ensure_ascii=False, indent=2),
+            flush=True,
+        )
         return
     webhook_url = read_webhook_url(args.config.parent / "config" / "discord_webhook.txt")
     lock = process_lock(scheduled_lock_path(config)) if args.scheduled else None

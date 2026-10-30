@@ -2,6 +2,7 @@ import json
 import math
 import os
 import re
+import sqlite3
 import subprocess
 import tempfile
 import time
@@ -104,7 +105,9 @@ def test_action_target_is_confined(tmp_path: Path) -> None:
 
 
 def test_structure_action_lets_llm_choose_target(tmp_path: Path) -> None:
-    validate_action({"action": "create_structure", "reason": "connect concepts"}, Config(tmp_path / "vault"))
+    validate_action(
+        {"action": "create_structure", "reason": "connect concepts"}, Config(tmp_path / "vault")
+    )
 
 
 def test_vault_snapshot_contains_content_and_links(tmp_path: Path) -> None:
@@ -213,9 +216,7 @@ def test_deep_research_accepts_content_key_from_llm(
     monkeypatch.setattr("src.research.deep_research.DDGSearchClient", Search)
     monkeypatch.setattr(
         "src.research.deep_research.fetch_pages",
-        lambda results, total_limit, per_page_limit: [
-            {**results[0], "page_content": "evidence"}
-        ],
+        lambda results, total_limit, per_page_limit: [{**results[0], "page_content": "evidence"}],
     )
 
     result = research_article(Client(), title="Topic")
@@ -246,6 +247,15 @@ def test_review_with_typed_blocking_issue_is_blocking() -> None:
     assert review_is_blocking(review)
 
 
+def test_review_with_blocking_issue_is_rejected_even_if_approved_flag_conflicts() -> None:
+    assert review_is_blocking(
+        {
+            "approved": True,
+            "issues": [{"type": "blocking", "description": "内容が浅すぎます。"}],
+        }
+    )
+
+
 def test_review_with_only_typed_warnings_is_not_blocking() -> None:
     review = {
         "approved": False,
@@ -259,7 +269,10 @@ def test_typed_warning_with_blocking_keyword_is_not_escalated() -> None:
     review = {
         "approved": False,
         "issues": [
-            {"type": "warning", "description": "一部の主張に出典がないので confidence を下げてください。"},
+            {
+                "type": "warning",
+                "description": "一部の主張に出典がないので confidence を下げてください。",
+            },
             {"type": "warning", "description": "missing source title polish needed"},
         ],
     }
@@ -281,11 +294,15 @@ def test_review_prompt_includes_today(monkeypatch: pytest.MonkeyPatch) -> None:
         self: Ollama, system: str, prompt: str, response_schema: object = None
     ) -> dict[str, object]:
         captured["prompt"] = prompt
+        captured["system"] = system
         return {"approved": True, "issues": []}
 
     monkeypatch.setattr(Ollama, "chat", fake_chat)
     Ollama("http://localhost:11434", "qwen3:8b").review("# page")
     assert date.today().isoformat() in captured["prompt"]
+    assert (
+        "do not block merely because the overview or implications are brief" in captured["system"]
+    )
 
 
 def test_strip_markdown_fence_unwraps_whole_page() -> None:
@@ -371,7 +388,10 @@ def test_safe_new_page_target_files_bare_title_under_knowledge_dir() -> None:
     ("title", "expected"),
     [
         # A slash inside a title is part of the title, not a directory separator.
-        ("Everything Was Working. AWS Wanted $1,665/Month More", "10_Knowledge/Everything Was Working. AWS Wanted $1,665-Month More.md"),
+        (
+            "Everything Was Working. AWS Wanted $1,665/Month More",
+            "10_Knowledge/Everything Was Working. AWS Wanted $1,665-Month More.md",
+        ),
         ("Why 24/7 monitoring matters", "10_Knowledge/Why 24-7 monitoring matters.md"),
         ("バックスラッシュ\\混じり", "10_Knowledge/バックスラッシュ-混じり.md"),
         ("A//B", "10_Knowledge/A-B.md"),
@@ -473,9 +493,9 @@ def test_validate_page_content_rejects_url_not_supplied_by_research() -> None:
 def test_validate_page_content_accepts_shortened_compound_headings() -> None:
     """The model drops the part after `・`; the section is still there and written."""
     page = _substantive_page("量子誤り訂正", "基本原理と実装条件を整理します")
-    page = page.replace(
-        "## 記事ごとの差分・視点の違い", "## 記事ごとの差分"
-    ).replace("## 不確実な点・追加確認が必要な点", "## 不確実な点")
+    page = page.replace("## 記事ごとの差分・視点の違い", "## 記事ごとの差分").replace(
+        "## 不確実な点・追加確認が必要な点", "## 不確実な点"
+    )
     validate_page_content(page)
 
 
@@ -513,9 +533,7 @@ def test_page_target_from_title_keeps_pages_inside_the_vault(tmp_path: Path) -> 
     assert target.parent == Path("10_Knowledge")
 
 
-def _substantive_page(
-    title: str, reason: str, sources: list[SearchResult] | None = None
-) -> str:
+def _substantive_page(title: str, reason: str, sources: list[SearchResult] | None = None) -> str:
     """A page in the ported report structure, long enough to clear the gate."""
     citations = sources or _research_sources()
     first, second = citations[:2]
@@ -531,7 +549,8 @@ def _substantive_page(
         + f"\n\n## 記事ごとの差分・視点の違い\n\n[{first.title}]({first.url})は測定条件を、"
         f"[{second.title}]({second.url})は適用範囲を強調しており、混同せずに記録します。\n\n"
         "## 深掘り調査で得られた知見\n\n"
-        + "追加調査で判明した具体的な条件、数値、時期を記録します。" * 3
+        + "追加調査で判明した具体的な条件、数値、時期を記録します。"
+        * 3
         + "\n\n## 不確実な点・追加確認が必要な点\n\n"
         "- 適用範囲ごとの有効性は未確定であり、条件を揃えた比較データによる確認が必要です。\n\n"
         f"## 元記事一覧\n\n- [{first.title}]({first.url})（公開日: 2026-08-01）\n"
@@ -614,6 +633,16 @@ def test_run_once_salvages_poisoned_queue_target(
     fake = _FakeClient([])
     monkeypatch.setattr(wiki_agent, "create_client", lambda _config: fake)
     monkeypatch.setattr(wiki_agent, "create_reviewer_client", lambda _config: fake)
+    monkeypatch.setattr(
+        wiki_agent,
+        "write_grounded_and_review",
+        lambda *_args, **_kwargs: (
+            True,
+            _substantive_page("Retrieval Experiments", "queue target", _research_sources()),
+            {"approved": True, "issues": []},
+            [],
+        ),
+    )
     monkeypatch.setattr(Researcher, "search", lambda self, query, count=3: _research_sources())
 
     result = run_once(config)
@@ -758,6 +787,39 @@ def test_ollama_requests_include_context_length(
     }
 
 
+def test_ollama_chat_saves_prompt_and_response_when_trace_path_is_set(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    log_path = tmp_path / "llm-responses.jsonl"
+
+    class Response:
+        def __enter__(self) -> "Response":
+            return self
+
+        def __exit__(self, *args: object) -> None:
+            pass
+
+        def read(self) -> bytes:
+            return json.dumps(
+                {"message": {"content": '{"answer":"応答"}'}}, ensure_ascii=False
+            ).encode("utf-8")
+
+    monkeypatch.setattr(
+        "src.wiki_agent.urllib.request.urlopen", lambda request, timeout=None: Response()
+    )
+    monkeypatch.setenv("MEMORIA_LLM_RESPONSE_LOG", str(log_path))
+
+    client = create_client(Config(tmp_path / "vault", ollama_url="http://x"))
+    result = client.chat("system prompt", "user prompt", {"type": "object"})
+
+    record = json.loads(log_path.read_text(encoding="utf-8").splitlines()[0])
+    assert result == {"answer": "応答"}
+    assert record["prompt"] == "user prompt"
+    assert record["system"] == "system prompt"
+    assert record["response"] == '{"answer":"応答"}'
+    assert record["model"] == "qwen3:8b"
+
+
 def test_config_rejects_non_positive_context_length(tmp_path: Path) -> None:
     with pytest.raises(ValueError, match="num_ctx"):
         Config(tmp_path / "vault", num_ctx=0).validate()
@@ -803,10 +865,16 @@ def _init_repo_with_remote(tmp_path: Path) -> tuple[Path, Path]:
     repo_dir = tmp_path / "repo"
     repo_dir.mkdir()
     subprocess.run(["git", "init", str(repo_dir)], check=True, capture_output=True)
-    subprocess.run(["git", "-C", str(repo_dir), "symbolic-ref", "HEAD", "refs/heads/main"], check=True)
-    subprocess.run(["git", "-C", str(repo_dir), "config", "user.email", "test@example.com"], check=True)
+    subprocess.run(
+        ["git", "-C", str(repo_dir), "symbolic-ref", "HEAD", "refs/heads/main"], check=True
+    )
+    subprocess.run(
+        ["git", "-C", str(repo_dir), "config", "user.email", "test@example.com"], check=True
+    )
     subprocess.run(["git", "-C", str(repo_dir), "config", "user.name", "Test"], check=True)
-    subprocess.run(["git", "-C", str(repo_dir), "remote", "add", "origin", str(remote_dir)], check=True)
+    subprocess.run(
+        ["git", "-C", str(repo_dir), "remote", "add", "origin", str(remote_dir)], check=True
+    )
     return repo_dir, remote_dir
 
 
@@ -875,8 +943,12 @@ def test_commit_and_push_pushes_when_auto_push_enabled(tmp_path: Path) -> None:
 
 
 def _clone(remote_dir: Path, target_dir: Path) -> Path:
-    subprocess.run(["git", "clone", str(remote_dir), str(target_dir)], check=True, capture_output=True)
-    subprocess.run(["git", "-C", str(target_dir), "config", "user.email", "test@example.com"], check=True)
+    subprocess.run(
+        ["git", "clone", str(remote_dir), str(target_dir)], check=True, capture_output=True
+    )
+    subprocess.run(
+        ["git", "-C", str(target_dir), "config", "user.email", "test@example.com"], check=True
+    )
     subprocess.run(["git", "-C", str(target_dir), "config", "user.name", "Test"], check=True)
     subprocess.run(
         ["git", "-C", str(target_dir), "checkout", "-B", "main", "origin/main"],
@@ -927,7 +999,10 @@ def test_commit_and_push_returns_push_failed_on_unresolvable_conflict(tmp_path: 
     (repo_dir / "shared.md").write_text("# Changed by this process", encoding="utf-8")
     vault = Vault(repo_dir)
     config = Config(tmp_path / "unused-vault", git_enabled=True, auto_commit=True, auto_push=True)
-    assert commit_and_push(vault, config, "wiki: conflicting change from this process") == "push_failed"
+    assert (
+        commit_and_push(vault, config, "wiki: conflicting change from this process")
+        == "push_failed"
+    )
 
     log = subprocess.run(
         ["git", "-C", str(repo_dir), "log", "--oneline"], capture_output=True, text=True, check=True
@@ -939,7 +1014,9 @@ def test_record_reflection_inserts_row(tmp_path: Path) -> None:
     db = StateDB(tmp_path / "state.sqlite3")
     db.record_reflection("run-1", "review rejected: missing sources", "出典が不足していた。")
 
-    rows = db.db.execute("SELECT run_id, problem, lesson, proposed_rule FROM reflections").fetchall()
+    rows = db.db.execute(
+        "SELECT run_id, problem, lesson, proposed_rule FROM reflections"
+    ).fetchall()
     assert rows == [("run-1", "review rejected: missing sources", "出典が不足していた。", None)]
 
 
@@ -1007,7 +1084,15 @@ def test_status_summary_reports_recent_runs_and_counts(tmp_path: Path) -> None:
     db = StateDB(tmp_path / "state.sqlite3")
     db.db.execute(
         "INSERT INTO runs VALUES (?, ?, ?, ?, ?, ?, ?)",
-        ("run-1", "qwen3:8b", "2026-01-01T00:00:00+00:00", "2026-01-01T00:01:00+00:00", "success", 2, None),
+        (
+            "run-1",
+            "qwen3:8b",
+            "2026-01-01T00:00:00+00:00",
+            "2026-01-01T00:01:00+00:00",
+            "success",
+            2,
+            None,
+        ),
     )
     db.db.execute(
         "INSERT INTO runs VALUES (?, ?, ?, ?, ?, ?, ?)",
@@ -1127,7 +1212,11 @@ def test_plan_rss_action_builds_create_page(tmp_path: Path) -> None:
     vault = Vault(tmp_path / "vault")
     db = StateDB(vault.root / ".agent-state.sqlite3")
     db.ingest_rss_candidates(
-        [RSSEntry(title="量子ネットワークの新技術", url="https://example.com/q", source_name="Feed")]
+        [
+            RSSEntry(
+                title="量子ネットワークの新技術", url="https://example.com/q", source_name="Feed"
+            )
+        ]
     )
     # No sources file -> load_rss_sources returns [] and no network fetch happens.
     config = Config(tmp_path / "vault", rss_enabled=True, rss_sources_file=tmp_path / "none.txt")
@@ -1168,15 +1257,17 @@ def test_plan_rss_action_returns_none_when_disabled(tmp_path: Path) -> None:
     assert plan_rss_action(vault, db, config) is None
 
 
-def test_run_once_rss_drives_page_creation(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_run_once_rss_drives_page_creation(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     import src.wiki_agent as wiki_agent
 
     vault = Vault(tmp_path / "vault")
     db = StateDB(vault.root / ".agent-state.sqlite3")
     db.ingest_rss_candidates(
-        [RSSEntry(title="ニューロモーフィック計算", url="https://example.com/n", source_name="Feed")]
+        [
+            RSSEntry(
+                title="ニューロモーフィック計算", url="https://example.com/n", source_name="Feed"
+            )
+        ]
     )
     config = Config(
         tmp_path / "vault",
@@ -1188,6 +1279,16 @@ def test_run_once_rss_drives_page_creation(
     fake = _FakeClient([])
     monkeypatch.setattr(wiki_agent, "create_client", lambda _config: fake)
     monkeypatch.setattr(wiki_agent, "create_reviewer_client", lambda _config: fake)
+    monkeypatch.setattr(
+        wiki_agent,
+        "write_grounded_and_review",
+        lambda *_args, **_kwargs: (
+            True,
+            _substantive_page("ニューロモーフィック計算", "RSS page", _research_sources()),
+            {"approved": True, "issues": []},
+            [],
+        ),
+    )
     monkeypatch.setattr(Researcher, "search", lambda self, query, count=3: _research_sources())
 
     result = run_once(config)
@@ -1198,6 +1299,158 @@ def test_run_once_rss_drives_page_creation(
     assert created.exists()
     # The RSS candidate was consumed by the run.
     assert db.next_rss_candidate() is None
+
+
+@pytest.mark.parametrize("persistence_failure", [False, True])
+def test_run_once_persists_reviewed_facts_to_dedicated_memory_store(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+    persistence_failure: bool,
+) -> None:
+    import src.wiki_agent as wiki_agent
+    from src.atomic_facts import AtomicFact
+    from src.memory_store import MemoryStore
+
+    vault = Vault(tmp_path / "vault")
+    db = StateDB(vault.root / ".agent-state.sqlite3")
+    db.ingest_rss_candidates(
+        [RSSEntry(title="HPA設定", url="https://example.test/rss", source_name="Feed")]
+    )
+    config = Config(
+        tmp_path / "vault",
+        mode="autonomous_safe",
+        rss_enabled=True,
+        rss_sources_file=tmp_path / "none.txt",
+    )
+    quote = "The Horizontal Pod Autoscaler scales from 2 to 6 replicas."
+    sources = [
+        SearchResult("HPA documentation", "https://example.test/hpa", quote),
+        SearchResult(
+            "HPA operations", "https://example.test/hpa-ops", "HPA replicas are monitored."
+        ),
+    ]
+    fact = AtomicFact(
+        "verified-hpa",
+        quote,
+        quote,
+        "https://example.test/hpa",
+        "HPA documentation",
+        0.93,
+        "Horizontal Pod Autoscalerは2から6レプリカへ拡張する。",
+    )
+    fake = _FakeClient([])
+    monkeypatch.setattr(wiki_agent, "create_client", lambda _config: fake)
+    monkeypatch.setattr(wiki_agent, "create_reviewer_client", lambda _config: fake)
+    monkeypatch.setattr(Researcher, "search", lambda self, query, count=3: sources)
+    monkeypatch.setattr(
+        wiki_agent,
+        "write_grounded_and_review",
+        lambda *_args, **_kwargs: (
+            True,
+            _substantive_page("HPA設定", "reviewed page", sources),
+            {"approved": True, "issues": []},
+            [fact],
+        ),
+    )
+    if persistence_failure:
+
+        def fail_persistence(*_args: object, **_kwargs: object) -> object:
+            raise sqlite3.OperationalError("simulated memory database write failure")
+
+        monkeypatch.setattr(wiki_agent, "persist_reviewed_facts", fail_persistence)
+
+    result = run_once(config)
+
+    assert result["result"] == "success"
+    with MemoryStore(vault.root / ".memory-engine.sqlite3") as memory_store:
+        if persistence_failure:
+            assert (
+                memory_store.connection.execute("SELECT COUNT(*) FROM memory_facts").fetchone()[0]
+                == 0
+            )
+            assert "memory store persistence skipped" in caplog.text
+        else:
+            fact_id = memory_store.connection.execute(
+                "SELECT fact_id FROM memory_facts WHERE statement = ?", (quote,)
+            ).fetchone()[0]
+            assert memory_store.get_recall_statement(fact_id, "ja") == fact.statement_ja
+            assert (
+                memory_store.connection.execute(
+                    "SELECT media_type FROM source_documents WHERE source_uri = ?",
+                    (fact.source_url,),
+                ).fetchone()[0]
+                == "text/x-web-excerpt"
+            )
+    legacy_state = StateDB(vault.root / ".agent-state.sqlite3")
+    assert legacy_state.db.execute("SELECT COUNT(*) FROM atomic_facts").fetchone()[0] == 0
+
+
+def test_run_once_injects_reviewed_memory_recall_with_original_evidence(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import src.wiki_agent as wiki_agent
+    from src.memory_store import MemoryStore
+
+    vault = Vault(tmp_path / "vault")
+    vault.write("10_Knowledge/HPA.md", "# HPA\n\nExisting page.")
+    memory_path = vault.root / ".memory-engine.sqlite3"
+    quote = "The HPA controller scales from 2 to 6 replicas."
+    with MemoryStore(memory_path) as memory:
+        source = memory.add_source("https://example.test/hpa", quote, title="HPA reference")
+        fact = memory.add_fact_candidate(
+            source.source_id,
+            "The HPA controller scales from 2 to 6 replicas.",
+            quote,
+            language="en",
+        )
+        memory.review_fact(fact.fact_id, accepted=True, reviewer="fact-reviewer")
+        memory.save_localization(
+            fact.fact_id, "ja", "HPAコントローラーは2から6レプリカへ拡張する。"
+        )
+        memory.review_localization(
+            fact.fact_id, "ja", approved=True, reviewer="translation-reviewer"
+        )
+
+    class Planner:
+        def plan(self, snapshot: object, stale: object = None) -> dict[str, object]:
+            return {
+                "action": "improve_page",
+                "target": "10_Knowledge/HPA.md",
+                "reason": "Use current reviewed HPA memory.",
+                "search_queries": [],
+            }
+
+    captured: dict[str, object] = {}
+
+    def capture_writer(
+        _client: object,
+        _reviewer: object,
+        _target: Path,
+        _reason: str,
+        sources: list[SearchResult],
+        _existing: str,
+        research_context: str,
+        _vault_path: Path,
+    ) -> tuple[bool, str, dict[str, object]]:
+        captured["sources"] = sources
+        captured["context"] = research_context
+        return True, "# HPA\n\nUpdated from reviewed memory.", {"approved": True, "issues": []}
+
+    config = Config(tmp_path / "vault", mode="autonomous_safe")
+    monkeypatch.setattr(wiki_agent, "create_client", lambda _config: Planner())
+    monkeypatch.setattr(wiki_agent, "create_reviewer_client", lambda _config: object())
+    monkeypatch.setattr(wiki_agent, "update_world_map", lambda *_args: None)
+    monkeypatch.setattr(wiki_agent, "ingest_rss", lambda *_args: 0)
+    monkeypatch.setattr(Researcher, "search", lambda *_args, **_kwargs: [])
+    monkeypatch.setattr(wiki_agent, "write_and_review", capture_writer)
+
+    result = run_once(config)
+
+    assert result["result"] == "success"
+    assert "HPAコントローラーは2から6レプリカへ拡張する。" in captured["context"]
+    assert quote in captured["context"]
+    assert any(source.url == "https://example.test/hpa" for source in captured["sources"])
 
 
 def test_cosine_and_running_mean() -> None:
@@ -1284,8 +1537,17 @@ def _force_one_cluster(db: StateDB, vectors: list[list[float]]) -> None:
 
 def test_consolidate_splits_a_dispersed_cluster(tmp_path: Path) -> None:
     db = StateDB(tmp_path / "s.sqlite3")
-    _force_one_cluster(db, [[1.0, 0.0, 0.0], [0.95, 0.05, 0.0], [0.9, 0.1, 0.0],
-                            [0.0, 1.0, 0.0], [0.05, 0.95, 0.0], [0.1, 0.9, 0.0]])
+    _force_one_cluster(
+        db,
+        [
+            [1.0, 0.0, 0.0],
+            [0.95, 0.05, 0.0],
+            [0.9, 0.1, 0.0],
+            [0.0, 1.0, 0.0],
+            [0.05, 0.95, 0.0],
+            [0.1, 0.9, 0.0],
+        ],
+    )
     assert len(db.cluster_summary()) == 1
     stats = db.consolidate(merge_threshold=0.99, split_min_similarity=0.9, min_split_size=6)
     assert stats["splits"] == 1
@@ -1537,7 +1799,9 @@ def test_cluster_research_aggregates_member_deep_research(tmp_path: Path) -> Non
         "u1",
         {
             "queries": ["q1"],
-            "results": [{"title": "R1", "url": "http://r1", "snippet": "s", "page_content": "body1"}],
+            "results": [
+                {"title": "R1", "url": "http://r1", "snippet": "s", "page_content": "body1"}
+            ],
             "synthesis": "syn1",
         },
     )
@@ -1556,7 +1820,9 @@ def test_build_cluster_context_uses_existing_research_without_network(tmp_path: 
         "u1",
         {
             "queries": ["q1", "q2"],
-            "results": [{"title": "R1", "url": "http://r1", "snippet": "snip", "page_content": "body"}],
+            "results": [
+                {"title": "R1", "url": "http://r1", "snippet": "snip", "page_content": "body"}
+            ],
             "synthesis": "syn1",
         },
     )
@@ -1639,9 +1905,7 @@ class _SectionProbe(Ollama):
             name, f"{name}について、調査資料から確認できた具体的な事実を段落で説明します。" * 4
         )
 
-    def chat(
-        self, system: str, prompt: str, response_schema: object = None
-    ) -> dict[str, object]:
+    def chat(self, system: str, prompt: str, response_schema: object = None) -> dict[str, object]:
         raise AssertionError("page generation must not go through the JSON path")
 
 
@@ -1876,7 +2140,14 @@ def test_write_and_review_accepts_a_valid_page(tmp_path: Path) -> None:
 
     fake = _EmptyThenValidWriter(empty_times=0)
     accepted, content, review = write_and_review(
-        fake, fake, Path("10_Knowledge/テスト.md"), "理由", _research_sources(), "", "", tmp_path / "vault"
+        fake,
+        fake,
+        Path("10_Knowledge/テスト.md"),
+        "理由",
+        _research_sources(),
+        "",
+        "",
+        tmp_path / "vault",
     )
     assert accepted is True
     assert content.startswith("---")
@@ -1888,7 +2159,14 @@ def test_write_and_review_rejects_after_two_invalid_drafts(tmp_path: Path) -> No
 
     fake = _InvalidPageWriter(empty_times=0)
     accepted, _content, review = write_and_review(
-        fake, fake, Path("10_Knowledge/テスト.md"), "理由", _research_sources(), "", "", tmp_path / "vault"
+        fake,
+        fake,
+        Path("10_Knowledge/テスト.md"),
+        "理由",
+        _research_sources(),
+        "",
+        "",
+        tmp_path / "vault",
     )
     assert accepted is False
     assert fake.calls == 2
@@ -1939,12 +2217,22 @@ def test_write_and_review_removes_invented_urls_and_records_a_warning(tmp_path: 
 
     fake = _InventedUrlWriter(empty_times=0)
     accepted, content, review = write_and_review(
-        fake, fake, Path("10_Knowledge/テスト.md"), "理由", _research_sources(), "", "", tmp_path / "vault"
+        fake,
+        fake,
+        Path("10_Knowledge/テスト.md"),
+        "理由",
+        _research_sources(),
+        "",
+        "",
+        tmp_path / "vault",
     )
     assert accepted is True
     assert "dev.to/fake" not in content
     assert "作られた出典" in content
-    assert {"type": "warning", "description": "調査で取得していないURLを削除しました: https://dev.to/fake/post"} in review["issues"]
+    assert {
+        "type": "warning",
+        "description": "調査で取得していないURLを削除しました: https://dev.to/fake/post",
+    } in review["issues"]
 
 
 def test_validate_rejects_a_mostly_english_body() -> None:
