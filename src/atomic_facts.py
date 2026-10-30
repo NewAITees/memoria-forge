@@ -15,6 +15,12 @@ from dataclasses import dataclass, replace
 from typing import Any, Iterable, cast
 
 
+# wiki_agent fetches up to config.max_pages_fetched (5) sources, each snippet
+# capped at 12000 chars, so the evidence block can reach ~60000 chars. num_ctx=16384
+# tokens comfortably covers that; a smaller cutoff here silently dropped later
+# sources from the model's view regardless of num_ctx.
+MAX_EVIDENCE_MATERIAL_CHARS = 64000
+
 FACT_EXTRACTION_SCHEMA: dict[str, Any] = {
     "type": "object",
     "properties": {
@@ -314,7 +320,7 @@ def extract_verified_facts(
         "shown; do not reproduce or invent a source URL. Each "
         "statement must express one fact and must not add conditions absent from its quote. Do not "
         "extract broad facts merely because they share a technology with the topic.",
-        f"TOPIC: {title}\n\nEVIDENCE:\n{material[:24000]}",
+        f"TOPIC: {title}\n\nEVIDENCE:\n{material[:MAX_EVIDENCE_MATERIAL_CHARS]}",
         FACT_EXTRACTION_SCHEMA,
     )
     verified: list[AtomicFact] = []

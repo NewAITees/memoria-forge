@@ -152,6 +152,30 @@ def test_extract_verified_facts_maps_source_id_to_canonical_url() -> None:
     assert rejected == {}
 
 
+def test_extract_verified_facts_keeps_every_source_when_snippets_are_large() -> None:
+    class Extractor:
+        def __init__(self) -> None:
+            self.prompt = ""
+
+        def chat(self, system: str, prompt: str, response_schema: dict[str, Any]) -> dict[str, Any]:
+            self.prompt = prompt
+            return {"facts": []}
+
+    extractor = Extractor()
+    # Five sources near the real max_pages_fetched/snippet-length config (5 sources,
+    # up to 12000 chars each) should all reach the model instead of being silently
+    # dropped by a fixed character-count cutoff.
+    sources = [
+        SearchResult(f"Source {i}", f"https://example.com/source-{i}", "x" * 12000)
+        for i in range(1, 6)
+    ]
+
+    extract_verified_facts(extractor, "Topic", "", sources)
+
+    for i in range(1, 6):
+        assert f"SOURCE ID: source-{i}" in extractor.prompt
+
+
 def test_extract_verified_facts_rejects_unknown_source_id_even_with_a_url() -> None:
     class Extractor:
         def chat(self, system: str, prompt: str, response_schema: dict[str, Any]) -> dict[str, Any]:
