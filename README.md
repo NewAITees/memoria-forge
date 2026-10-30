@@ -37,6 +37,8 @@ review_old              古い情報を再調査
 
 1回の実行では、通常1〜3ページ程度の新規作成または更新を行います。新規ページには、目的、概要、詳細、出典、信頼度、未解決点、関連リンクを含めます。
 
+新しい知識ページは、調査資料から出典付きの原子的な事実を抽出し、引用が引用元本文に実在すること、数値・固有表現が引用に含まれることを検証します。事実の抽出とレビューは出典の言語のまま行い、検証後にページ表示用の日本語文を生成します。日本語訳は元の主張と引用に照らして別Reviewerが確認し、元の主張・日本語表示文・引用・URLとページの対応をSQLiteに保存します。5つの見出し（「何が分かったか」「確認できた事実」「それが意味すること」「まだ分からないこと」「出典」）に整理し、検証済み事実が2件に満たない場合は`insufficient_evidence`としてページを作成しません。既存ページの改善は段階導入のため従来のWriterを使います。
+
 実行結果は、検索品質の改善だけでなく、知識の増加も評価します。
 
 ```text
@@ -182,3 +184,40 @@ Set-ExecutionPolicy -Scope Process Bypass
 ```powershell
 .\scripts\uninstall_scheduler.ps1
 ```
+
+### Dreamingを独立して定期実行する
+
+DreamingはWikiページを生成せず、専用DBの待機jobを1回の起動につき最大10件処理します。失敗したjobはretry時刻を保存して次へ進み、同じjobが後続の処理を止めません。Wiki agentとは別のTask Schedulerタスクとして登録し、既定では1時間ごとに起動します。
+
+```powershell
+.\scripts\install_dream_scheduler.ps1 -IntervalMinutes 60 -MaxRunMinutes 30
+.\scripts\status_scheduler.ps1 -TaskName MemoriaForgeDreaming
+```
+
+各実行ログは`logs/dream-*.log`に保存します。jobがなければ`idle`で正常終了します。workerが失敗した場合は専用DBにretry時刻を記録し、その回のログとTask Scheduler結果を失敗として残します。Task Scheduler側では同一タスクの多重起動を抑止し、再起動でDBのバックオフを迂回しない設定です。既定上限を変えて手動で最大20件を処理する場合は`--dream-batch --dream-limit 20`を使えます。手動で1件だけ処理する場合は次を使えます。
+
+```powershell
+uv run python run_agent.py --config config.json --dream-once
+```
+
+retry状態のjobだけをまとめて再処理する場合は、件数上限と次のオプションを指定します。pending jobはclaimされません。
+
+```powershell
+uv run python run_agent.py --config config.json --dream-batch --dream-limit 3 --dream-retry-only
+```
+
+解除はWiki側とは別に行います。
+
+```powershell
+.\scripts\uninstall_scheduler.ps1 -TaskName MemoriaForgeDreaming
+```
+
+### Vault内Markdownを記憶DBへ取り込む
+
+VaultのMarkdownを既存のWikiページとして変更せず、原文ソースとして専用記憶DBに取り込めます。Vault直下と通常のサブディレクトリにある可視`.md`ファイルを対象にし、隠しパス、シンボリックリンク、junction、空ファイル、不正UTF-8は取り込みません。
+
+```powershell
+uv run python -m src.memory_ingest --config config.json
+```
+
+出力に件数とスキップ理由をJSONで表示します。同じパス・同じ内容の再実行は冪等で、内容を変更したファイルは同じVault内URIの新しい版として保存され、新しいDream jobが登録されます。変更・削除されたMarkdownをこのコマンドが書き換えたり、DB内の過去版を自動削除したりはしません。取り込み後のFact抽出はDreaming workerが行います。初回実行前に出力先Vaultを確認してください。既存ページ内容は移行されず、実行すると専用記憶DBにソースと処理待ちjobが追加されます。
