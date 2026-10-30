@@ -594,10 +594,15 @@ def validate_grounded_page(page: str, facts: list[AtomicFact]) -> None:
         overview_ids = set(re.findall(r"\[\^(fact-[^\]]+)\]", overview_match.group(1)))
         if not re.search(r"[\u3040-\u30ff\u3400-\u9fff]", overview_match.group(1)):
             issues.append("概要に日本語の説明がありません")
-        if not overview_ids or overview_ids - known_fact_ids:
-            missing_ids = known_fact_ids - overview_ids
+        invented_overview_ids = overview_ids - known_fact_ids
+        if invented_overview_ids:
             issues.append(
-                "概要に検証済み事実への脚注がありません: " + ",".join(sorted(missing_ids))
+                "概要に存在しない事実IDへの脚注があります: "
+                + ",".join(sorted(invented_overview_ids))
+            )
+        elif not overview_ids:
+            issues.append(
+                "概要に検証済み事実への脚注がありません: " + ",".join(sorted(known_fact_ids))
             )
     implications_match = re.search(
         r"^## それが意味すること\s*$(.*?)(?=^## )", page, re.MULTILINE | re.DOTALL

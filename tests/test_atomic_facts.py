@@ -324,6 +324,27 @@ def test_validate_grounded_page_rejects_missing_fact_citation() -> None:
         raise AssertionError("missing fact citation must be rejected")
 
 
+def test_validate_grounded_page_reports_an_invented_overview_footnote() -> None:
+    fact = _fact()
+    page = render_grounded_page(
+        "EKSのHPA負荷試験",
+        [fact],
+        implications="解釈です。",
+        uncertainties="未確認です。",
+        overview="HPAは2から6 Podへスケールする設定です。[^fact-1][^fact-does-not-exist]",
+        implication_fact_ids=["fact-1"],
+    )
+
+    try:
+        validate_grounded_page(page, [fact])
+    except ValueError as error:
+        # The real problem is the invented footnote, not a missing one; the
+        # message must name it instead of coming back empty after the colon.
+        assert "fact-does-not-exist" in str(error)
+    else:
+        raise AssertionError("an invented fact id in the overview must be rejected")
+
+
 def test_validate_grounded_page_requires_japanese_display_for_english_fact() -> None:
     fact = AtomicFact(
         "fact-en",
