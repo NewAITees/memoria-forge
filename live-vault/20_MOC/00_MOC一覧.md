@@ -1,7 +1,7 @@
 ---
 type: moc-index
 generated_by: memoria-forge-moc
-updated_at: 2026-10-30T13:15:46.895174+00:00
+updated_at: 2026-10-30T14:25:11.723054+00:00
 ---
 
 # MOC一覧
@@ -90,8 +90,8 @@ updated_at: 2026-10-30T13:15:46.895174+00:00
 
 ## 未整理の境界
 
-- Markdown未昇格クラスタ: 619
-- MOC未所属Markdown: 682
+- Markdown未昇格クラスタ: 621
+- MOC未所属Markdown: 683
 
 - [[10_Knowledge/'2026-27' is a better database key than a date range]]
 - [[10_Knowledge/1.6T and Beyond Decoding the Fundamental Shift Between MPO, NPO, and CPO]]
@@ -705,6 +705,7 @@ updated_at: 2026-10-30T13:15:46.895174+00:00
 - [[10_Knowledge/Windows can decode (and encode) HEIC without ImageMagick - but your browser can']]
 - [[10_Knowledge/Windows PCが侵害された可能性を示す10の兆候と監視方法]]
 - [[10_Knowledge/Woodpecker CI at 1,831 Titles and 2 Application Fingerprints What a Narrow Signa]]
+- [[10_Knowledge/WordPress MCP Server A Practical Workflow for Editing Pages with AI]]
 - [[10_Knowledge/Worst-case glacial lake flood scenarios in a transboundary Himalayan basin 2022]]
 - [[10_Knowledge/Writing QUIC in Pure Java]]
 - [[10_Knowledge/You Backed Up the Database. You Did Not Back Up the Application]]
