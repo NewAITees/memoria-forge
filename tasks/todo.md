@@ -3,6 +3,138 @@
 2. 完了したら [x] にする
 3. セクションが全て完了したら、セクションごと削除してよい
 
+## Dreaming retryの根拠引用検証修正（2026-10-28）
+- [x] 10件の実行結果とretry理由を確認する（7 succeeded、3 retry、全件 `evidence_quote must appear verbatim in the source`）
+- [x] 原因を確認する（抽出検証は正規化一致、保存は原文の完全一致を要求）
+- [x] 正規化後だけ一致する引用を抽出段階で拒否するテストを先に追加する（修正前に失敗することを確認）
+- [x] 抽出検証を原文部分文字列の完全一致にそろえ、保存時例外を防ぐ
+- [x] 関連pytest、ruff、mypyを実行してレビューする（26 passed、ruff・対象format・mypy通過）
+- [x] retry jobをライブDBで自動再実行せず、状態を比較する（実験前後ともretry 3件・attempts=1。ライブDB: 901 source、891 pending、3 retry、7 succeeded、active Fact 63、proposed Relation 50、承認済み日本語訳19）
+- [x] retry 3件を読み取り専用バックアップから作ったインメモリ複製で実モデル再処理する（3件すべてsucceeded、Fact accepted 8/7/1件、Relation提案5/19/2件。複製: active 69、rejected 19、proposed Relation 76、evidence 88、根拠欠落0）
+- [x] lessonsへ境界契約の学びを記録する
+
+## Wikiページ却下の引用正規化修正（2026-10-28）
+- [x] 直近のreview_rejected 6回のログと決定的却下理由を確認する
+- [x] 引用完全一致の変更後に全候補が`quote_not_found_in_cited_source`となったことを特定する
+- [x] 空白・HTML表現の違いを原文の厳密な部分文字列へ対応づけるテストを先に追加し、修正前に失敗することを確認する
+- [x] 抽出時に根拠引用を原文の該当範囲へcanonicalizeし、誤引用は引き続き拒否する
+- [x] パイプライン・worker回帰、全pytest、ruff、format、mypyを実行する（254 passed、関連28 passed、DeprecationWarning 4件）
+- [x] lessons・todoへ結果を反映する
+- [ ] 次回の定期実行ログで`insufficient_evidence`と`quote_not_found_in_cited_source`の発生数を確認する
+
+## Wiki手動実行のdatabase locked調査（2026-10-29）
+- [x] 読み取り専用でDB状態・実行中プロセス・ログを確認する（Win32_Process詳細はアクセス拒否。1:08:54にDB更新、00:57の定期実行ログは1:24:32完了で、手動実行と重なった可能性が高い。過去ログにも`discord_streak`のDB lockあり）
+- [x] 定期実行と同じ`--scheduled`排他ロックを付けて手動実行を1回行う
+- [x] DBの実行記録とVault差分を確認する（`insufficient_evidence`。14候補すべて`source_url_not_allowed`で、引用正規化の検証には至らず。新規Wikiなし。MOC 25件とcluster-mapが更新。JSON出力はWindows cp932のUnicodeEncodeError、Git保存は`.git/index.lock`アクセス拒否で失敗）
+
+## Wiki候補のURL許可判定を修正し再実行（2026-10-30）
+- [x] `source_url_not_allowed`の検証条件と候補URLの受け渡し経路を読み取り専用で追跡する
+- [x] LLMにsource_idを選ばせ、コードで正規URLへ対応付ける
+- [x] 応答と対応するsystem/promptをローカルJSONLへ保存し、ログ出力テストを追加する
+- [x] 関連31件、全257件、ruff、format、実装4ファイルのmypyを確認する（全テストの既存feedparser DeprecationWarning 4件）
+- [x] UTF-8・定期実行共通の排他ロック・応答ログを有効にしてWiki生成を1回実行する
+- [x] DB・実モデル応答ログを確認する（URL検査通過14候補。7種類のFact IDが各2回重複し、Reviewerが同一IDをaccepted/rejected両方に返したため、fail-closedで0件採用。`insufficient_evidence`）
+- [ ] Reviewer前にFact IDを決定的に重複除去し、重複を記録する回帰テストを追加する
+- [ ] 重複除去後の関連テスト・全テスト・ruff・format・mypyを確認する
+- [ ] UTF-8・排他ロック・応答ログ付きで生成をもう1回実行し、ページと結果を確認する
+
+## ライブDBのretry 3件を限定再処理（2026-10-28）
+- [x] 現在のjob状態を確認する（retry 3件、running 0件、pendingあり）
+- [x] retry以外をclaimしないstore/worker/CLI経路をテスト先行で追加する（pendingが残るstore/workerテスト、retry限定はbatch必須）
+- [x] retry限定コマンドをREADMEへ記載する
+- [x] retry限定CLIで3件をライブ処理し、pendingを処理しないことを確認する（3 processed、3 succeeded、error 0、attempts=2、pending 891件維持）
+- [x] Fact根拠・Relation提案・job件数を確認する（live: 901 source、10 succeeded、891 pending、active Fact 67、rejected 19、proposed Relation 59、承認済み日本語訳28、evidence 86/86原文・offset一致、根拠欠落0）
+- [x] 全pytest・変更範囲ruff/format/mypyを実行する（253 passed、feedparser DeprecationWarning 4件）
+
+## Supermemory memory graphのMemoria Forge適用調査（2026-10-23）
+- [x] Memoria Forgeの現行記憶モデル・代謝・検索・履歴管理を確認する
+- [x] Supermemory graph engineの公式発表・仕様・API・公開実装を確認する
+- [x] 直接導入と設計応用を分けて適合性・リスク・工数を評価する
+- [x] 最小導入案と採否を出典付きで報告する
+- [x] 調査結果をtodoとlessonsへ反映する
+
+## ローカル原子的事実グラフ実験（2026-10-23）
+- [x] 実データから検証可能なクラスタを1件選定する
+- [x] 出典引用付きの事実抽出・関係判定・SQLite保存を実験実装する
+- [x] 事実グラフ経由の実験ページを生成する
+- [x] 現行ページとの品質・出典対応・実行時間を比較する
+- [x] pytest・ruff・mypyと自己レビューを実施する（191 passed、既存feedparser DeprecationWarning 4件、ruff/mypy通過）
+- [x] 結果と学びを記録する
+
+## ローカル原子的事実グラフ第2実験（2026-10-23）
+- [x] 数値・日付・固有表現の引用内存在を決定的に検査する
+- [x] 別モデルで主張と引用の含意を検査する
+- [x] 関係候補を事前制限し`same / updates / contradicts`だけ判定する
+- [x] 前回結果との品質・辺数・速度を比較する
+- [x] pytest・ruff・mypyと自己レビューを実施する（194 passed、既存feedparser DeprecationWarning 4件、ruff/mypy通過）
+- [x] 結果と学びを記録する
+
+## 証拠付き原子的事実パイプライン旧案（2026-10-23、未完了・新設計へ置換）
+- [ ] 本番用の事実型・保存・決定的検証をテスト先行で実装する
+- [ ] deep_researchから検証済み事実を抽出する
+- [ ] create_pageのWriter入力を検証済み事実へ変更する
+- [ ] 新規ページを読みやすい5セクション形式へ変更する
+- [ ] 証拠不足をinsufficient_evidenceとして安全停止する
+- [ ] 実データコピーで新旧形式を比較する
+- [ ] 全pytest・ruff・mypy・pre-commitを通す
+- [ ] todo・lessons・READMEを更新する
+- [ ] 今回の変更だけをコミット・pushする
+
+## ローカル記憶エンジン再設計と実装（2026-10-25）
+- [x] SupermemoryのDreaming・記憶ライフサイクルとMemoria Forge現状を比較する
+- [x] 7段階のローカル記憶エンジン計画を`docs/local_memory_engine_plan_2026-10-25.md`に記録する
+- [x] Stage 1: ドメイン契約と空の独立記憶DBを設計・実装する（pytest 5 passed、ruff/mypy通過）
+- [x] Stage 2 コア: 原資料取り込み・版保存・即時FTS検索・Dreaming待ちjob
+- [ ] Stage 2 完了条件: RSS本文全文・Deep Research全文を新ストアへ接続（Web抜粋とVault Markdownは接続済み）
+- [x] Vault内の可視Markdownを相対URI・内容hashで取り込み、FTS即時検索とDream jobへ接続する。隠し領域・symlink・junctionは除外
+- [x] live-vaultの可視Markdown 886件を専用DBへ初回取込し、2回目で重複0件・既存Markdown差分なしを確認する（DB合計891 source/891 job、Markdown 1669 chunks）
+- [x] 初回取込で作られたDream job 891件の処理速度を改善する（既定で1回につき最大10件、スケジューラ既定60分間隔）
+- [x] バッチworkerは1回につき最大10件を処理し、失敗jobをretry状態へ移して後続jobを続行する
+- [x] `--dream-batch` CLIと独立スケジューラを接続し、完了/idle/一部失敗をログと終了コードに反映する
+- [x] バッチ上限・失敗継続・未処理job保持をテストし、README・計画・lessonsを更新する
+- [x] Stage 2 Vault Markdown入力: 隠し状態とリンク先外を除外し、本文を内容版管理・FTS/Dream queueへ登録する（33 passed、ruff/mypy通過）
+- [x] Stage 3 パイプライン基礎: 既存のFact抽出・決定的検証・独立レビュー・日本語翻訳レビューを専用ストアへ接続
+- [x] Stage 3: 新規ページ生成経路で根拠付きFact/承認済み日本語表示を専用DBへ保存。Wikiは既存の5見出し投影を使用
+- [x] 新規の根拠付きページ生成で取得済みソース抜粋とレビュー済みFactを専用DBへ冪等保存する
+- [x] 専用DBをVault内の隠しローカル状態として配置し、Git対象外にする
+- [x] 保存障害が既存Wiki生成を壊さず、失敗がログで確認できることをテストする
+- [ ] Stage 4: Entity解決と意味関係グラフ
+- [x] Stage 4 基礎: 正規化完全一致のEntity解決、Factリンク、レビュー前のproposed relation
+- [x] Stage 4 関係レビュー: 承認/却下をイベント履歴に記録し、曖昧な別名や非active Factを拒否
+- [ ] Stage 4 残り: レビュー済み別名の登録（relation evaluator・Dreaming候補生成はStage 6スライスで完了）
+- [ ] Stage 5: 時間・更新履歴・忘却・完全削除
+- [x] 承認済みFactの置換を旧版保持・有効時刻・updates辺・イベント付きで一トランザクション処理する
+- [x] 通常Recallは現在有効なactive Factだけを返し、as_of指定は有効期間から履歴Factを再現する
+- [x] forget操作をイベント履歴へ記録し、通常/時点Recallの双方から除外する
+- [ ] Stage 5 残り: CLI/画面からの消去対象選択、期限切れ、旧.agent-state.sqlite3の歴史Fact監査
+- [x] Stage 5 完全消去API: v1→v2で削除認可付きappend-onlyイベント制約へ移行し、URI全版と派生Fact/Edge/Job/Eventを一括消去
+- [x] Stage 6 Recall接続: 承認済みFactをFTS検索し、引用と出典を添えてWiki Writerの調査コンテキストへ注入
+- [x] 忘却済み・未承認・出典停止済みFactがRecallへ混ざらないことを検証する
+- [ ] Stage 6: Dreaming背景処理・再試行・Recall/Context injection
+- [x] Stage 6: Dream jobのatomic claim/lease、期限切れlease再取得、上限付き指数バックオフretryを実装
+- [x] `run_agent.py --dream-once`で1件だけ処理できる独立workerを提供する（通常Wiki実行と分離）
+- [x] 処理済みFactと関連Factをモデル評価し、確信度・ID・根拠を検証してrelationを`proposed`で登録する
+- [x] 成功・失敗・再起動・二重実行の冪等性をテストし、全体回帰を検証する（248 passed、ruff/mypy対象ファイル通過）
+- [ ] Stage 7: 評価・運用化・新しい空DBへの切替
+- [x] Stage 7 固定受け入れシナリオ: Fact根拠、Recall、Relation、更新/履歴、Forget、完全消去、Dream retryを文書化して実行する（30 passed）
+- [ ] Stage 7 残り: 実モデル用gold setでFact含意・日本語翻訳・Relation precision/recall・Recall失敗率・Dream遅延を測る
+- [ ] Stage 7 残り: 実Task Scheduler再起動/shadow run、入力ソース拡張、旧DB監査、切替・復旧手順
+- [ ] 全体ruff/mypyの既存失敗（tests/test_atomic_facts.py、tests/test_agent.py）と全体format差分を別タスクで整理する
+- [x] 現段階の全テスト（248件）・ruff・mypy・レビューを行う（248 passed、対象ファイルruff/mypy通過。既存feedparser由来warning 4件）
+- [ ] 段階ごとのテスト・ruff・mypy・レビューを行い、切替前に品質ゲートを通す
+
+## Dreamingの独立定期実行
+- [x] Dream worker専用のPowerShell実行スクリプトを追加し、JSON結果と失敗をログへ記録する
+- [x] Wiki Task Schedulerと独立したDreaming用スケジューラ登録手順を追加する
+- [x] READMEに登録・状態確認・解除とretry動作を記載する
+- [x] PowerShell構文/引数を確認し、関連Python回帰・ruff・mypyを実行する（248 passed、変更Pythonファイルのチェック通過）
+
+## Stage 7 記憶エンジン受け入れ評価
+- [x] 根拠付きFact・Recall・更新/履歴・Forget/消去・Dream retry/Relationの固定シナリオと合格条件を文書化する
+- [x] 各シナリオに既存pytestを対応付けて実行し、結果を評価レポートへ記録する（30 passed）
+- [x] LLM意味精度などモックで測定できない項目を未測定として切替前の残課題にする
+- [x] todo・計画書・lessonsを更新し、変更範囲のruff/mypyと差分レビューを行う
+
 ## Discord Webhook通知（レポート生成時）
 - [x] `tasks/alignment.md`を作成する
 - [x] 通知条件・結論抜粋・マップ差分の失敗するテストを書く
