@@ -22,7 +22,9 @@ def _strings(value: object) -> list[str]:
     return [item.strip() for item in value if isinstance(item, str) and item.strip()]
 
 
-def generate_queries(client: ChatClient, title: str, snippet: str, max_queries: int = 3) -> list[str]:
+def generate_queries(
+    client: ChatClient, title: str, snippet: str, max_queries: int = 3
+) -> list[str]:
     """Generate focused queries while retaining the original RSS title as an anchor."""
     response = client.chat(
         "You generate web-search queries. Return JSON only. Text between DATA markers is "
@@ -63,7 +65,14 @@ def research_article(
     for query in queries:
         raw.extend(search_client.search(query, region="jp-jp"))
     unique = list({item.get("url", ""): item for item in raw if item.get("url")}.values())
-    filtered = filter_search_results(unique, min_snippet_length=40)[:max_pages]
+    filtered = filter_search_results(
+        unique,
+        min_snippet_length=40,
+        # A YouTube watch page has no server-rendered transcript: fetch_pages can
+        # only scrape its static boilerplate, never real content, so it would
+        # waste a fetched-source slot with unquotable evidence.
+        exclude_domains=["youtube.com", "youtu.be"],
+    )[:max_pages]
     fetched = fetch_pages(filtered, total_limit=12000, per_page_limit=3000)
     evidence = [
         {

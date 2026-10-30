@@ -224,6 +224,49 @@ def test_deep_research_accepts_content_key_from_llm(
     assert result["synthesis"] == "統合された調査結果"
 
 
+def test_deep_research_excludes_youtube_urls_from_fetched_sources(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # A YouTube watch page has no server-rendered transcript, so fetch_pages can
+    # only scrape YouTube's static boilerplate ("概要/プレスルーム/著作権..."),
+    # not real content. Any fact later attributed to it can never pass evidence
+    # verification, so it must never consume one of the few fetched-source slots.
+    class Client:
+        def chat(self, system: str, prompt: str) -> dict[str, object]:
+            if "queries" in prompt:
+                return {"queries": ["primary source"]}
+            return {"content": "統合された調査結果"}
+
+    class Search:
+        def __init__(self, *args: object, **kwargs: object) -> None:
+            pass
+
+        def search(self, query: str, region: str = "jp-jp") -> list[dict[str, str]]:
+            return [
+                {
+                    "title": "A video",
+                    "url": "https://www.youtube.com/watch?v=abc123",
+                    "snippet": "y" * 50,
+                },
+                {"title": "Real article", "url": "https://example.com/real", "snippet": "x" * 50},
+            ]
+
+    fetched_urls: list[str] = []
+
+    def fake_fetch_pages(
+        results: list[dict[str, str]], total_limit: int, per_page_limit: int
+    ) -> list[dict[str, str]]:
+        fetched_urls.extend(r["url"] for r in results)
+        return [{**r, "page_content": "evidence"} for r in results]
+
+    monkeypatch.setattr("src.research.deep_research.DDGSearchClient", Search)
+    monkeypatch.setattr("src.research.deep_research.fetch_pages", fake_fetch_pages)
+
+    research_article(Client(), title="Topic")
+
+    assert fetched_urls == ["https://example.com/real"]
+
+
 def test_unescape_literal_newlines_fixes_double_escaped_content() -> None:
     broken = "---\\ntype: knowledge\\n---\\n\\n# Title\\n\\n## 概要\\n本文"
     fixed = unescape_literal_newlines(broken)
