@@ -93,7 +93,11 @@ def group_pages(pages: list[dict[str, Any]]) -> list[list[dict[str, Any]]]:
         return []
     vectors = [normalize(page["embedding"]) for page in pages]
     nearest = [
-        max((dot(vector, other), other_index) for other_index, other in enumerate(vectors) if index != other_index)
+        max(
+            (dot(vector, other), other_index)
+            for other_index, other in enumerate(vectors)
+            if index != other_index
+        )
         for index, vector in enumerate(vectors)
     ]
     adjacency: dict[int, set[int]] = {index: set() for index in range(len(pages))}
@@ -179,16 +183,22 @@ def build_mocs(vault: Path, database: Path, embed_fn: Any) -> dict[str, int]:
         ORDER BY p.page_path
         """
     ).fetchall()
-    pages = [
-        {
-            "page_path": str(page_path),
+    pages_by_path: dict[str, dict[str, Any]] = {}
+    for page_path, embedding, cluster_id, size in rows:
+        path = str(page_path)
+        if path in pages_by_path or not (vault / path).exists():
+            continue
+        # clusters.page_path has no UNIQUE constraint: duplicate-page redirection
+        # can link more than one cluster to the same page, which would otherwise
+        # join into two rows here and crash the moc_members insert (PRIMARY KEY
+        # on page_path). Keep only the first cluster row seen per page.
+        pages_by_path[path] = {
+            "page_path": path,
             "embedding": json.loads(embedding),
             "cluster_id": int(cluster_id) if cluster_id is not None else None,
             "size": int(size) if size is not None else 0,
         }
-        for page_path, embedding, cluster_id, size in rows
-        if (vault / str(page_path)).exists()
-    ]
+    pages = list(pages_by_path.values())
     groups = group_pages(pages)
     connection.execute("DELETE FROM moc_members")
     connection.execute("DELETE FROM mocs")
@@ -203,19 +213,30 @@ def build_mocs(vault: Path, database: Path, embed_fn: Any) -> dict[str, int]:
         target = vault / relative_path
         target.write_text(render_moc(moc_id, title, members), encoding="utf-8", newline="\n")
         generated_paths.add(target.resolve())
-        connection.execute("INSERT INTO mocs VALUES (?, ?, ?, ?)", (moc_id, title, relative_path, now))
-        center = normalize([
-            sum(item["embedding"][axis] for item in members)
-            for axis in range(len(members[0]["embedding"]))
-        ])
+        connection.execute(
+            "INSERT INTO mocs VALUES (?, ?, ?, ?)", (moc_id, title, relative_path, now)
+        )
+        center = normalize(
+            [
+                sum(item["embedding"][axis] for item in members)
+                for axis in range(len(members[0]["embedding"]))
+            ]
+        )
         for member in members:
             connection.execute(
                 "INSERT INTO moc_members VALUES (?, ?, ?, ?)",
-                (moc_id, member["page_path"], member["cluster_id"], dot(normalize(member["embedding"]), center)),
+                (
+                    moc_id,
+                    member["page_path"],
+                    member["cluster_id"],
+                    dot(normalize(member["embedding"]), center),
+                ),
             )
 
     for old_path in moc_directory.glob("MOC-*.md"):
-        if old_path.resolve() not in generated_paths and GENERATED_MARKER in old_path.read_text(encoding="utf-8"):
+        if old_path.resolve() not in generated_paths and GENERATED_MARKER in old_path.read_text(
+            encoding="utf-8"
+        ):
             old_path.unlink()
 
     all_markdown = [
@@ -231,17 +252,36 @@ def build_mocs(vault: Path, database: Path, embed_fn: Any) -> dict[str, int]:
         "SELECT COUNT(*) FROM clusters WHERE page_path IS NULL"
     ).fetchone()[0]
     index_lines = [
-        "---", "type: moc-index", GENERATED_MARKER, f"updated_at: {now}", "---", "",
-        "# MOC一覧", "", "## 知識領域", "",
+        "---",
+        "type: moc-index",
+        GENERATED_MARKER,
+        f"updated_at: {now}",
+        "---",
+        "",
+        "# MOC一覧",
+        "",
+        "## 知識領域",
+        "",
     ]
     for moc_id, members in enumerate(groups, 1):
         title = " / ".join(Path(member["page_path"]).stem[:32] for member in members[:2])
         index_lines.append(f"- [[20_MOC/MOC-{moc_id:03d}|{title}]] — {len(members)}ページ")
-    index_lines.extend(["", "## 未整理の境界", "", f"- Markdown未昇格クラスタ: {unpromoted}", f"- MOC未所属Markdown: {len(unlinked_pages)}", ""])
+    index_lines.extend(
+        [
+            "",
+            "## 未整理の境界",
+            "",
+            f"- Markdown未昇格クラスタ: {unpromoted}",
+            f"- MOC未所属Markdown: {len(unlinked_pages)}",
+            "",
+        ]
+    )
     if unlinked_pages:
         index_lines.extend([f"- [[{wiki_link(path)}]]" for path in unlinked_pages])
         index_lines.append("")
-    (moc_directory / "00_MOC一覧.md").write_text("\n".join(index_lines), encoding="utf-8", newline="\n")
+    (moc_directory / "00_MOC一覧.md").write_text(
+        "\n".join(index_lines), encoding="utf-8", newline="\n"
+    )
     connection.commit()
     connection.close()
     return {
