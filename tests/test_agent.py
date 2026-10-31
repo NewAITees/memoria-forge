@@ -382,6 +382,9 @@ def test_review_prompt_includes_today(monkeypatch: pytest.MonkeyPatch) -> None:
     assert (
         "do not block merely because the overview or implications are brief" in captured["system"]
     )
+    assert "A single source is not by itself a blocking issue" in captured["system"]
+    assert "medium confidence is valid for limited evidence" in captured["system"]
+    assert "approved must be false if any issue is blocking" in captured["system"]
 
 
 def test_strip_markdown_fence_unwraps_whole_page() -> None:
