@@ -3,6 +3,45 @@
 2. 完了したら [x] にする
 3. セクションが全て完了したら、セクションごと削除してよい
 
+## Wiki実モデル却下の追加調査（2026-10-30）
+- [x] Fact ID重複をReviewer前に除去し、重複candidateを記録する
+- [x] 関連・全pytest、ruff、format、mypyを確認する（全259 passed、feedparser DeprecationWarning 4件）
+- [x] scheduled実行1回の生応答を保存・確認する（Fact重複は解消、ページはReviewer blockingで未保存。MOC更新はcommit/push済み）
+- [x] Reviewerの矛盾応答に対し、単一ソースとmedium confidenceを根拠にblockしないこと、approvedとtyped issueの整合規則をプロンプトと回帰テストへ追加する
+- [x] 修正後の実モデル検証を試行する（実行は`max_run_minutes=50`でtimeout。応答ログは5件で、Fact抽出・Reviewer判定まで到達した証拠なし）
+- [ ] Reviewerまで到達した次回実行で判定を確認する（追加ライブ実行は未実施）
+
+## 記憶エンジン Stage 2 RSS / Deep Research入力（2026-10-30）
+- [x] RSSの本文とsummaryを区別し、summaryしかない場合に本文として保存しない
+- [x] 取得できたRSS本文をページ生成成否と独立にMemoryStoreへ保存し、重複再投入が冪等であることを検証する
+- [x] Deep Researchの全文JSON（統合結果と取得ページ本文を含む）をページ生成・Reviewer結果に関係なくMemoryStoreへ保存する
+- [x] 関連66件、ruff、format、mypyを確認する（feedparser DeprecationWarning 4件）
+- [ ] RSSがsummaryしか提供しない場合に記事全文を取得・保存する経路を実装・検証する
+- [x] Stage 2のコード契約を含む全体pytestを再確認する（2026-10-30、273 passed、4 feedparser DeprecationWarning。RSS summaryだけの場合の記事全文取得は別途未実装）
+
+## 記憶エンジン Stage 4 レビュー済み別名登録（2026-10-30）
+- [x] Entity aliasの人手レビュー済み登録APIを追加し、空値・未知Entity・別Entityとの衝突を拒否する
+- [x] reviewer/reason/timeをappend-only監査テーブルへ保存し、同一レビューの再送を冪等にする
+- [x] schema v2→v3とv1→v3移行をテストする
+- [x] memory store/pipeline/Dream worker関連40件、ruff、format、mypyを確認する
+- [ ] 人向けalias審査UI/CLIを作成する
+
+## 記憶エンジン Stage 5 source消去CLI（2026-10-30）
+- [x] `--memory-sources`でsource ID・URI・状態などを一覧表示する
+- [x] `--memory-erase-source`は確認フラグなしでは拒否し、確認付きで同一URIの全版と派生Dream jobを消去する
+- [x] CLI一覧・確認拒否・確認オプション誤用・消去の回帰テストを追加する
+- [x] memory store/CLI関連テストを実行する（現時点34件通過）
+- [ ] Stage 5期限切れと旧.agent-state.sqlite3の歴史Fact監査を実装する
+
+## 記憶ソース取り込み責務の局所リファクタリング（2026-10-30）
+- [x] MemoryStoreへの汎用ソース保存、RSS本文、Deep Research JSON保存を`src/memory_sources.py`へ分離する
+- [x] `wiki_agent.py`から既存の取り込み経路を使い、動作と失敗時のbest-effort方針を維持する
+- [x] 関連49件、ruff、format、mypy、diff whitespaceを確認する
+- [x] `run_agent.py`の記憶source一覧・消去操作を`src/memory_cli.py`へ分離する
+- [x] CLI/store関連34件、ruff、format、mypy、diff whitespaceを確認する
+- [x] 全体pytestを再確認する（273 passed、4 feedparser DeprecationWarning、30.49秒）
+- [ ] 広範囲なWiki agent分割は実モデル生成の確認と作業ツリー整理後に判断する
+
 ## Dreaming retryの根拠引用検証修正（2026-10-28）
 - [x] 10件の実行結果とretry理由を確認する（7 succeeded、3 retry、全件 `evidence_quote must appear verbatim in the source`）
 - [x] 原因を確認する（抽出検証は正規化一致、保存は原文の完全一致を要求）
@@ -34,9 +73,9 @@
 - [x] 関連31件、全257件、ruff、format、実装4ファイルのmypyを確認する（全テストの既存feedparser DeprecationWarning 4件）
 - [x] UTF-8・定期実行共通の排他ロック・応答ログを有効にしてWiki生成を1回実行する
 - [x] DB・実モデル応答ログを確認する（URL検査通過14候補。7種類のFact IDが各2回重複し、Reviewerが同一IDをaccepted/rejected両方に返したため、fail-closedで0件採用。`insufficient_evidence`）
-- [ ] Reviewer前にFact IDを決定的に重複除去し、重複を記録する回帰テストを追加する
-- [ ] 重複除去後の関連テスト・全テスト・ruff・format・mypyを確認する
-- [ ] UTF-8・排他ロック・応答ログ付きで生成をもう1回実行し、ページと結果を確認する
+- [x] Reviewer前にFact IDを決定的に重複除去し、重複を記録する回帰テストを追加する
+- [x] 重複除去後の関連テスト・全テスト・ruff・format・mypyを確認する
+- [x] UTF-8・排他ロック・応答ログ付きで生成をもう1回実行し、ページと結果を確認する（Fact重複は解消したがReviewer却下。新ログ`logs/llm-response-dedup-20261030.jsonl`）
 
 ## ライブDBのretry 3件を限定再処理（2026-10-28）
 - [x] 現在のjob状態を確認する（retry 3件、running 0件、pendingあり）
@@ -85,7 +124,7 @@
 - [x] 7段階のローカル記憶エンジン計画を`docs/local_memory_engine_plan_2026-10-25.md`に記録する
 - [x] Stage 1: ドメイン契約と空の独立記憶DBを設計・実装する（pytest 5 passed、ruff/mypy通過）
 - [x] Stage 2 コア: 原資料取り込み・版保存・即時FTS検索・Dreaming待ちjob
-- [ ] Stage 2 完了条件: RSS本文全文・Deep Research全文を新ストアへ接続（Web抜粋とVault Markdownは接続済み）
+- [ ] Stage 2 完了条件: RSS本文全文・Deep Research全文を新ストアへ接続（Deep ResearchとRSS本文フィールドはページ成否から独立して保存。RSS summaryのみのフィードで全文を得る経路は未実装）
 - [x] Vault内の可視Markdownを相対URI・内容hashで取り込み、FTS即時検索とDream jobへ接続する。隠し領域・symlink・junctionは除外
 - [x] live-vaultの可視Markdown 886件を専用DBへ初回取込し、2回目で重複0件・既存Markdown差分なしを確認する（DB合計891 source/891 job、Markdown 1669 chunks）
 - [x] 初回取込で作られたDream job 891件の処理速度を改善する（既定で1回につき最大10件、スケジューラ既定60分間隔）
@@ -101,12 +140,12 @@
 - [ ] Stage 4: Entity解決と意味関係グラフ
 - [x] Stage 4 基礎: 正規化完全一致のEntity解決、Factリンク、レビュー前のproposed relation
 - [x] Stage 4 関係レビュー: 承認/却下をイベント履歴に記録し、曖昧な別名や非active Factを拒否
-- [ ] Stage 4 残り: レビュー済み別名の登録（relation evaluator・Dreaming候補生成はStage 6スライスで完了）
+- [ ] Stage 4 残り: レビュー済み別名の登録UI/CLI（登録APIと監査は実装済み。relation evaluator・Dreaming候補生成はStage 6スライスで完了）
 - [ ] Stage 5: 時間・更新履歴・忘却・完全削除
 - [x] 承認済みFactの置換を旧版保持・有効時刻・updates辺・イベント付きで一トランザクション処理する
 - [x] 通常Recallは現在有効なactive Factだけを返し、as_of指定は有効期間から履歴Factを再現する
 - [x] forget操作をイベント履歴へ記録し、通常/時点Recallの双方から除外する
-- [ ] Stage 5 残り: CLI/画面からの消去対象選択、期限切れ、旧.agent-state.sqlite3の歴史Fact監査
+- [ ] Stage 5 残り: UIからの消去対象選択、期限切れ、旧.agent-state.sqlite3の歴史Fact監査（CLI選択・確認付き消去は実装済み）
 - [x] Stage 5 完全消去API: v1→v2で削除認可付きappend-onlyイベント制約へ移行し、URI全版と派生Fact/Edge/Job/Eventを一括消去
 - [x] Stage 6 Recall接続: 承認済みFactをFTS検索し、引用と出典を添えてWiki Writerの調査コンテキストへ注入
 - [x] 忘却済み・未承認・出典停止済みFactがRecallへ混ざらないことを検証する
