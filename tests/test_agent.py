@@ -49,6 +49,7 @@ from src.wiki_agent import (
     update_world_map,
     validate_action,
     validate_page_content,
+    write_grounded_and_review,
     REVIEW_RESPONSE_SCHEMA,
     _REQUIRED_PAGE_SECTIONS as REQUIRED_PAGE_SECTIONS,
 )
@@ -222,6 +223,41 @@ def test_deep_research_accepts_content_key_from_llm(
     result = research_article(Client(), title="Topic")
 
     assert result["synthesis"] == "統合された調査結果"
+
+
+def test_write_grounded_and_review_strips_unattributed_synthesis_from_extraction(
+    tmp_path: Path,
+) -> None:
+    # build_cluster_context's "## 統合調査結果" block summarizes a cluster member's
+    # OWN research, which can include facts drawn from that member's 2nd-5th
+    # fetched result -- results that never survive the cluster-wide round-robin
+    # into `sources`. Any fact the model grounds in that unattributed synthesis
+    # can never pass quote verification. Confirmed live (2026-10-30/31): the
+    # "MLIT Japan Property Prices" and "$24 Notion Client" clusters both failed
+    # 100% of candidates this way. The grounded extraction prompt must only ever
+    # see text that is actually attributable to one of `sources`.
+    captured: dict[str, str] = {}
+
+    class Client:
+        def chat(
+            self, system: str, prompt: str, response_schema: dict[str, object]
+        ) -> dict[str, object]:
+            captured["prompt"] = prompt
+            return {"facts": []}
+
+    research_context = (
+        "## 統合調査結果\n西宮市の住宅価格は1平方メートルあたり410,800円である。\n\n"
+        "## 根拠\nタイトル: Real source\nURL: https://example.com/real\n抜粋:\n実際の記事本文。"
+    )
+    sources = [SearchResult("Real source", "https://example.com/real", "実際の記事本文。")]
+
+    write_grounded_and_review(
+        Client(), Client(), Path("10_Knowledge/Test.md"), sources, research_context, tmp_path
+    )
+
+    assert "統合調査結果" not in captured["prompt"]
+    assert "410,800" not in captured["prompt"]
+    assert "実際の記事本文" in captured["prompt"]
 
 
 def test_deep_research_excludes_youtube_urls_from_fetched_sources(

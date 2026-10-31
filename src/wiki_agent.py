@@ -2561,6 +2561,22 @@ def write_and_review(
     return False, content, review
 
 
+def _strip_unattributed_synthesis(research_context: str) -> str:
+    """Drop "## 統合調査結果" blocks before grounded extraction sees them.
+
+    build_cluster_context's round-robin selection can cap a member's own
+    results to just one ("## 根拠") while its "## 統合調査結果" synthesis still
+    summarizes facts drawn from that member's other, unselected results. Those
+    facts are real but unattributable to anything in `sources`, so any
+    evidence_quote grounded in them can never pass verbatim-quote verification.
+    Confirmed live: two different clusters each had every extraction candidate
+    rejected with quote_not_found_in_cited_source for exactly this reason.
+    """
+    return re.sub(
+        r"## 統合調査結果\n.*?(?=\n\n##|\Z)", "", research_context, flags=re.DOTALL
+    ).strip("\n")
+
+
 def write_grounded_and_review(
     client: Any,
     reviewer: Any,
@@ -2575,6 +2591,7 @@ def write_grounded_and_review(
     Fewer than two independently reviewable facts is not enough material for a
     new page; fail closed instead of padding a report with unrelated prose.
     """
+    research_context = _strip_unattributed_synthesis(research_context)
     candidates, deterministic_rejections = extract_verified_facts(
         client, target.stem, research_context, sources
     )
