@@ -120,6 +120,21 @@ def main() -> None:
     parser.add_argument(
         "--status", action="store_true", help="print a health report and exit without running"
     )
+    parser.add_argument(
+        "--memory-sources",
+        action="store_true",
+        help="list local memory sources and their source IDs",
+    )
+    parser.add_argument(
+        "--memory-erase-source",
+        metavar="SOURCE_ID",
+        help="erase all versions and derived data for the source URI owning SOURCE_ID",
+    )
+    parser.add_argument(
+        "--confirm-memory-erase",
+        action="store_true",
+        help="confirm the destructive --memory-erase-source operation",
+    )
     args = parser.parse_args()
     if args.dream_once and args.dream_batch:
         parser.error("--dream-once and --dream-batch are mutually exclusive")
@@ -129,7 +144,25 @@ def main() -> None:
         parser.error("Dreaming modes cannot be combined with --once, --scheduled, or --status")
     if args.dream_batch and args.dream_limit < 1:
         parser.error("--dream-limit must be positive")
+    if args.confirm_memory_erase and not args.memory_erase_source:
+        parser.error("--confirm-memory-erase requires --memory-erase-source")
+    if args.memory_erase_source and not args.confirm_memory_erase:
+        parser.error("--memory-erase-source requires --confirm-memory-erase")
+    if (args.memory_sources or args.memory_erase_source) and (
+        args.dream_once or args.dream_batch or args.once or args.scheduled or args.status
+    ):
+        parser.error("memory source commands cannot be combined with other run modes")
     config = Config.load(args.config)
+    output: object
+    if args.memory_sources or args.memory_erase_source:
+        from src.memory_cli import run_source_command
+
+        output = run_source_command(
+            config.vault_path,
+            source_id=None if args.memory_sources else args.memory_erase_source,
+        )
+        print(json.dumps(output, ensure_ascii=False, indent=2), flush=True)
+        return
     if args.dream_once or args.dream_batch:
         from src.dream_worker import run_dream_batch, run_dream_once
         from src.memory_store import MemoryStore

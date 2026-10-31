@@ -164,6 +164,25 @@ def test_source_revision_is_stored_as_a_new_immutable_version(tmp_path: Path) ->
         ).fetchone() == (2,)
 
 
+def test_list_sources_exposes_identifiers_for_explicit_erase_selection(tmp_path: Path) -> None:
+    with MemoryStore(tmp_path / "memory.sqlite3") as store:
+        source = store.add_source("note://erase-choice", "The source can be selected for deletion.")
+
+        listed = store.list_sources()
+
+        assert len(listed) == 1
+        assert listed[0].source_id == source.source_id
+        assert listed[0].source_uri == "note://erase-choice"
+        assert listed[0].source_state == "active"
+        assert listed[0].chunk_count == source.chunk_count
+
+
+def test_list_sources_rejects_nonpositive_limit(tmp_path: Path) -> None:
+    with MemoryStore(tmp_path / "memory.sqlite3") as store:
+        with pytest.raises(ValueError, match="limit must be positive"):
+            store.list_sources(0)
+
+
 def test_fact_candidate_requires_verbatim_evidence_and_stays_pending(tmp_path: Path) -> None:
     with MemoryStore(tmp_path / "memory.sqlite3") as store:
         source = store.add_source("note://one", "The project uses SQLite for local memory.")
@@ -215,6 +234,65 @@ def test_entity_resolution_uses_normalized_exact_aliases(tmp_path: Path) -> None
         assert first.created is True
         assert second.created is False
         assert second.entity_id == first.entity_id
+
+
+def test_reviewed_entity_alias_is_registered_with_audit_and_is_idempotent(
+    tmp_path: Path,
+) -> None:
+    with MemoryStore(tmp_path / "memory.sqlite3") as store:
+        entity = store.resolve_entity("Horizontal Pod Autoscaler", "product", language="en")
+
+        registered = store.register_entity_alias(
+            entity.entity_id,
+            "HPA",
+            language="en",
+            reviewer="operator",
+            reason="Official abbreviation in the source documentation.",
+        )
+        repeated = store.register_entity_alias(
+            entity.entity_id,
+            " HPA ",
+            language="en",
+            reviewer="operator",
+            reason="Official abbreviation in the source documentation.",
+        )
+
+        resolved = store.resolve_entity("hpa", "product", language="en")
+        assert registered.created is True
+        assert repeated.created is False
+        assert resolved.entity_id == entity.entity_id
+        assert (
+            store.connection.execute(
+                "SELECT verified FROM entity_aliases WHERE entity_id = ? AND normalized_alias = 'hpa'",
+                (entity.entity_id,),
+            ).fetchone()[0]
+            == 1
+        )
+        assert store.connection.execute(
+            "SELECT reviewer, reason FROM entity_alias_reviews WHERE entity_id = ? "
+            "AND normalized_alias = 'hpa'",
+            (entity.entity_id,),
+        ).fetchall() == [("operator", "Official abbreviation in the source documentation.")]
+
+
+def test_reviewed_entity_alias_rejects_alias_owned_by_another_entity(tmp_path: Path) -> None:
+    with MemoryStore(tmp_path / "memory.sqlite3") as store:
+        entity = store.resolve_entity("Mercury", "place")
+        other = store.resolve_entity("Mercury project", "project")
+        store.register_entity_alias(
+            entity.entity_id,
+            "Mercury name",
+            reviewer="operator",
+            reason="Reviewed alias.",
+        )
+
+        with pytest.raises(ValueError, match="already belongs to another entity"):
+            store.register_entity_alias(
+                other.entity_id,
+                "Mercury name",
+                reviewer="operator",
+                reason="Different meaning.",
+            )
 
 
 def test_ambiguous_entity_alias_is_not_automatically_resolved(tmp_path: Path) -> None:
@@ -499,7 +577,7 @@ def test_recalls_only_current_approved_facts_from_matching_sources(tmp_path: Pat
         assert store.search_recall_facts("horizontal autoscaler", "ja") == []
 
 
-def test_memory_store_v1_migrates_event_delete_guard_to_v2(tmp_path: Path) -> None:
+def test_memory_store_v1_migrates_to_latest_schema(tmp_path: Path) -> None:
     database = tmp_path / "memory.sqlite3"
     with MemoryStore(database) as store:
         store.connection.execute("DROP TRIGGER memory_events_no_delete")
@@ -507,18 +585,45 @@ def test_memory_store_v1_migrates_event_delete_guard_to_v2(tmp_path: Path) -> No
             "CREATE TRIGGER memory_events_no_delete BEFORE DELETE ON memory_events "
             "BEGIN SELECT RAISE(ABORT, 'memory_events is append-only'); END"
         )
-        store.connection.execute("DELETE FROM schema_migrations WHERE version = 2")
+        store.connection.execute("DROP TABLE entity_alias_reviews")
+        store.connection.execute("DELETE FROM schema_migrations WHERE version >= 2")
         store.connection.execute("PRAGMA user_version = 1")
         store.connection.commit()
 
     with MemoryStore(database) as migrated:
-        assert migrated.connection.execute("PRAGMA user_version").fetchone()[0] == 2
+        assert migrated.connection.execute("PRAGMA user_version").fetchone()[0] == 3
         migrated.connection.execute(
             "INSERT INTO memory_events (event_id, event_type, occurred_at, payload_json) "
             "VALUES ('keep', 'source_ingested', '2026-01-01T00:00:00Z', '{}')"
         )
         with pytest.raises(sqlite3.IntegrityError, match="append-only"):
             migrated.connection.execute("DELETE FROM memory_events WHERE event_id = 'keep'")
+
+
+def test_memory_store_v2_migrates_reviewed_alias_audit_table(tmp_path: Path) -> None:
+    database = tmp_path / "memory.sqlite3"
+    with MemoryStore(database) as store:
+        entity = store.resolve_entity("Horizontal Pod Autoscaler", "product")
+        store.connection.execute("DROP TABLE entity_alias_reviews")
+        store.connection.execute("DELETE FROM schema_migrations WHERE version = 3")
+        store.connection.execute("PRAGMA user_version = 2")
+        store.connection.commit()
+
+    with MemoryStore(database) as migrated:
+        assert migrated.connection.execute("PRAGMA user_version").fetchone()[0] == 3
+        assert (
+            migrated.connection.execute(
+                "SELECT canonical_name FROM entities WHERE entity_id = ?", (entity.entity_id,)
+            ).fetchone()[0]
+            == "Horizontal Pod Autoscaler"
+        )
+        assert (
+            migrated.connection.execute(
+                "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' "
+                "AND name = 'entity_alias_reviews'"
+            ).fetchone()[0]
+            == 1
+        )
 
 
 def test_dream_job_claim_retry_and_completion_are_leased_and_idempotent(tmp_path: Path) -> None:

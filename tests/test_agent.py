@@ -1234,6 +1234,8 @@ def test_rss_collector_parses_feed_content() -> None:
     assert [e.title for e in entries] == ["AI breakthrough", "Robotics news"]
     assert entries[0].url == "https://example.com/a"
     assert entries[0].source_name == "Test Feed"
+    assert entries[0].content == ""
+    assert entries[0].snippet == "summary a"
 
 
 def test_load_rss_sources_skips_comments_and_blanks(tmp_path: Path) -> None:
@@ -1288,6 +1290,39 @@ def test_ingest_rss_candidate_preserves_article_metadata(tmp_path: Path) -> None
     assert candidate["snippet"] == "Short summary"
     assert candidate["feed_url"] == "https://example.com/feed.xml"
     assert candidate["author"] == "Author"
+
+
+def test_ingest_rss_persists_article_body_to_memory_store(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import src.wiki_agent as wiki_agent
+    from src.memory_store import MemoryStore
+
+    entry = RSSEntry(
+        title="Article",
+        url="https://example.test/article",
+        content="Full RSS article body",
+        snippet="Short summary",
+        source_name="Feed",
+    )
+    monkeypatch.setattr(RSSCollector, "collect_multiple", lambda *_args: [entry])
+    monkeypatch.setattr(wiki_agent, "load_rss_sources", lambda _path: ["https://example.test/feed"])
+    vault = tmp_path / "vault"
+    vault.mkdir()
+    config = Config(vault, rss_enabled=True, rss_sources_file=tmp_path / "feeds.txt")
+    state = StateDB(vault / ".agent-state.sqlite3")
+
+    assert wiki_agent.ingest_rss(state, config) == 1
+    assert wiki_agent.ingest_rss(state, config) == 0
+
+    with MemoryStore(vault / ".memory-engine.sqlite3") as memory:
+        row = memory.connection.execute(
+            "SELECT raw_content, media_type FROM source_documents WHERE source_uri = ?",
+            (entry.url,),
+        ).fetchone()
+        assert row == ("Full RSS article body", "text/x-rss-entry")
+        assert memory.connection.execute("SELECT COUNT(*) FROM dream_jobs").fetchone()[0] == 1
+        assert memory.connection.execute("SELECT COUNT(*) FROM source_documents").fetchone()[0] == 1
 
 
 def test_plan_rss_action_builds_create_page(tmp_path: Path) -> None:
@@ -1381,6 +1416,76 @@ def test_run_once_rss_drives_page_creation(tmp_path: Path, monkeypatch: pytest.M
     assert created.exists()
     # The RSS candidate was consumed by the run.
     assert db.next_rss_candidate() is None
+
+
+def test_run_once_persists_deep_research_when_page_is_rejected(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import src.wiki_agent as wiki_agent
+    from src.memory_store import MemoryStore
+
+    vault = Vault(tmp_path / "vault")
+    state = StateDB(vault.root / ".agent-state.sqlite3")
+    state.ingest_rss_candidates(
+        [
+            RSSEntry(
+                title="記憶エンジン",
+                url="https://example.test/rss-article",
+                content="Full RSS body",
+                snippet="RSS summary",
+            )
+        ]
+    )
+    config = Config(
+        vault.root,
+        mode="autonomous_safe",
+        rss_enabled=True,
+        rss_sources_file=tmp_path / "none.txt",
+    )
+
+    class ChatClient(_FakeClient):
+        def chat(self, *_args: object, **_kwargs: object) -> dict[str, object]:
+            return {}
+
+    client = ChatClient([])
+    deep = {
+        "queries": ["memory engine"],
+        "synthesis": "Complete synthesis retained for later Dreaming.",
+        "results": [
+            {
+                "title": "Research source",
+                "url": "https://example.test/research",
+                "page_content": "Full fetched research body.",
+            }
+        ],
+    }
+    monkeypatch.setattr(wiki_agent, "create_client", lambda _config: client)
+    monkeypatch.setattr(wiki_agent, "create_reviewer_client", lambda _config: client)
+    monkeypatch.setattr(wiki_agent, "update_world_map", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(wiki_agent, "research_article", lambda *_args, **_kwargs: deep)
+    monkeypatch.setattr(
+        wiki_agent,
+        "write_grounded_and_review",
+        lambda *_args, **_kwargs: (
+            False,
+            "",
+            {"result": "review_rejected", "issues": [{"type": "blocking"}]},
+            [],
+        ),
+    )
+
+    result = run_once(config)
+
+    assert result["result"] == "review_rejected"
+    with MemoryStore(vault.root / ".memory-engine.sqlite3") as memory:
+        row = memory.connection.execute(
+            "SELECT raw_content, media_type FROM source_documents "
+            "WHERE source_uri LIKE 'deep-research://%'"
+        ).fetchone()
+        assert row is not None
+        assert "Complete synthesis retained for later Dreaming." in row[0]
+        assert "Full fetched research body." in row[0]
+        assert row[1] == "application/vnd.memoria.deep-research+json"
 
 
 @pytest.mark.parametrize("persistence_failure", [False, True])

@@ -29,6 +29,11 @@ from src.atomic_facts import (
     write_grounded_page,
 )
 from src.memory_pipeline import persist_reviewed_facts
+from src.memory_sources import (
+    persist_deep_research as _persist_deep_research_records,
+    persist_documents as _persist_memory_documents,
+    persist_rss_entries,
+)
 from src.memory_store import MemoryStore
 from src.rss_collector import RSSCollector, RSSEntry, load_rss_sources
 from src.research import DDGSearchClient
@@ -2392,6 +2397,8 @@ def build_cluster_context(
         query_count += len(deep.get("queries", []))
         new_done += 1
 
+    _persist_deep_research_records(config.vault_path, research)
+
     # The context and the allow-list must be one selection, not two. Building the
     # context from every member while truncating the sources to max_pages_fetched
     # made large clusters impossible to publish: the Writer honestly cited URLs it
@@ -2494,7 +2501,9 @@ def ingest_rss(db: StateDB, config: Config) -> int:
     if not feeds:
         return 0
     entries = RSSCollector().collect_multiple(feeds, config.rss_max_entries_per_feed)
-    return db.ingest_rss_candidates(entries)
+    added = db.ingest_rss_candidates(entries)
+    persist_rss_entries(config.vault_path, entries)
+    return added
 
 
 def save_rejected_draft(vault_path: Path, target: Path, draft: str, reason: str) -> Path:
@@ -2832,6 +2841,10 @@ def run_once(config: Config) -> dict[str, Any]:
                     max_pages=config.max_pages_fetched,
                     research_reason=str(proposal.get("reason", "")),
                 )
+                _persist_deep_research_records(
+                    config.vault_path,
+                    [{**deep, "url": target.as_posix(), "title": target.stem}],
+                )
                 structure_context, structure_sources = format_deep_research(deep)
                 researcher.count += len(deep.get("queries", []))
             else:
@@ -2946,6 +2959,10 @@ def run_once(config: Config) -> dict[str, Any]:
         )
         researcher.count = len(deep["queries"])
         db.save_deep_research(str(action["rss_url"]), deep)
+        _persist_deep_research_records(
+            config.vault_path,
+            [{**deep, "url": str(action["rss_url"]), "title": target.stem}],
+        )
         research_context, sources = format_deep_research(deep)
     else:
         if client is not None and callable(getattr(client, "chat", None)):
@@ -2957,6 +2974,11 @@ def run_once(config: Config) -> dict[str, Any]:
                 max_pages=config.max_pages_fetched,
                 research_reason=str(action.get("reason", "")),
             )
+            research_uri = str(action.get("rss_url") or target.as_posix())
+            _persist_deep_research_records(
+                config.vault_path,
+                [{**deep, "url": research_uri, "title": target.stem}],
+            )
             research_context, sources = format_deep_research(deep)
             researcher.count = len(deep.get("queries", []))
         else:
@@ -2966,6 +2988,20 @@ def run_once(config: Config) -> dict[str, Any]:
                 if len(sources) >= config.max_pages_fetched:
                     break
     if action.get("rss_url"):
+        rss_content = str(action.get("rss_content", ""))
+        if rss_content.strip():
+            _persist_memory_documents(
+                config.vault_path,
+                [
+                    (
+                        str(action["rss_url"]),
+                        str(action.get("rss_title") or target.stem),
+                        rss_content,
+                        "text/x-rss-entry",
+                        str(action.get("rss_published_at") or "") or None,
+                    )
+                ],
+            )
         sources.insert(
             0,
             SearchResult(

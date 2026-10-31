@@ -18,7 +18,7 @@ from pathlib import Path
 
 
 APPLICATION_ID = 0x4D464D45  # ASCII "MFME"
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 
 _REQUIRED_TABLES = frozenset(
     {
@@ -28,6 +28,7 @@ _REQUIRED_TABLES = frozenset(
         "source_chunk_search",
         "entities",
         "entity_aliases",
+        "entity_alias_reviews",
         "memory_facts",
         "memory_localizations",
         "fact_evidence",
@@ -119,6 +120,33 @@ CREATE TABLE entity_aliases (
 );
 
 CREATE INDEX entity_aliases_lookup_idx ON entity_aliases(normalized_alias);
+
+CREATE TABLE entity_alias_reviews (
+    review_id TEXT PRIMARY KEY,
+    entity_id TEXT NOT NULL,
+    normalized_alias TEXT NOT NULL,
+    reviewer TEXT NOT NULL,
+    reason TEXT NOT NULL,
+    reviewed_at TEXT NOT NULL,
+    FOREIGN KEY (entity_id, normalized_alias)
+        REFERENCES entity_aliases(entity_id, normalized_alias) ON DELETE CASCADE
+);
+
+CREATE INDEX entity_alias_reviews_entity_idx
+    ON entity_alias_reviews(entity_id, normalized_alias, reviewed_at);
+
+CREATE TRIGGER entity_alias_reviews_no_update
+BEFORE UPDATE ON entity_alias_reviews
+BEGIN
+    SELECT RAISE(ABORT, 'entity_alias_reviews is append-only');
+END;
+
+CREATE TRIGGER entity_alias_reviews_no_delete
+BEFORE DELETE ON entity_alias_reviews
+WHEN memory_erase_authorized() = 0
+BEGIN
+    SELECT RAISE(ABORT, 'entity_alias_reviews is append-only');
+END;
 
 CREATE TABLE memory_facts (
     fact_id TEXT PRIMARY KEY,
@@ -266,6 +294,17 @@ class SourceSearchResult:
 
 
 @dataclass(frozen=True)
+class SourceListEntry:
+    source_id: str
+    source_uri: str
+    title: str
+    media_type: str
+    source_state: str
+    ingested_at: str
+    chunk_count: int
+
+
+@dataclass(frozen=True)
 class FactWriteResult:
     fact_id: str
     evidence_id: str
@@ -278,6 +317,14 @@ class EntityWriteResult:
     entity_id: str
     canonical_name: str
     entity_type: str
+    created: bool
+
+
+@dataclass(frozen=True)
+class EntityAliasWriteResult:
+    entity_id: str
+    alias: str
+    normalized_alias: str
     created: bool
 
 
@@ -405,11 +452,15 @@ class MemoryStore:
         if application_id != APPLICATION_ID:
             raise ValueError(f"{self.path} is not a Memoria Forge memory store")
         if version == 1:
-            missing = _REQUIRED_TABLES - tables
+            missing = (_REQUIRED_TABLES - {"entity_alias_reviews"}) - tables
             if missing:
                 raise ValueError("memory store schema is incomplete: " + ", ".join(sorted(missing)))
             self._migrate_v1_to_v2()
             version = 2
+        if version == 2:
+            self._migrate_v2_to_v3()
+            version = 3
+            tables.add("entity_alias_reviews")
         if version != SCHEMA_VERSION:
             raise ValueError(
                 f"unsupported memory store schema version {version}; expected {SCHEMA_VERSION}"
@@ -431,6 +482,44 @@ class MemoryStore:
                 "VALUES (2, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
             )
             self.connection.execute("PRAGMA user_version = 2")
+
+    def _migrate_v2_to_v3(self) -> None:
+        script = """
+        BEGIN IMMEDIATE;
+        CREATE TABLE entity_alias_reviews (
+            review_id TEXT PRIMARY KEY,
+            entity_id TEXT NOT NULL,
+            normalized_alias TEXT NOT NULL,
+            reviewer TEXT NOT NULL,
+            reason TEXT NOT NULL,
+            reviewed_at TEXT NOT NULL,
+            FOREIGN KEY (entity_id, normalized_alias)
+                REFERENCES entity_aliases(entity_id, normalized_alias) ON DELETE CASCADE
+        );
+        CREATE INDEX entity_alias_reviews_entity_idx
+            ON entity_alias_reviews(entity_id, normalized_alias, reviewed_at);
+        CREATE TRIGGER entity_alias_reviews_no_update
+        BEFORE UPDATE ON entity_alias_reviews
+        BEGIN
+            SELECT RAISE(ABORT, 'entity_alias_reviews is append-only');
+        END;
+        CREATE TRIGGER entity_alias_reviews_no_delete
+        BEFORE DELETE ON entity_alias_reviews
+        WHEN memory_erase_authorized() = 0
+        BEGIN
+            SELECT RAISE(ABORT, 'entity_alias_reviews is append-only');
+        END;
+        INSERT INTO schema_migrations (version, applied_at)
+            VALUES (3, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'));
+        PRAGMA user_version = 3;
+        COMMIT;
+        """
+        try:
+            self.connection.executescript(script)
+        except sqlite3.Error:
+            if self.connection.in_transaction:
+                self.connection.rollback()
+            raise
 
     def _create_schema(self) -> None:
         script = (
@@ -715,6 +804,29 @@ class MemoryStore:
             for row in rows
         ]
 
+    def list_sources(self, limit: int = 100) -> list[SourceListEntry]:
+        if limit < 1:
+            raise ValueError("limit must be positive")
+        rows = self.connection.execute(
+            "SELECT d.source_id, d.source_uri, d.title, d.media_type, d.source_state, "
+            "d.ingested_at, COUNT(c.chunk_id) FROM source_documents d "
+            "LEFT JOIN source_chunks c ON c.source_id = d.source_id "
+            "GROUP BY d.source_id ORDER BY d.ingested_at DESC, d.source_id LIMIT ?",
+            (limit,),
+        ).fetchall()
+        return [
+            SourceListEntry(
+                source_id=str(row[0]),
+                source_uri=str(row[1]),
+                title=str(row[2]),
+                media_type=str(row[3]),
+                source_state=str(row[4]),
+                ingested_at=str(row[5]),
+                chunk_count=int(row[6]),
+            )
+            for row in rows
+        ]
+
     def add_fact_candidate(
         self,
         source_id: str,
@@ -936,7 +1048,7 @@ class MemoryStore:
         matches = self.connection.execute(
             "SELECT DISTINCT e.entity_id, e.canonical_name, e.entity_type "
             "FROM entity_aliases a JOIN entities e ON e.entity_id = a.entity_id "
-            "WHERE a.normalized_alias = ?",
+            "WHERE a.normalized_alias = ? AND a.verified = 1",
             (normalized,),
         ).fetchall()
         typed_matches = [row for row in matches if row[2] == entity_type]
@@ -962,6 +1074,68 @@ class MemoryStore:
                 (entity_id, canonical_name, language.strip(), normalized),
             )
         return EntityWriteResult(entity_id, canonical_name, entity_type, True)
+
+    def register_entity_alias(
+        self,
+        entity_id: str,
+        alias: str,
+        *,
+        reviewer: str,
+        reason: str,
+        language: str = "",
+    ) -> EntityAliasWriteResult:
+        alias = alias.strip()
+        reviewer = reviewer.strip()
+        reason = reason.strip()
+        if not alias:
+            raise ValueError("alias is required")
+        if not reviewer:
+            raise ValueError("reviewer is required")
+        if not reason:
+            raise ValueError("reason is required")
+        entity = self.connection.execute(
+            "SELECT entity_id FROM entities WHERE entity_id = ?", (entity_id,)
+        ).fetchone()
+        if entity is None:
+            raise ValueError("entity does not exist")
+
+        normalized = _normalize_entity_name(alias)
+        existing = self.connection.execute(
+            "SELECT entity_id FROM entity_aliases WHERE normalized_alias = ?",
+            (normalized,),
+        ).fetchall()
+        if any(str(row[0]) != entity_id for row in existing):
+            raise ValueError("alias already belongs to another entity")
+
+        now = _utc_now()
+        review_id = hashlib.sha256(
+            f"entity-alias-review:{entity_id}:{normalized}:{reviewer}:{reason}".encode("utf-8")
+        ).hexdigest()[:32]
+        created = not existing
+        with self.connection:
+            if created:
+                self.connection.execute(
+                    "INSERT INTO entity_aliases "
+                    "(entity_id, alias, language, normalized_alias, verified) "
+                    "VALUES (?, ?, ?, ?, 1)",
+                    (entity_id, alias, language.strip(), normalized),
+                )
+            else:
+                self.connection.execute(
+                    "UPDATE entity_aliases SET verified = 1 "
+                    "WHERE entity_id = ? AND normalized_alias = ?",
+                    (entity_id, normalized),
+                )
+            self.connection.execute(
+                "INSERT OR IGNORE INTO entity_alias_reviews "
+                "(review_id, entity_id, normalized_alias, reviewer, reason, reviewed_at) "
+                "VALUES (?, ?, ?, ?, ?, ?)",
+                (review_id, entity_id, normalized, reviewer, reason, now),
+            )
+            self.connection.execute(
+                "UPDATE entities SET updated_at = ? WHERE entity_id = ?", (now, entity_id)
+            )
+        return EntityAliasWriteResult(entity_id, alias, normalized, created)
 
     def link_fact_entity(self, fact_id: str, entity_id: str, role: str) -> bool:
         if role not in {"subject", "object", "mentioned"}:

@@ -72,8 +72,6 @@ class RSSCollector:
                 first_content = raw_content[0]
                 if isinstance(first_content, dict):
                     content = str(first_content.get("value", ""))
-            if not content:
-                content = str(entry.get("summary", ""))
             entries.append(
                 RSSEntry(
                     title=title,
