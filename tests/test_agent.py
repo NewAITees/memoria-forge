@@ -23,6 +23,7 @@ from src.wiki_agent import (
     cohesion,
     commit_and_push,
     build_cluster_context,
+    build_cluster_member_materials,
     cosine,
     create_client,
     create_reviewer_client,
@@ -228,21 +229,21 @@ def test_deep_research_accepts_content_key_from_llm(
 def test_write_grounded_and_review_strips_unattributed_synthesis_from_extraction(
     tmp_path: Path,
 ) -> None:
-    # build_cluster_context's "## 統合調査結果" block summarizes a cluster member's
-    # OWN research, which can include facts drawn from that member's 2nd-5th
-    # fetched result -- results that never survive the cluster-wide round-robin
-    # into `sources`. Any fact the model grounds in that unattributed synthesis
-    # can never pass quote verification. Confirmed live (2026-10-30/31): the
-    # "MLIT Japan Property Prices" and "$24 Notion Client" clusters both failed
-    # 100% of candidates this way. The grounded extraction prompt must only ever
-    # see text that is actually attributable to one of `sources`.
-    captured: dict[str, str] = {}
+    # A material's "## 統合調査結果" block summarizes that member's OWN research,
+    # which can include facts drawn from that member's 2nd-5th fetched result --
+    # results that never survive a shared round-robin budget into `sources`. Any
+    # fact the model grounds in that unattributed synthesis can never pass quote
+    # verification. Confirmed live (2026-10-30/31): the "MLIT Japan Property
+    # Prices" and "$24 Notion Client" clusters both failed 100% of candidates
+    # this way. Each material's extraction prompt must only ever see text that
+    # is actually attributable to that material's own sources.
+    captured: list[str] = []
 
     class Client:
         def chat(
             self, system: str, prompt: str, response_schema: dict[str, object]
         ) -> dict[str, object]:
-            captured["prompt"] = prompt
+            captured.append(prompt)
             return {"facts": []}
 
     research_context = (
@@ -252,12 +253,79 @@ def test_write_grounded_and_review_strips_unattributed_synthesis_from_extraction
     sources = [SearchResult("Real source", "https://example.com/real", "実際の記事本文。")]
 
     write_grounded_and_review(
-        Client(), Client(), Path("10_Knowledge/Test.md"), sources, research_context, tmp_path
+        Client(), Client(), Path("10_Knowledge/Test.md"), [(research_context, sources)], tmp_path
     )
 
-    assert "統合調査結果" not in captured["prompt"]
-    assert "410,800" not in captured["prompt"]
-    assert "実際の記事本文" in captured["prompt"]
+    assert "統合調査結果" not in captured[0]
+    assert "410,800" not in captured[0]
+    assert "実際の記事本文" in captured[0]
+
+
+def test_write_grounded_and_review_extracts_each_material_independently(
+    tmp_path: Path,
+) -> None:
+    # Mixing two unrelated members' raw text into one extraction call let the
+    # model attribute a quote to whichever source happened to be cited, even
+    # when the quote actually came from a different member's content -- every
+    # cluster this broke (6941, 649, 5662, 5302) failed 100% of candidates this
+    # way. Extracting one material at a time, each with only its own sources,
+    # means a fact can only ever be grounded in the material it was found in.
+    extraction_calls = 0
+
+    class Client:
+        def chat(
+            self, system: str, prompt: str, response_schema: dict[str, object] | None = None
+        ) -> dict[str, object]:
+            nonlocal extraction_calls
+            if response_schema is not None and "facts" in response_schema.get("properties", {}):
+                extraction_calls += 1
+                quote = (
+                    "メンバーAはXを報告した。"
+                    if "member-a" in prompt
+                    else "メンバーBはYを報告した。"
+                )
+                return {
+                    "facts": [
+                        {
+                            "statement": quote,
+                            "evidence_quote": quote,
+                            "source_id": "source-1",
+                            "confidence": 0.9,
+                        }
+                    ]
+                }
+            return {}  # write_grounded_page's prose call; its failure is irrelevant here.
+
+    materials = [
+        (
+            "## 根拠\nタイトル: member-a\nURL: https://example.com/a\n抜粋:\nメンバーAはXを報告した。",
+            [SearchResult("member-a", "https://example.com/a", "メンバーAはXを報告した。")],
+        ),
+        (
+            "## 根拠\nタイトル: member-b\nURL: https://example.com/b\n抜粋:\nメンバーBはYを報告した。",
+            [SearchResult("member-b", "https://example.com/b", "メンバーBはYを報告した。")],
+        ),
+    ]
+
+    class Reviewer:
+        def chat(
+            self, system: str, prompt: str, response_schema: dict[str, object]
+        ) -> dict[str, object]:
+            ids = [item["fact_id"] for item in json.loads(prompt)]
+            return {"accepted_fact_ids": ids, "rejected": []}
+
+        def review(self, content: str, research_context: str) -> dict[str, object]:
+            return {"approved": True, "issues": []}
+
+    _accepted, _content, _review, facts = write_grounded_and_review(
+        Client(), Reviewer(), Path("10_Knowledge/Test.md"), materials, tmp_path
+    )
+
+    assert extraction_calls == 2
+    assert {fact.statement for fact in facts} == {
+        "メンバーAはXを報告した。",
+        "メンバーBはYを報告した。",
+    }
 
 
 def test_deep_research_excludes_youtube_urls_from_fetched_sources(
@@ -2069,6 +2137,43 @@ def test_build_cluster_context_shows_only_urls_it_allows(tmp_path: Path) -> None
     # Bounded, but still spanning the theme: round-robin reaches six members
     # rather than exhausting the oldest member's five results first.
     assert len({source.url.split("-")[0] for source in sources}) == 6
+
+
+def test_build_cluster_member_materials_keeps_each_members_results_separate() -> None:
+    # The old merged context let one member's results (e.g. two YouTube URLs
+    # with no real content) eat another member's slice of the shared
+    # max_pages_fetched budget, and let a member's synthesis mention facts from
+    # its own later results that never made the cut at all. Splitting by
+    # member means each member keeps its own full budget and its own synthesis
+    # is only ever paired with its own results.
+    research = [
+        {
+            "url": "u1",
+            "synthesis": "syn1 mentions something from r1-1 and r1-2.",
+            "results": [
+                {"title": "R1-1", "url": "http://r1-1", "page_content": "body1-1"},
+                {"title": "R1-2", "url": "http://r1-2", "page_content": "body1-2"},
+            ],
+        },
+        {
+            "url": "u2",
+            "synthesis": "syn2 is unrelated to member 1.",
+            "results": [{"title": "R2-1", "url": "http://r2-1", "page_content": "body2-1"}],
+        },
+        {"url": "u3", "synthesis": "", "results": []},  # no fetched results -> no material
+    ]
+
+    materials = build_cluster_member_materials(research, max_pages_fetched=5)
+
+    assert len(materials) == 2  # u3 contributed nothing
+    context1, sources1 = materials[0]
+    assert {s.url for s in sources1} == {"http://r1-1", "http://r1-2"}
+    assert "syn1" in context1
+    assert "syn2" not in context1  # member 1's context never sees member 2's synthesis
+    context2, sources2 = materials[1]
+    assert {s.url for s in sources2} == {"http://r2-1"}
+    assert "syn2" in context2
+    assert "syn1" not in context2
 
 
 class _SectionProbe(Ollama):

@@ -2353,19 +2353,19 @@ def plan_geometry_action(vault: Vault, db: StateDB, config: Config) -> dict[str,
     return menu[0] if menu else None
 
 
-def build_cluster_context(
+def _fetch_cluster_research(
     db: StateDB,
     client: Any,
     cluster_id: int,
     config: Config,
     max_new_research: int = 3,
-) -> tuple[str, list[SearchResult], int]:
-    """Assemble a page's research material from a whole cluster (S4: page=cluster).
+) -> tuple[list[dict[str, Any]], int]:
+    """Fetch/cache each cluster member's own deep_research (S4: page=cluster).
 
     Uses every member's existing deep_research, and researches up to
     `max_new_research` not-yet-researched members on demand (bounded cost) so an
-    unworked cluster still yields a real, multi-source page instead of one article.
-    Returns (research_context, unique sources, count of new searches performed).
+    unworked cluster still yields real, multi-source material instead of one
+    article. Returns (per-member research records, count of new searches).
     """
     research = db.cluster_research(cluster_id)
     researched = {item["url"] for item in research}
@@ -2398,7 +2398,18 @@ def build_cluster_context(
         new_done += 1
 
     _persist_deep_research_records(config.vault_path, research)
+    return research, query_count
 
+
+def _merge_cluster_research(
+    research: list[dict[str, Any]], max_pages_fetched: int
+) -> tuple[str, list[SearchResult]]:
+    """Combine every member's research into one (research_context, sources) pair.
+
+    Used by the legacy write_and_review path, which does not verify quotes
+    against a specific source and so can safely read a wide, synthesized view.
+    write_grounded_and_review must not use this: see build_cluster_member_materials.
+    """
     # The context and the allow-list must be one selection, not two. Building the
     # context from every member while truncating the sources to max_pages_fetched
     # made large clusters impossible to publish: the Writer honestly cited URLs it
@@ -2410,9 +2421,9 @@ def build_cluster_context(
     seen: set[str] = set()
     depth = 0
     deepest = max((len(item["results"]) for item in research), default=0)
-    while depth < deepest and len(seen) < config.max_pages_fetched:
+    while depth < deepest and len(seen) < max_pages_fetched:
         for index, item in enumerate(research):
-            if len(seen) >= config.max_pages_fetched:
+            if len(seen) >= max_pages_fetched:
                 break
             if depth >= len(item["results"]):
                 continue
@@ -2444,7 +2455,68 @@ def build_cluster_context(
                     snippet=str(result.get("page_content") or result.get("snippet", ""))[:12000],
                 )
             )
-    return "\n\n".join(context_parts), sources, query_count
+    return "\n\n".join(context_parts), sources
+
+
+def build_cluster_context(
+    db: StateDB,
+    client: Any,
+    cluster_id: int,
+    config: Config,
+    max_new_research: int = 3,
+) -> tuple[str, list[SearchResult], int]:
+    """Assemble a page's research material from a whole cluster (S4: page=cluster).
+
+    Returns (research_context, unique sources, count of new searches performed).
+    """
+    research, query_count = _fetch_cluster_research(
+        db, client, cluster_id, config, max_new_research
+    )
+    research_context, sources = _merge_cluster_research(research, config.max_pages_fetched)
+    return research_context, sources, query_count
+
+
+def build_cluster_member_materials(
+    research: list[dict[str, Any]], max_pages_fetched: int
+) -> list[tuple[str, list[SearchResult]]]:
+    """Split a cluster's per-member research into independently-grounded materials.
+
+    Each member keeps its own full result budget instead of competing with
+    other members for one shared max_pages_fetched slice, and no member's raw
+    text is ever mixed with another's in one extraction call. Confirmed live
+    across four clusters (6941, 649, 5662, 5302): merging members first let the
+    model ground a quote in a source that never actually said it, failing
+    quote_not_found_in_cited_source for 100% of candidates. A member that adds
+    no real sources contributes nothing, which is the correct outcome for a
+    cluster that only loosely shares a topic.
+    """
+    materials: list[tuple[str, list[SearchResult]]] = []
+    for item in research:
+        seen: set[str] = set()
+        context_parts: list[str] = []
+        sources: list[SearchResult] = []
+        for result in item["results"][:max_pages_fetched]:
+            url = _normalize_url(str(result.get("url", "")))
+            if not url or url in seen:
+                continue
+            seen.add(url)
+            context_parts.append(
+                f"## 根拠\nタイトル: {result.get('title', '')}\nURL: {result.get('url', '')}\n"
+                f"抜粋:\n{result.get('page_content', '')[:2500]}"
+            )
+            sources.append(
+                SearchResult(
+                    title=str(result.get("title", "")),
+                    url=str(result.get("url", "")),
+                    snippet=str(result.get("page_content") or result.get("snippet", ""))[:12000],
+                )
+            )
+        if not sources:
+            continue
+        if item["synthesis"]:
+            context_parts.insert(0, "## 統合調査結果\n" + str(item["synthesis"]))
+        materials.append(("\n\n".join(context_parts), sources))
+    return materials
 
 
 def format_deep_research(deep: dict[str, Any]) -> tuple[str, list[SearchResult]]:
@@ -2594,8 +2666,7 @@ def write_grounded_and_review(
     client: Any,
     reviewer: Any,
     target: Path,
-    sources: list[SearchResult],
-    research_context: str,
+    materials: list[tuple[str, list[SearchResult]]],
     vault_path: Path,
 ) -> tuple[bool, str, dict[str, Any], list[AtomicFact]]:
     """Create a new page only from facts whose quotes and reviewer verdicts pass.
@@ -2603,11 +2674,37 @@ def write_grounded_and_review(
     Existing pages remain on the legacy writer path during the staged rollout.
     Fewer than two independently reviewable facts is not enough material for a
     new page; fail closed instead of padding a report with unrelated prose.
+
+    Each (research_context, sources) pair in `materials` is extracted on its
+    own, never mixed with another's raw text. Confirmed live across four
+    clusters: combining several members' material into one extraction call let
+    the model ground a quote in whichever source happened to get cited, even
+    when the quote actually came from a different member's content, so every
+    candidate failed quote_not_found_in_cited_source. One member's facts are
+    still real and worth a multi-source page, but that has to be decided after
+    grounding, not before it.
     """
-    research_context = _strip_unattributed_synthesis(research_context)
-    candidates, deterministic_rejections = extract_verified_facts(
-        client, target.stem, research_context, sources
-    )
+    candidates: list[AtomicFact] = []
+    seen_fact_ids: set[str] = set()
+    deterministic_rejections: dict[str, str] = {}
+    sources: list[SearchResult] = []
+    context_blocks: list[str] = []
+    for material_index, (material_context, material_sources) in enumerate(materials):
+        material_context = _strip_unattributed_synthesis(material_context)
+        if material_context.strip():
+            context_blocks.append(material_context)
+        sources.extend(material_sources)
+        material_candidates, material_rejections = extract_verified_facts(
+            client, target.stem, material_context, material_sources
+        )
+        for fact in material_candidates:
+            if fact.fact_id in seen_fact_ids:
+                continue
+            seen_fact_ids.add(fact.fact_id)
+            candidates.append(fact)
+        for key, reason in material_rejections.items():
+            deterministic_rejections[f"material-{material_index + 1}-{key}"] = reason
+    research_context = "\n\n".join(context_blocks)
     if len(candidates) < 2:
         return (
             False,
@@ -2939,12 +3036,21 @@ def run_once(config: Config) -> dict[str, Any]:
     researcher = Researcher(config.max_searches)
     sources: list[SearchResult] = []
     research_context = ""
+    grounded_materials: list[tuple[str, list[SearchResult]]] = []
     cluster_id = action.get("cluster_id")
     if cluster_id is not None and client is not None and callable(getattr(client, "chat", None)):
         # S4: page = cluster. Build the material from every member's research
-        # (whole theme) instead of a single article.
-        research_context, sources, researcher.count = build_cluster_context(
+        # (whole theme) instead of a single article. The merged view feeds the
+        # legacy writer and display/persistence; grounded_materials keeps each
+        # member's own material separate so extraction never mixes sources.
+        cluster_research, researcher.count = _fetch_cluster_research(
             db, client, int(cluster_id), config
+        )
+        research_context, sources = _merge_cluster_research(
+            cluster_research, config.max_pages_fetched
+        )
+        grounded_materials = build_cluster_member_materials(
+            cluster_research, config.max_pages_fetched
         )
     elif action.get("rss_url") and client is not None and callable(getattr(client, "chat", None)):
         deep = research_article(
@@ -3010,6 +3116,10 @@ def run_once(config: Config) -> dict[str, Any]:
                 snippet=str(action.get("rss_snippet", "")),
             ),
         )
+    if not grounded_materials and (research_context.strip() or sources):
+        # Single-article paths (RSS, generic research) have only one "member",
+        # so the merged material is already internally coherent.
+        grounded_materials = [(research_context, sources)]
     unique_sources = list({source.url: source for source in sources}.values())[
         : config.max_pages_fetched
     ]
@@ -3024,6 +3134,7 @@ def run_once(config: Config) -> dict[str, Any]:
                     source.url: index for index, source in enumerate(unique_sources)
                 }
                 recall_lines: list[str] = []
+                recalled_sources: list[SearchResult] = []
                 for recalled in recalled_facts:
                     if not recalled.source_uri or not recalled.evidence_quote:
                         continue
@@ -3035,21 +3146,23 @@ def run_once(config: Config) -> dict[str, Any]:
                     position = source_positions.get(recalled.source_uri)
                     if position is None:
                         source_positions[recalled.source_uri] = len(unique_sources)
-                        unique_sources.append(
-                            SearchResult(
-                                recalled.source_title or recalled.source_uri,
-                                recalled.source_uri,
-                                recalled.evidence_quote,
-                            )
+                        recalled_source = SearchResult(
+                            recalled.source_title or recalled.source_uri,
+                            recalled.source_uri,
+                            recalled.evidence_quote,
                         )
+                        unique_sources.append(recalled_source)
                     else:
                         existing_source = unique_sources[position]
                         if recalled.evidence_quote not in existing_source.snippet:
-                            unique_sources[position] = SearchResult(
+                            existing_source = SearchResult(
                                 existing_source.title,
                                 existing_source.url,
                                 existing_source.snippet + "\n\n" + recalled.evidence_quote,
                             )
+                            unique_sources[position] = existing_source
+                        recalled_source = existing_source
+                    recalled_sources.append(recalled_source)
                 if recall_lines:
                     recall_context = (
                         "## 関連する承認済み記憶（出典引用で再確認すること）\n"
@@ -3058,6 +3171,10 @@ def run_once(config: Config) -> dict[str, Any]:
                     research_context = "\n\n".join(
                         block for block in (research_context, recall_context) if block.strip()
                     )
+                    # Recall facts are already grounded (evidence_quote came from
+                    # their own source), so each one is self-consistent material
+                    # on its own, same as a freshly extracted source.
+                    grounded_materials.append((recall_context, recalled_sources))
         except (OSError, ValueError, sqlite3.Error) as recall_error:
             logger.warning("memory recall skipped: %s", recall_error)
     duplicate_of: Path | None = None
@@ -3080,8 +3197,7 @@ def run_once(config: Config) -> dict[str, Any]:
                     writer_client,
                     reviewer_client,
                     target,
-                    unique_sources,
-                    research_context,
+                    grounded_materials,
                     config.vault_path,
                 )
             else:

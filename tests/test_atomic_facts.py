@@ -474,8 +474,7 @@ def test_write_grounded_and_review_accepts_two_verified_facts(tmp_path: Path) ->
         _GroundedWriter(),
         _GroundedReviewer(),
         Path("10_Knowledge/HPA.md"),
-        [source],
-        "",
+        [("", [source])],
         tmp_path,
     )
 
@@ -495,8 +494,7 @@ def test_write_grounded_and_review_stops_when_verified_facts_are_insufficient(
         _GroundedWriter(),
         _GroundedReviewer(),
         Path("10_Knowledge/HPA.md"),
-        [source],
-        "",
+        [("", [source])],
         tmp_path,
     )
 
