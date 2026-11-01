@@ -1334,11 +1334,25 @@ class Ollama:
             data=json.dumps(payload).encode(),
             headers={"Content-Type": "application/json"},
         )
-        with urllib.request.urlopen(request, timeout=self.timeout) as response:
-            body: dict[str, Any] = json.loads(response.read())
-        content = body["message"]["content"]
-        self._record_response("chat", system, prompt, str(content), response_schema)
-        return _loads_llm_content(content, "ollama")
+        # One retry for a malformed reply only: a degenerate repetition loop
+        # (e.g. the same fact_id repeated until num_ctx cut the JSON off
+        # mid-string) is a sampling fluke, not a reproducible defect, and a
+        # fresh call rarely repeats it. Every attempt is still fully logged by
+        # _record_response -- this does not hide a failure, it just does not
+        # give up on the first unlucky roll.
+        last_error: ValueError | None = None
+        for attempt in range(2):
+            with urllib.request.urlopen(request, timeout=self.timeout) as response:
+                body: dict[str, Any] = json.loads(response.read())
+            content = body["message"]["content"]
+            self._record_response("chat", system, prompt, str(content), response_schema)
+            try:
+                return _loads_llm_content(content, "ollama")
+            except ValueError as error:
+                last_error = error
+                continue
+        assert last_error is not None
+        raise last_error
 
     def plan(
         self, wiki_snapshot: list[dict[str, Any]], stale_pages: list[str] | None = None
@@ -1593,17 +1607,26 @@ class LMStudio(Ollama):
             data=json.dumps(payload).encode(),
             headers={"Content-Type": "application/json"},
         )
-        with urllib.request.urlopen(request, timeout=self.timeout) as response:
-            body: dict[str, Any] = json.loads(response.read())
-        choices = body.get("choices")
-        if not isinstance(choices, list) or not choices:
-            raise ValueError("LM Studio returned no choices")
-        message = choices[0].get("message")
-        if not isinstance(message, dict) or not isinstance(message.get("content"), str):
-            raise ValueError("LM Studio returned no message content")
-        content = message["content"]
-        self._record_response("chat", system, prompt, content, response_schema)
-        return _loads_llm_content(content, "lmstudio")
+        # See Ollama.chat: one retry for a malformed reply only, never silent.
+        last_error: ValueError | None = None
+        for attempt in range(2):
+            with urllib.request.urlopen(request, timeout=self.timeout) as response:
+                body: dict[str, Any] = json.loads(response.read())
+            choices = body.get("choices")
+            if not isinstance(choices, list) or not choices:
+                raise ValueError("LM Studio returned no choices")
+            message = choices[0].get("message")
+            if not isinstance(message, dict) or not isinstance(message.get("content"), str):
+                raise ValueError("LM Studio returned no message content")
+            content = message["content"]
+            self._record_response("chat", system, prompt, content, response_schema)
+            try:
+                return _loads_llm_content(content, "lmstudio")
+            except ValueError as error:
+                last_error = error
+                continue
+        assert last_error is not None
+        raise last_error
 
 
 def _configured_llm_response_log() -> Path | None:
@@ -2662,6 +2685,14 @@ def _strip_unattributed_synthesis(research_context: str) -> str:
     ).strip("\n")
 
 
+# Extracting per material (see write_grounded_and_review) lets a many-member
+# cluster merge far more candidates than one combined extraction call ever
+# produced -- a live run sent 91 candidates (a 33k-char prompt) to the small
+# Reviewer model in one call, which fell into a degenerate id-repetition loop
+# and never closed its JSON. One page never needs that many facts anyway.
+MAX_FACTS_PER_GROUNDED_PAGE = 20
+
+
 def write_grounded_and_review(
     client: Any,
     reviewer: Any,
@@ -2705,6 +2736,11 @@ def write_grounded_and_review(
         for key, reason in material_rejections.items():
             deterministic_rejections[f"material-{material_index + 1}-{key}"] = reason
     research_context = "\n\n".join(context_blocks)
+    if len(candidates) > MAX_FACTS_PER_GROUNDED_PAGE:
+        candidates.sort(key=lambda fact: fact.confidence, reverse=True)
+        for dropped in candidates[MAX_FACTS_PER_GROUNDED_PAGE:]:
+            deterministic_rejections[dropped.fact_id] = "too_many_candidates_for_one_page"
+        candidates = candidates[:MAX_FACTS_PER_GROUNDED_PAGE]
     if len(candidates) < 2:
         return (
             False,

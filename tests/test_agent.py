@@ -51,6 +51,7 @@ from src.wiki_agent import (
     validate_action,
     validate_page_content,
     write_grounded_and_review,
+    MAX_FACTS_PER_GROUNDED_PAGE,
     REVIEW_RESPONSE_SCHEMA,
     _REQUIRED_PAGE_SECTIONS as REQUIRED_PAGE_SECTIONS,
 )
@@ -326,6 +327,63 @@ def test_write_grounded_and_review_extracts_each_material_independently(
         "メンバーAはXを報告した。",
         "メンバーBはYを報告した。",
     }
+
+
+def test_write_grounded_and_review_caps_candidates_sent_to_the_reviewer(
+    tmp_path: Path,
+) -> None:
+    # Extracting per material means a cluster with many members can merge far
+    # more candidates than one combined extraction call ever produced. A live
+    # run sent 91 candidates (a 33k-char prompt) to the small Reviewer model in
+    # one call, which fell into a degenerate id-repetition loop and never
+    # closed its JSON. One page never needs that many facts anyway; keep the
+    # highest-confidence ones and review only those.
+    review_payload_sizes: list[int] = []
+
+    class Client:
+        def chat(
+            self, system: str, prompt: str, response_schema: dict[str, object] | None = None
+        ) -> dict[str, object]:
+            if response_schema is not None and "facts" in response_schema.get("properties", {}):
+                index = int(prompt.split("member-")[1].split("\n")[0].split("URL")[0].strip())
+                statement = f"メンバー{index}の報告。"
+                return {
+                    "facts": [
+                        {
+                            "statement": statement,
+                            "evidence_quote": statement,
+                            "source_id": "source-1",
+                            "confidence": 0.5 + (index % 10) * 0.01,
+                        }
+                    ]
+                }
+            return {}
+
+    materials = [
+        (
+            f"## 根拠\nタイトル: member-{i}\nURL: https://example.com/{i}\n"
+            f"抜粋:\nメンバー{i}の報告。",
+            [SearchResult(f"member-{i}", f"https://example.com/{i}", f"メンバー{i}の報告。")],
+        )
+        for i in range(40)
+    ]
+
+    class Reviewer:
+        def chat(
+            self, system: str, prompt: str, response_schema: dict[str, object]
+        ) -> dict[str, object]:
+            items = json.loads(prompt)
+            review_payload_sizes.append(len(items))
+            return {"accepted_fact_ids": [item["fact_id"] for item in items], "rejected": []}
+
+        def review(self, content: str, research_context: str) -> dict[str, object]:
+            return {"approved": True, "issues": []}
+
+    write_grounded_and_review(
+        Client(), Reviewer(), Path("10_Knowledge/Test.md"), materials, tmp_path
+    )
+
+    assert review_payload_sizes == [MAX_FACTS_PER_GROUNDED_PAGE]
 
 
 def test_deep_research_excludes_youtube_urls_from_fetched_sources(
@@ -968,6 +1026,60 @@ def test_ollama_chat_saves_prompt_and_response_when_trace_path_is_set(
     assert record["system"] == "system prompt"
     assert record["response"] == '{"answer":"応答"}'
     assert record["model"] == "qwen3:8b"
+
+
+def test_ollama_chat_retries_once_on_malformed_json_then_succeeds(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # A degenerate id-repetition loop in the model's output broke json.loads
+    # mid-string on a live run; it is a sampling fluke, not a reproducible
+    # defect, so a second attempt is worth making before giving up.
+    log_path = tmp_path / "llm-responses.jsonl"
+    replies = iter(['{"accepted_fact_ids": ["fact-1', '{"accepted_fact_ids": ["fact-1"]}'])
+
+    class Response:
+        def __enter__(self) -> "Response":
+            return self
+
+        def __exit__(self, *args: object) -> None:
+            pass
+
+        def read(self) -> bytes:
+            return json.dumps({"message": {"content": next(replies)}}).encode()
+
+    monkeypatch.setattr(
+        "src.wiki_agent.urllib.request.urlopen", lambda request, timeout=None: Response()
+    )
+    monkeypatch.setenv("MEMORIA_LLM_RESPONSE_LOG", str(log_path))
+
+    client = create_client(Config(tmp_path / "vault", ollama_url="http://x"))
+    result = client.chat("system", "prompt", {"type": "object"})
+
+    assert result == {"accepted_fact_ids": ["fact-1"]}
+    # Both attempts were logged -- a retry must never hide the failed one.
+    assert len(log_path.read_text(encoding="utf-8").splitlines()) == 2
+
+
+def test_ollama_chat_raises_after_two_malformed_replies(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    class Response:
+        def __enter__(self) -> "Response":
+            return self
+
+        def __exit__(self, *args: object) -> None:
+            pass
+
+        def read(self) -> bytes:
+            return json.dumps({"message": {"content": '{"broken'}}).encode()
+
+    monkeypatch.setattr(
+        "src.wiki_agent.urllib.request.urlopen", lambda request, timeout=None: Response()
+    )
+
+    client = create_client(Config(tmp_path / "vault", ollama_url="http://x"))
+    with pytest.raises(ValueError, match="failed to parse LLM JSON"):
+        client.chat("system", "prompt", {"type": "object"})
 
 
 def test_config_rejects_non_positive_context_length(tmp_path: Path) -> None:
