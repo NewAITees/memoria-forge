@@ -2500,7 +2500,7 @@ def build_cluster_context(
 
 
 def build_cluster_member_materials(
-    research: list[dict[str, Any]], max_pages_fetched: int
+    research: list[dict[str, Any]], max_pages_fetched: int, max_members: int = 5
 ) -> list[tuple[str, list[SearchResult]]]:
     """Split a cluster's per-member research into independently-grounded materials.
 
@@ -2512,9 +2512,16 @@ def build_cluster_member_materials(
     quote_not_found_in_cited_source for 100% of candidates. A member that adds
     no real sources contributes nothing, which is the correct outcome for a
     cluster that only loosely shares a topic.
+
+    Extracting per member makes total LLM calls for one page scale with
+    cluster size instead of staying fixed. Six consecutive scheduled runs
+    timed out at max_run_minutes=50 right after this landed, on clusters with
+    7-9 members each needing its own extraction call. `max_members` keeps that
+    bounded by keeping only the richest members (most of their own results).
     """
+    richest_first = sorted(research, key=lambda item: len(item["results"]), reverse=True)
     materials: list[tuple[str, list[SearchResult]]] = []
-    for item in research:
+    for item in richest_first[:max_members]:
         seen: set[str] = set()
         context_parts: list[str] = []
         sources: list[SearchResult] = []

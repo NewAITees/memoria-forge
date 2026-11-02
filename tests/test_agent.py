@@ -2288,6 +2288,35 @@ def test_build_cluster_member_materials_keeps_each_members_results_separate() ->
     assert "syn1" not in context2
 
 
+def test_build_cluster_member_materials_caps_member_count() -> None:
+    # Extracting per member means total LLM calls for one page scale with
+    # cluster size (no longer bounded by one shared max_pages_fetched slice).
+    # Six consecutive scheduled runs timed out at max_run_minutes=50 right
+    # after this landed, on clusters with 7-9 members each needing their own
+    # extraction call. Keep only the richest few members so one page's total
+    # call count stays bounded regardless of how large the cluster is.
+    research = [
+        {
+            "url": f"u{i}",
+            "synthesis": f"syn{i}",
+            "results": [
+                {"title": f"R{i}-{j}", "url": f"http://r{i}-{j}", "page_content": "body"}
+                for j in range(i + 1)
+            ],  # member i has i+1 distinct results, so richer members sort first
+        }
+        for i in range(8)
+    ]
+
+    materials = build_cluster_member_materials(research, max_pages_fetched=5, max_members=3)
+
+    assert len(materials) == 3
+    # The three richest members (most of their own results) win: u5, u6, u7.
+    kept_members = {
+        source.url.split("-")[0] for _context, sources in materials for source in sources
+    }
+    assert kept_members == {"http://r5", "http://r6", "http://r7"}
+
+
 class _SectionProbe(Ollama):
     """Writer whose model answers each per-section call; records every prompt."""
 
