@@ -359,7 +359,7 @@ def extract_verified_facts(
     return verified, rejected
 
 
-def review_facts(reviewer: Any, facts: list[AtomicFact]) -> dict[str, Any]:
+def review_facts(reviewer: Any, facts: list[AtomicFact], *, topic: str = "") -> dict[str, Any]:
     payload = [
         {
             "fact_id": fact.fact_id,
@@ -368,13 +368,23 @@ def review_facts(reviewer: Any, facts: list[AtomicFact]) -> dict[str, Any]:
         }
         for fact in facts
     ]
+    system = (
+        "Review each fact independently. Accept only when the quote alone supports every condition, "
+        "number, entity and causal qualification in the claim. Classify every supplied fact_id "
+        "exactly once."
+    )
+    review_input: Any = payload
+    if topic.strip():
+        system += (
+            " Also accept a fact only if it directly answers the requested page topic; reject facts "
+            "that are merely related to the same broad domain or appear in a neighboring cluster member."
+        )
+        review_input = {"topic": topic.strip(), "facts": payload}
     return cast(
         dict[str, Any],
         reviewer.chat(
-            "Review each fact independently. Accept only when the quote alone supports every condition, "
-            "number, entity and causal qualification in the claim. Classify every supplied fact_id "
-            "exactly once. Return JSON only.",
-            json.dumps(payload, ensure_ascii=False),
+            system + " Return JSON only.",
+            json.dumps(review_input, ensure_ascii=False),
             FACT_REVIEW_SCHEMA,
         ),
     )
@@ -511,6 +521,20 @@ def render_grounded_page(
         overview.strip()
         or f"このページでは、調査資料から直接確認できた{len(facts)}件の事実を整理する。"
     )
+    known_fact_ids = {fact.fact_id for fact in facts}
+
+    def normalize_known_parenthesized_citation(match: re.Match[str]) -> str:
+        fact_id = match.group(1)
+        # Some model responses wrap a valid ID in parentheses inside the
+        # footnote (`[^(fact-id)]`). Repair only IDs in this page's verified
+        # fact set; unknown references remain malformed and fail validation.
+        return f"[^{fact_id}]" if fact_id in known_fact_ids else match.group(0)
+
+    overview = re.sub(
+        r"\[\^\((fact-[A-Za-z0-9_-]+)\)\]",
+        normalize_known_parenthesized_citation,
+        overview,
+    )
     lines = [f"# {title}", "", "## 何が分かったか", "", overview, "", "## 確認できた事実", ""]
     for fact in facts:
         lines.extend([f"- {fact.statement_ja or fact.statement} [^{fact.fact_id}]", ""])
@@ -561,8 +585,10 @@ def write_grounded_page(
         "capabilities. implications must be explicitly labeled as interpretation, use only "
         "conservative conclusions supported by the verified statements, and avoid unproved benefits "
         "such as efficiency or cost savings. Select the relevant implication_fact_ids to cite that "
-        "interpretation. uncertainties must state only what the "
-        "facts do not establish. Do not include Markdown headings or URLs.",
+        "interpretation. uncertainties must be one or two specific open questions that the supplied "
+        "facts do not establish, phrased explicitly as unknown (for example, say what outcome or "
+        "condition the sources do not measure). Do not restate a supplied fact as an uncertainty, "
+        "and do not cite fact IDs in this section. Do not include Markdown headings or URLs.",
         json.dumps(
             {"requested_title": title, "verified_facts": material, "feedback": feedback},
             ensure_ascii=False,
@@ -622,6 +648,36 @@ def validate_grounded_page(page: str, facts: list[AtomicFact]) -> None:
         implication_ids = set(re.findall(r"\[\^(fact-[^\]]+)\]", implications_match.group(1)))
         if not implication_ids or implication_ids - known_fact_ids:
             issues.append("意味づけに検証済み事実への脚注がありません")
+    uncertainties_match = re.search(
+        r"^## まだ分からないこと\s*$(.*?)(?=^## )", page, re.MULTILINE | re.DOTALL
+    )
+    if uncertainties_match:
+        uncertainty_text = uncertainties_match.group(1).strip()
+        uncertainty_ids = set(re.findall(r"\[\^(fact-[^\]]+)\]", uncertainty_text))
+        if uncertainty_ids:
+            issues.append(
+                "未確認事項にFact脚注があります。既知の事実ではなく、未解決の問いを記載してください"
+            )
+        uncertainty_markers = (
+            "未確認",
+            "未検証",
+            "確認できない",
+            "明らかでない",
+            "明確でない",
+            "明確ではない",
+            "明らかではない",
+            "分からない",
+            "わからない",
+            "判明していない",
+            "確かめられていない",
+            "不明",
+            "記載されていない",
+            "示されていない",
+            "どの程度",
+            "かどうか",
+        )
+        if not any(marker in uncertainty_text for marker in uncertainty_markers):
+            issues.append("未確認事項が未解決の問いとして書かれていません")
     for fact in facts:
         display_statement = fact.statement_ja or fact.statement
         if not re.search(r"[\u3040-\u30ff\u3400-\u9fff]", display_statement):

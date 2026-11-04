@@ -1,7 +1,10 @@
+import json
 import re
 import sqlite3
 from pathlib import Path
 from typing import Any
+
+import pytest
 
 from src.atomic_facts import (
     AtomicFact,
@@ -11,6 +14,7 @@ from src.atomic_facts import (
     localize_verified_facts,
     extract_verified_facts,
     render_grounded_page,
+    review_facts,
     store_page_facts,
     unsupported_critical_tokens,
     validate_fact,
@@ -262,6 +266,23 @@ def test_filter_reviewed_facts_fails_closed_for_omitted_ids() -> None:
     assert rejected == {"fact-2": "reviewer_omitted_fact"}
 
 
+def test_fact_review_can_require_direct_relevance_to_page_topic() -> None:
+    captured: dict[str, str] = {}
+
+    class Reviewer:
+        def chat(self, system: str, prompt: str, response_schema: dict[str, Any]) -> dict[str, Any]:
+            captured["system"] = system
+            captured["prompt"] = prompt
+            return {"accepted_fact_ids": ["fact-1"], "rejected": []}
+
+    review_facts(Reviewer(), [_fact()], topic="NPUによるLLM学習")
+
+    prompt = json.loads(captured["prompt"])
+    assert prompt["topic"] == "NPUによるLLM学習"
+    assert prompt["facts"][0]["fact_id"] == "fact-1"
+    assert "directly answers the requested page topic" in captured["system"]
+
+
 def test_render_grounded_page_has_small_readable_structure_and_fact_links() -> None:
     page = render_grounded_page(
         "EKSのHPA負荷試験",
@@ -321,6 +342,82 @@ def test_validate_grounded_page_accepts_a_single_well_supported_source() -> None
     )
 
     validate_grounded_page(page, [fact, _fact("fact-2")])
+
+
+def test_validate_grounded_page_rejects_claims_masquerading_as_unknowns() -> None:
+    fact = _fact()
+    page = render_grounded_page(
+        "EKSのHPA負荷試験",
+        [fact],
+        implications="検証された範囲では、負荷に応じた増減を確認できます。",
+        uncertainties="この方式の成功は、特定の企業による採用に依存しています。[^fact-1]",
+        overview="HPAは2から6 Podへスケールする設定です。[^fact-1]",
+        implication_fact_ids=["fact-1"],
+    )
+
+    with pytest.raises(ValueError) as error:
+        validate_grounded_page(page, [fact])
+
+    assert "未確認事項にFact脚注があります" in str(error.value)
+    assert "未解決の問いとして書かれていません" in str(error.value)
+
+
+@pytest.mark.parametrize(
+    "uncertainty",
+    [
+        "GSTINの検証方法は明確でない。",
+        "GSTINの検証方法は明らかではない。",
+        "他の構成で同じ結果になるかは未確認です。",
+    ],
+)
+def test_validate_grounded_page_accepts_natural_unknown_statements(
+    uncertainty: str,
+) -> None:
+    fact = _fact()
+    page = render_grounded_page(
+        "EKSのHPA負荷試験",
+        [fact],
+        implications="検証された範囲では、負荷に応じた増減を確認できます。",
+        uncertainties=uncertainty,
+        overview="HPAは2から6 Podへスケールする設定です。[^fact-1]",
+        implication_fact_ids=["fact-1"],
+    )
+
+    validate_grounded_page(page, [fact])
+
+
+def test_render_grounded_page_normalizes_parenthesized_known_overview_citation() -> None:
+    fact = _fact()
+
+    page = render_grounded_page(
+        "EKSのHPA負荷試験",
+        [fact],
+        implications="検証された範囲では、負荷に応じた増減を確認できます。",
+        uncertainties="別構成での再現性は未確認です。",
+        overview="HPAは2から6 Podへスケールします。[^(fact-1)]",
+        implication_fact_ids=["fact-1"],
+    )
+
+    assert "HPAは2から6 Podへスケールします。[^fact-1]" in page
+    assert "[^(fact-1)]" not in page
+    validate_grounded_page(page, [fact])
+
+
+def test_render_grounded_page_does_not_repair_unknown_parenthesized_citation() -> None:
+    fact = _fact()
+
+    page = render_grounded_page(
+        "EKSのHPA負荷試験",
+        [fact],
+        implications="検証された範囲では、負荷に応じた増減を確認できます。",
+        uncertainties="別構成での再現性は未確認です。",
+        overview="HPAは変化します。[^(fact-invented)]",
+        implication_fact_ids=["fact-1"],
+    )
+
+    assert "[^(fact-invented)]" in page
+    with pytest.raises(ValueError, match="概要に検証済み事実への脚注がありません"):
+        validate_grounded_page(page, [fact])
 
 
 def test_validate_grounded_page_rejects_missing_fact_citation() -> None:

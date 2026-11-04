@@ -1548,6 +1548,8 @@ class Ollama:
             "For an evidence-grounded page, do not block merely because the overview or implications are brief "
             "when the verified facts do not support more detail. Do not demand benefits, capabilities, examples, "
             "or configuration details absent from the cited facts. Treat thin-but-accurate framing as a warning; "
+            "for a grounded page, the supplied research_context is the complete, independently reviewed "
+            "fact/quote/source evidence set; do not demand details from other or omitted research materials. "
             "block unsupported additions or missing attribution. A single source is not by itself a blocking issue; "
             "warn about source diversity unless a cited source is invalid, unrelated, or demonstrably unreliable. "
             "medium confidence is valid for limited evidence when the page states its limits; do not demand low "
@@ -2700,6 +2702,23 @@ def _strip_unattributed_synthesis(research_context: str) -> str:
 MAX_FACTS_PER_GROUNDED_PAGE = 20
 
 
+def _grounded_fact_evidence_context(facts: list[AtomicFact]) -> str:
+    """Give the final reviewer only the evidence attached to accepted page facts."""
+    return "\n\n".join(
+        "FACT ID: "
+        + fact.fact_id
+        + "\nCLAIM: "
+        + (fact.statement_ja or fact.statement)
+        + "\nSOURCE TITLE: "
+        + fact.source_title
+        + "\nSOURCE URL: "
+        + fact.source_url
+        + "\nVERBATIM EVIDENCE: "
+        + fact.evidence_quote
+        for fact in facts
+    )
+
+
 def write_grounded_and_review(
     client: Any,
     reviewer: Any,
@@ -2726,11 +2745,8 @@ def write_grounded_and_review(
     seen_fact_ids: set[str] = set()
     deterministic_rejections: dict[str, str] = {}
     sources: list[SearchResult] = []
-    context_blocks: list[str] = []
     for material_index, (material_context, material_sources) in enumerate(materials):
         material_context = _strip_unattributed_synthesis(material_context)
-        if material_context.strip():
-            context_blocks.append(material_context)
         sources.extend(material_sources)
         material_candidates, material_rejections = extract_verified_facts(
             client, target.stem, material_context, material_sources
@@ -2742,7 +2758,6 @@ def write_grounded_and_review(
             candidates.append(fact)
         for key, reason in material_rejections.items():
             deterministic_rejections[f"material-{material_index + 1}-{key}"] = reason
-    research_context = "\n\n".join(context_blocks)
     if len(candidates) > MAX_FACTS_PER_GROUNDED_PAGE:
         candidates.sort(key=lambda fact: fact.confidence, reverse=True)
         for dropped in candidates[MAX_FACTS_PER_GROUNDED_PAGE:]:
@@ -2764,7 +2779,7 @@ def write_grounded_and_review(
             },
             [],
         )
-    fact_review = review_facts(reviewer, candidates)
+    fact_review = review_facts(reviewer, candidates, topic=target.stem)
     facts, fact_rejections = filter_reviewed_facts(candidates, fact_review)
     if len(facts) < 2:
         return (
@@ -2818,7 +2833,7 @@ def write_grounded_and_review(
             if generated:
                 save_rejected_draft(vault_path, target, generated, feedback)
             continue
-        final_review = reviewer.review(content, research_context)
+        final_review = reviewer.review(content, _grounded_fact_evidence_context(facts))
         if not review_is_blocking(final_review):
             return True, content, final_review, facts
         feedback = json.dumps(final_review.get("issues", []), ensure_ascii=False)

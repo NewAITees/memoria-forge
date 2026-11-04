@@ -10,6 +10,7 @@ from pathlib import Path
 
 import pytest
 
+from src.atomic_facts import AtomicFact
 from src.wiki_agent import (
     Config,
     Git,
@@ -51,6 +52,7 @@ from src.wiki_agent import (
     validate_action,
     validate_page_content,
     write_grounded_and_review,
+    _grounded_fact_evidence_context,
     MAX_FACTS_PER_GROUNDED_PAGE,
     REVIEW_RESPONSE_SCHEMA,
     _REQUIRED_PAGE_SECTIONS as REQUIRED_PAGE_SECTIONS,
@@ -58,6 +60,26 @@ from src.wiki_agent import (
 from src.rss_collector import RSSCollector, RSSEntry, load_rss_sources
 from run_agent import run_once_with_timeout, scheduled_lock_path
 from src.research.deep_research import research_article
+
+
+def test_final_grounded_review_context_contains_only_verified_fact_evidence() -> None:
+    fact = AtomicFact(
+        fact_id="fact-verified",
+        statement="An inference-only NPU trained a language model.",
+        evidence_quote="VIDRAFT pretrained a small language model from scratch on an inference-only NPU.",
+        source_url="https://example.com/npu",
+        source_title="NPU training report",
+        confidence=0.9,
+        statement_ja="推論専用NPUで言語モデルが学習されました。",
+    )
+
+    context = _grounded_fact_evidence_context([fact])
+
+    assert "FACT ID: fact-verified" in context
+    assert "推論専用NPUで言語モデルが学習されました。" in context
+    assert fact.evidence_quote in context
+    assert fact.source_url in context
+    assert "AntAngelMed" not in context
 
 
 def test_vault_rejects_escape(tmp_path: Path) -> None:
@@ -312,7 +334,9 @@ def test_write_grounded_and_review_extracts_each_material_independently(
         def chat(
             self, system: str, prompt: str, response_schema: dict[str, object]
         ) -> dict[str, object]:
-            ids = [item["fact_id"] for item in json.loads(prompt)]
+            review_input = json.loads(prompt)
+            items = review_input.get("facts", review_input)
+            ids = [item["fact_id"] for item in items]
             return {"accepted_fact_ids": ids, "rejected": []}
 
         def review(self, content: str, research_context: str) -> dict[str, object]:
@@ -372,7 +396,8 @@ def test_write_grounded_and_review_caps_candidates_sent_to_the_reviewer(
         def chat(
             self, system: str, prompt: str, response_schema: dict[str, object]
         ) -> dict[str, object]:
-            items = json.loads(prompt)
+            review_input = json.loads(prompt)
+            items = review_input.get("facts", review_input)
             review_payload_sizes.append(len(items))
             return {"accepted_fact_ids": [item["fact_id"] for item in items], "rejected": []}
 

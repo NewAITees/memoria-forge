@@ -19,6 +19,14 @@
 - [ ] RSSがsummaryしか提供しない場合に記事全文を取得・保存する経路を実装・検証する
 - [x] Stage 2のコード契約を含む全体pytestを再確認する（2026-10-30、273 passed、4 feedparser DeprecationWarning。RSS summaryだけの場合の記事全文取得は別途未実装）
 
+## 連続却下ログ調査と既知Fact脚注の正規化（2026-11-02）
+- [x] 読み取り専用で直近54 runを集計する（review_rejected 37、insufficient_evidence 15、localization_failed 2。上位理由は決定的Fact不足8、Reviewer承認Fact不足7、既存ページ情報量減少3）
+- [x] 最新rejected draftで概要脚注が`[^(fact-id)]`となり、既知Fact IDでも決定的検査に落ちる再現を確認する
+- [x] 既知Fact IDに限り括弧付き脚注を正規化し、未知IDは引き続きfail-closedにする
+- [x] 回帰テスト、全283件、ruff、format、mypyを確認する（feedparser DeprecationWarning 4件）
+- [ ] scheduled次回実行で脚注修正後の結果を確認する（ライブ実行は起動していない）
+- [ ] Fact不足の継続原因（クラスタ内の広い話題混在・レビュー棄却）を別途評価する。品質ゲートは弱めない
+
 ## 記憶エンジン Stage 4 レビュー済み別名登録（2026-10-30）
 - [x] Entity aliasの人手レビュー済み登録APIを追加し、空値・未知Entity・別Entityとの衝突を拒否する
 - [x] reviewer/reason/timeをappend-only監査テーブルへ保存し、同一レビューの再送を冪等にする
